@@ -1,9 +1,11 @@
 import React from 'react';
+import DashboardLayout from '../components/DashboardLayout';
 import {Table, Dropdown, DropdownButton, Form} from 'react-bootstrap'
 
-export default function Students(){
+export default function Students(props: AuthenticatedComponentProps){
 
   return (
+  <DashboardLayout {...props} >
     <Table striped bordered size="sm">
       <thead>
         <tr>
@@ -86,5 +88,6 @@ export default function Students(){
         </tr>
       </tbody>
     </Table>
+    </DashboardLayout>
   );
 }
