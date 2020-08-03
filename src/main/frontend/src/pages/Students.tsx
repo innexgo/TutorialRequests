@@ -88,8 +88,8 @@ export default function Students(props: AuthenticatedComponentProps){
         </tr>
       </tbody>
     </Table>
-    <Button>Request</Button>
-    <Button>Cancel</Button>
+    <Button className="ml-2">Request</Button>
+    <Button className="ml-2">Cancel</Button>
     </DashboardLayout>
   );
 }
