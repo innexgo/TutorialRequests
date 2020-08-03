@@ -5,7 +5,7 @@ import {Table, Form, Button} from 'react-bootstrap'
 function Dashboard(props: AuthenticatedComponentProps) {
     return (
       <DashboardLayout {...props} >
-        <Table responsive>
+        <Table striped bordered size="sm">
           <thead>
             <tr>
               <th>Monday</th>
@@ -60,8 +60,8 @@ function Dashboard(props: AuthenticatedComponentProps) {
             </tr>
           </tbody>
         </Table>
-        <Button variant="success">Accept</Button>
-        <Button variant="danger">Reject</Button>
+        <Button variant="success" size="sm" block>Accept</Button>
+        <Button variant="danger" size="sm" block>Reject</Button>
       </DashboardLayout >
     )
   }
