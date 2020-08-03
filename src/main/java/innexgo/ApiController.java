@@ -193,6 +193,7 @@ public class ApiController {
       .query(
           Utils.parseLong(allRequestParam.get("apiKeyId")),
           Utils.parseLong(allRequestParam.get("userId")),
+          Utils.parseBoolean(allRequestParam.get("administrator")),
           Utils.parseLong(allRequestParam.get("apiKeyMinCreationTime")),
           Utils.parseLong(allRequestParam.get("apiKeyMaxCreationTime")),
           allRequestParam.containsKey("apiKeyData")

@@ -30,8 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class StudentService {
 
-  @Autowired private PeriodService periodService;
-  @Autowired private CourseService courseService;
   @Autowired private JdbcTemplate jdbcTemplate;
 
   public Student getById(long id) {
@@ -112,34 +110,6 @@ public class StudentService {
             + (" AND outen.time IS NULL OR outen.time > " + time)
             + " ;";
 
-    RowMapper<Student> rowMapper = new StudentRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
-  }
-
-  // Find students who are supposed to be here
-  public List<Student> registeredForCourse(long courseId, long time) {
-    Course course = courseService.getById(courseId);
-    Period period = periodService.getByTime(time);
-
-    // Do some sanity checks to ensure that the time's period is the same period as the course
-    if(period.numbering != course.period) {
-      // empty list return
-      return new ArrayList<Student>();
-    }
-
-    // Find schedules which have the specified courseId
-    // From these select schedules where the beginning of this period is before time
-    // From these select schedules where the beginning of the next period is after time
-    // Return the students of these schedules
-    String sql =
-        " SELECT DISTINCT st.id, st.name"
-      + " FROM student st"
-      + " INNER JOIN schedule sc ON st.id = sc.student_id"
-      + " INNER JOIN course cs ON cs.id = sc.course_id "
-      + " WHERE 1 = 1"
-      + " AND cs.id = " + course.id
-      + " AND (!sc.has_start OR sc.start_time <= "+time+ ") AND (!sc.has_end OR sc.end_time > "+time + ")"
-      + " ;";
     RowMapper<Student> rowMapper = new StudentRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
