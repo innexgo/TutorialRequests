@@ -1,9 +1,11 @@
 import React from 'react';
-import {Table, Dropdown, DropdownButton, Form} from 'react-bootstrap'
+import DashboardLayout from '../components/DashboardLayout';
+import {Table, Dropdown, DropdownButton, Form, Button} from 'react-bootstrap'
 
-export default function Students(){
+export default function Students(props: AuthenticatedComponentProps){
 
   return (
+  <DashboardLayout {...props} >
     <Table striped bordered size="sm">
       <thead>
         <tr>
@@ -15,7 +17,6 @@ export default function Students(){
         </tr>
       </thead>
       <tbody>
-        <Form>
         <tr>
           <td>
             <DropdownButton title="Choose Teacher">
@@ -56,14 +57,18 @@ export default function Students(){
         <tr>
           <td></td>
           <td>
+            <Form>
             <Form.Group controlId="checkbox">
               <Form.Check type="checkbox" label="Mr. Taylor" />
             </Form.Group>
+            </Form>
           </td>
           <td>
+            <Form>
             <Form.Group controlId="checkbox">
               <Form.Check type="checkbox" label="Jack Chen" />
             </Form.Group>
+            </Form>
           </td>
           <td></td>
           <td></td>
@@ -71,16 +76,20 @@ export default function Students(){
         <tr>
           <td></td>
           <td>
+            <Form>
             <Form.Group controlId="checkbox">
               <Form.Check type="checkbox" label="Ms. Cole" />
             </Form.Group>
+            </Form>
           </td>
           <td></td>
           <td></td>
           <td></td>
         </tr>
-      </Form>
       </tbody>
     </Table>
+    <Button>Request</Button>
+    <Button>Cancel</Button>
+    </DashboardLayout>
   );
 }
