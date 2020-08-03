@@ -96,10 +96,7 @@ class DashboardLayout extends React.Component<AuthenticatedComponentProps, Dashb
                 	<h6>{this.props.apiKey.user.name}</h6>
               	</div>
           }
-          <SidebarEntry label="Dashboard" href="/dashboard" collapsed={collapsed} icon={Home} />
-          <SidebarEntry label="Find Student" href="/findstudent" collapsed={collapsed} icon={Search} />
-          <SidebarEntry label="My Classes" href="/classes" collapsed={collapsed} icon={People} />
-          <SidebarEntry label="Reports" href="/reports" collapsed={collapsed} icon={BarChart} />
+          <SidebarEntry label="Home" href="/teachers" collapsed={collapsed} icon={Home} />
           <div style={sidebarBottom}>
             <SidebarEntry label="Settings" href="/settings" collapsed={collapsed} icon={Settings} />
             <button
