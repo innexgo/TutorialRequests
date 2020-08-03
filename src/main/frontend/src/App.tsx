@@ -6,7 +6,7 @@ import AuthenticatedRoute from './components/AuthenticatedRoute';
 import Home from './pages/Home';
 import About from './pages/About';
 import TermsOfService from './pages/TermsOfService';
-import Dashboard from './pages/Dashboard';
+import Teachers from './pages/Teachers';
 import Error from './pages/Error';
 
 function getPreexistingApiKey() {
@@ -44,7 +44,7 @@ function App() {
         <Route path="/" exact component={Home} />
         <Route path="/about" component={About} />
         <Route path="/terms_of_service" component={TermsOfService} />
-        <AuthenticatedRoute path="/dashboard"  {...apiKeyGetSetter} component={Dashboard} />
+        <AuthenticatedRoute path="/teachers"  {...apiKeyGetSetter} component={Teachers} />
         <Route path="/" component={Error} />
       </Switch>
     </BrowserRouter>
