@@ -34,6 +34,30 @@ function Login({ setApiKey }: LoginProps) {
   const [password, setPassword] = React.useState("");
 
   async function postLogin() {
+
+    /*****************************************************************************/
+    /*****************************************************************************/
+    /*****************************************************************************/
+    /*****************************************************************************/
+    // DEVELOPER ONLY TODO TODO don't do this in production
+    setApiKey({
+      id: 0,
+      creationTime: moment().valueOf(),
+      expirationTime: moment().add(30, 'hours').valueOf(),
+      key: "dummy",
+      user: {
+        id: 0,
+        name: "Ralph Johnson",
+        email: "example@example.com",
+        ring: 0
+      } as User
+    } as ApiKey);
+    return;
+    /*****************************************************************************/
+    /*****************************************************************************/
+    /*****************************************************************************/
+    /*****************************************************************************/
+
     const apiKeyExpirationTime = moment().add(30, 'hours').valueOf();
     try {
       const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
@@ -49,7 +73,7 @@ function Login({ setApiKey }: LoginProps) {
   }
 
   return (
-    <ExternalLayout fixed={false} transparentTop={false}>
+    <ExternalLayout fixed={false} transparentTop={true}>
       <div style={bgStyle}>
         <Card>
           <Card.Body>
