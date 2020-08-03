@@ -2,7 +2,7 @@ import React from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import {Table, Form, Button} from 'react-bootstrap'
 
-function Dashboard(props: AuthenticatedComponentProps) {
+function Teachers(props: AuthenticatedComponentProps) {
     return (
       <DashboardLayout {...props} >
         <Table striped bordered size="sm">
@@ -60,10 +60,10 @@ function Dashboard(props: AuthenticatedComponentProps) {
             </tr>
           </tbody>
         </Table>
-        <Button variant="success" size="sm" block>Accept</Button>
+        <Button variant="success" size="sm" block style={{marginBottom: '1rem'}}>Accept</Button>
         <Button variant="danger" size="sm" block>Reject</Button>
       </DashboardLayout >
     )
   }
 
-  export default Dashboard;
+  export default Teachers;
