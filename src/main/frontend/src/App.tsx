@@ -1,11 +1,13 @@
-import * as React from "react";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import AuthenticatedRoute from './components/AuthenticatedRoute';
 
-import Students from "./pages/Students";
-import Teachers from "./pages/Teachers";
-
+import Home from './pages/Home';
+import About from './pages/About';
+import TermsOfService from './pages/TermsOfService';
+import Dashboard from './pages/Dashboard';
+import Error from './pages/Error';
 
 function getPreexistingApiKey() {
   const preexistingApiKeyString = localStorage.getItem("apiKey");
@@ -28,7 +30,6 @@ function App() {
 
   const [apiKey, setApiKeyState] = React.useState(preexistingApiKey);
 
-	// contains methods to get and set the api key, while updating the local store as well
   const apiKeyGetSetter = {
     apiKey: apiKey,
     setApiKey: (data: ApiKey | null) => {
@@ -40,10 +41,14 @@ function App() {
   return (
     <BrowserRouter>
       <Switch>
-        <AuthenticatedRoute {...apiKeyGetSetter} path="/students" exact component={Students} />
-        <AuthenticatedRoute {...apiKeyGetSetter} path="/teachers" exact component={Teachers} />
+        <Route path="/" exact component={Home} />
+        <Route path="/about" component={About} />
+        <Route path="/terms_of_service" component={TermsOfService} />
+        <AuthenticatedRoute path="/dashboard"  {...apiKeyGetSetter} component={Dashboard} />
+        <Route path="/" component={Error} />
       </Switch>
-    </BrowserRouter>);
+    </BrowserRouter>
+  );
 }
 
 export default App;
