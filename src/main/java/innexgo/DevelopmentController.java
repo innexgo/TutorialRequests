@@ -50,7 +50,6 @@ public class DevelopmentController {
     user.name = "root";
     user.email = rootEmail;
     user.passwordHash = Utils.encodePassword("1234");
-    user.ring = User.ADMINISTRATOR;
     userService.add(user);
 
     // Create apiKey

@@ -21,6 +21,7 @@ package innexgo;
 public class ApiKey {
   public long id;
   long userId;
+  public boolean administrator;
   public long creationTime;
   public long expirationTime;
 

@@ -28,6 +28,7 @@ public class ApiKeyRowMapper implements RowMapper<ApiKey> {
     ApiKey apiKey = new ApiKey();
     apiKey.id = row.getLong("id");
     apiKey.userId = row.getLong("user_id");
+    apiKey.administrator = row.getBoolean("administrator");
     apiKey.creationTime = row.getLong("creation_time");
     apiKey.expirationTime = row.getLong("expiration_time");
     apiKey.keyHash = row.getString("key_hash");

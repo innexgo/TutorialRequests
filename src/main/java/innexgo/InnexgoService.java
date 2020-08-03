@@ -82,8 +82,14 @@ public class InnexgoService {
     if (key == null) {
       return false;
     }
-    User user = getUserIfValid(key);
-    return user != null && (user.ring == User.ADMINISTRATOR);
+    String hash = Utils.encodeApiKey(key);
+    if (apiKeyService.existsByKeyHash(hash)) {
+      ApiKey apiKey = apiKeyService.getByKeyHash(hash);
+      if (apiKey.expirationTime > System.currentTimeMillis()) {
+        return apiKey.administrator;
+      }
+    }
+    return false;
   }
 
   /**
@@ -97,7 +103,7 @@ public class InnexgoService {
       return false;
     }
     User user = getUserIfValid(key);
-    return user != null && (user.ring <= User.TEACHER);
+    return user != null;
   }
 }
 
