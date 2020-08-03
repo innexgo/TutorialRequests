@@ -15,7 +15,6 @@ export default function Students(){
         </tr>
       </thead>
       <tbody>
-        <Form>
         <tr>
           <td>
             <DropdownButton title="Choose Teacher">
@@ -56,14 +55,18 @@ export default function Students(){
         <tr>
           <td></td>
           <td>
+            <Form>
             <Form.Group controlId="checkbox">
               <Form.Check type="checkbox" label="Mr. Taylor" />
             </Form.Group>
+            </Form>
           </td>
           <td>
+            <Form>
             <Form.Group controlId="checkbox">
               <Form.Check type="checkbox" label="Jack Chen" />
             </Form.Group>
+            </Form>
           </td>
           <td></td>
           <td></td>
@@ -71,15 +74,16 @@ export default function Students(){
         <tr>
           <td></td>
           <td>
+            <Form>
             <Form.Group controlId="checkbox">
               <Form.Check type="checkbox" label="Ms. Cole" />
             </Form.Group>
+            </Form>
           </td>
           <td></td>
           <td></td>
           <td></td>
         </tr>
-      </Form>
       </tbody>
     </Table>
   );
