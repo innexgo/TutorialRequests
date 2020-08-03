@@ -23,11 +23,41 @@ function Dashboard(props: AuthenticatedComponentProps) {
               <td>Accepted:</td>
               <td>Accepted:</td>
             </tr>
-            <tr><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></tr>
-            <tr><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></tr>
-            <tr><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></tr>
-            <tr><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></tr>
-            <tr><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></tr>
+            <tr>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+            </tr>
+            <tr>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+            </tr>
+            <tr>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+            </tr>
+            <tr>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+            </tr>
+            <tr>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+              <td><Form.Group controlId="formBasicCheckbox"><Form.Check type="checkbox" label="Check me out" /></Form.Group></td>
+            </tr>
           </tbody>
         </Table>
         <Button variant="success">Accept</Button>
