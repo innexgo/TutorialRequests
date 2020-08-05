@@ -1170,6 +1170,14 @@
     "@fullcalendar/common" "~5.2.0"
     tslib "^2.0.0"
 
+"@fullcalendar/react@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/react/-/react-5.2.0.tgz#4c89954ee586210d63e1187d4d242ee538d38d2b"
+  integrity sha512-7reGbOriO87+zP6L9T50ry04RfQqXFMjjiRdtFX/iOCs11gVARNQGP6rG1qH5xcKxNze02lHhILZb0pa/DowaA==
+  dependencies:
+    "@fullcalendar/common" "~5.2.0"
+    tslib "^2.0.0"
+
 "@fullcalendar/timegrid@^5.2.0":
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/@fullcalendar/timegrid/-/timegrid-5.2.0.tgz#5070137a78720ffb3858840c467900afd7800ddb"
