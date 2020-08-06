@@ -3,11 +3,9 @@ import FullCalendar  from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import DashboardLayout from '../../components/DashboardLayout';
 
-function Calendar(props: AuthenticatedComponentProps) {
+function Calendar(props: StudentComponentProps) {
   return (
-  <DashboardLayout {...props} >
     <FullCalendar
       plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
       headerToolbar={{
@@ -23,7 +21,7 @@ function Calendar(props: AuthenticatedComponentProps) {
       weekends={false}
       initialEvents={[]}
     />
-  </DashboardLayout>
 )};
 
 export default Calendar;
+

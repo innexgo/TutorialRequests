@@ -5,7 +5,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import DashboardLayout from '../../components/DashboardLayout';
 
-function Calendar(props: AuthenticatedComponentProps) {
+function TeacherCalendar(props: AuthenticatedComponentProps) {
   return (
   <DashboardLayout {...props} >
     <FullCalendar
@@ -26,5 +26,4 @@ function Calendar(props: AuthenticatedComponentProps) {
   </DashboardLayout>
 )};
 
-export default Calendar;
-
+export default TeacherCalendar;
