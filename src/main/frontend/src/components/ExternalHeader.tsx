@@ -70,8 +70,8 @@ class ExternalHeader extends React.Component<ExternalHeaderProps, ExternalHeader
               id="navbarSupportedContent">
               <div className="navbar-nav ml-auto">
                 <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/about">About</Link>
-                <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/teachers">Teacher Login</Link>
-                <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/students">Student Login</Link>
+                <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/user">Teacher Login</Link>
+                <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/student">Student Login</Link>
               </div>
             </div>
           </div>
