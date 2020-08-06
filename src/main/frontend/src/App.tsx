@@ -9,6 +9,8 @@ import About from './pages/About';
 import TermsOfService from './pages/TermsOfService';
 import UserDashboard from './pages/UserDashboard';
 import UserApptCreator from './pages/UserApptCreator';
+import Pending from './pages/Pending';
+import Attendance from './pages/Attendance';
 
 import StudentDashboard from './pages/StudentDashboard';
 import StudentApptCreator from './pages/StudentApptCreator';
@@ -77,6 +79,10 @@ function App() {
           component={UserDashboard} />
         <AuthenticatedRoute path="/user/apptcreator" {...apiKeyGetSetter}
           component={UserApptCreator} />
+        <AuthenticatedRoute path="/pending" {...apiKeyGetSetter}
+          component={Pending} />
+        <AuthenticatedRoute path="/attendance" {...apiKeyGetSetter}
+          component={Attendance} />
         <StudentRoute path="/student" {...studentGetSetter}
           component={StudentDashboard} />
         <StudentRoute path="/student/apptcreator" {...studentGetSetter}
