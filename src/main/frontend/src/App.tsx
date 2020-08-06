@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import AuthenticatedRoute from './components/AuthenticatedRoute';
-import AuthenticatedRoute from './components/StudentRoute';
+import StudentRoute from './components/StudentRoute';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -32,16 +32,16 @@ function getPreexistingApiKey() {
 }
 
 function getPreexistingStudent() {
-  const preexistingApiKeyString = localStorage.getItem("apiKey");
-  if (preexistingApiKeyString == null) {
+  const preexistingStudentString = localStorage.getItem("student");
+  if (preexistingStudentString == null) {
     return null;
   } else {
     try {
       // TODO validate here
-      return JSON.parse(preexistingApiKeyString) as ApiKey;
+      return JSON.parse(preexistingStudentString) as Student;
     } catch (e) {
       // try to clean up a bad config
-      localStorage.setItem("apiKey", JSON.stringify(null));
+      localStorage.setItem("student", JSON.stringify(null));
       return null;
     }
   }
@@ -60,8 +60,12 @@ function App() {
 
   const [student, setStudent] = React.useState(getPreexistingStudent());
   const studentGetSetter = {
-		
-  }
+      student: student,
+      setStudent: (data: Student | null) => {
+          localStorage.setItem("student", JSON.stringify(data));
+          setStudent(data);
+      }
+  };
 
   return (
     <BrowserRouter>

@@ -36,13 +36,18 @@ function SidebarEntry(props: SidebarEntryProps) {
   }
 }
 
-interface DashboardHeaderState {
+interface DashboardLayoutState {
   sidebarCollapsed: boolean;
 }
 
-class DashboardLayout extends React.Component<AuthenticatedComponentProps, DashboardHeaderState> {
+interface DashboardLayoutProps {
+	name:string
+	logoutCallback:()=>void
+}
 
-  constructor(props: AuthenticatedComponentProps) {
+class DashboardLayout extends React.Component<DashboardLayoutProps, DashboardLayoutState> {
+
+  constructor(props: DashboardLayoutProps) {
     super(props);
     this.state = {
       sidebarCollapsed: true
@@ -93,7 +98,7 @@ class DashboardLayout extends React.Component<AuthenticatedComponentProps, Dashb
             collapsed
               ? ""
               : <div className="nav-item nav-link mx-auto my-3">
-                	<h6>{this.props.apiKey.user.name}</h6>
+                	<h6>{this.props.name}</h6>
               	</div>
           }
           <SidebarEntry label="Home" href="/teachers" collapsed={collapsed} icon={Home} />
@@ -103,7 +108,7 @@ class DashboardLayout extends React.Component<AuthenticatedComponentProps, Dashb
               style={{ color: "#fff" }}
               type="button"
               className="btn nav-item nav-link"
-              onClick={() => this.props.setApiKey(null)}
+              onClick={() => this.props.logoutCallback()}
             >
               <ExitToApp style={iconStyle} /> {collapsed ? "" : "Log Out"}
             </button>

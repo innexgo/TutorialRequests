@@ -1,21 +1,23 @@
 import React from 'react'
 import { Form, Button } from 'react-bootstrap';
-import DashboardLayout from '../../components/DashboardLayout';
-import CSS from 'csstype';
+import DashboardLayout from '../components/DashboardLayout';
 
-export default function MakeAppt(props: AuthenticatedComponentProps) {
-  const formStyle: CSS.Properties = {
+function StudentApptCreator(props: StudentComponentProps) {
+  const formStyle = {
     padding: '0% 3%',
-  }
-  const headerStyle: CSS.Properties = {
+  };
+
+  const headerStyle = {
     marginTop: '2%',
-    textAlign: 'center',
-  }
-  const buttonStyle: CSS.Properties = {
+    textAlign: 'center' as const,
+  };
+
+  const buttonStyle = {
     marginTop: '2%',
-  }
+  };
+
   return (
-    <DashboardLayout {...props} >
+    <DashboardLayout name={props.student.name} logoutCallback={() => props.setStudent(null)} >
       <h1 style={headerStyle}>Make an Appointment</h1>
       <Form style={formStyle}>
         <Form.Group controlId="date">
@@ -42,3 +44,6 @@ export default function MakeAppt(props: AuthenticatedComponentProps) {
     </DashboardLayout>
   );
 }
+
+
+export default StudentApptCreator;
