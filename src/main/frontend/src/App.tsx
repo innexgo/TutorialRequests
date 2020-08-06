@@ -6,8 +6,10 @@ import AuthenticatedRoute from './components/AuthenticatedRoute';
 import Home from './pages/Home';
 import About from './pages/About';
 import TermsOfService from './pages/TermsOfService';
-import Teachers from './pages/Teachers';
-import Students from './pages/Students';
+import TeacherCalendar from './pages/Teachers/Calendar';
+import StudentCalendar from './pages/Students/Calendar';
+import StudentMakeAppt from './pages/Students/MakeAppt';
+import TeacherMakeAppt from './pages/Teachers/MakeAppt';
 import Error from './pages/Error';
 
 function getPreexistingApiKey() {
@@ -45,8 +47,10 @@ function App() {
         <Route path="/" exact component={Home} />
         <Route path="/about" component={About} />
         <Route path="/terms_of_service" component={TermsOfService} />
-        <AuthenticatedRoute path="/teachers"  {...apiKeyGetSetter} component={Teachers} />
-        <AuthenticatedRoute path="/students" {...apiKeyGetSetter} component={Students} />
+        <AuthenticatedRoute path="/teachers"  {...apiKeyGetSetter} component={TeacherCalendar} />
+        <AuthenticatedRoute path="/students" {...apiKeyGetSetter} component={StudentCalendar} />
+        <AuthenticatedRoute path="/studentmakeappt" {...apiKeyGetSetter} component={StudentMakeAppt} />
+        <AuthenticatedRoute path="/teachermakeappt" {...apiKeyGetSetter} component={TeacherMakeAppt} />
         <Route path="/" component={Error} />
       </Switch>
     </BrowserRouter>

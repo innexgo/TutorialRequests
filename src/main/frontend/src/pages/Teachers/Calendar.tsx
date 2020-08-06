@@ -3,9 +3,9 @@ import FullCalendar  from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import DashboardLayout from '../components/DashboardLayout';
+import DashboardLayout from '../../components/DashboardLayout';
 
-function Teachers(props: AuthenticatedComponentProps) {
+function Calendar(props: AuthenticatedComponentProps) {
   return (
   <DashboardLayout {...props} >
     <FullCalendar
@@ -26,4 +26,4 @@ function Teachers(props: AuthenticatedComponentProps) {
   </DashboardLayout>
 )};
 
-export default Teachers;
+export default Calendar;
