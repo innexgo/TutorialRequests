@@ -24,6 +24,10 @@ function StudentApptCreator(props: StudentComponentProps) {
           <Form.Label>Date</Form.Label>
           <Form.Control type="date" />
         </Form.Group>
+        <Form.Group controlId="time">
+          <Form.Label>Time</Form.Label>
+          <Form.Control type="time" />
+        </Form.Group>
 
         <Form.Group controlId="teacher">
           <Form.Label>Teacher</Form.Label>
