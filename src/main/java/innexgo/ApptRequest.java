@@ -18,7 +18,19 @@
 
 package innexgo;
 
-public class Student {
+public class ApptRequest {
   public long id;
-  public String name;
+  long studentId;
+  long userId;
+  public String message;
+  public long creationTime;
+  public long requestTime;
+  public boolean reviewed;
+  public boolean approved;
+  public String response;
+  public boolean present;
+
+  // for jackson
+  Student student;
+  User user;
 }

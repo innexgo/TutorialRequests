@@ -28,50 +28,61 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @Repository
-public class StudentService {
+public class ApptRequestService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public Student getById(long id) {
-    String sql = "SELECT id, name FROM student WHERE id=?";
-    RowMapper<Student> rowMapper = new StudentRowMapper();
-    Student student = jdbcTemplate.queryForObject(sql, rowMapper, id);
-    return student;
+  public ApptRequest getById(long id) {
+    String sql = "SELECT id, student_id, user_id, message, creation_time, request_time, reviewed, approved, response, present FROM apptRequest WHERE id=?";
+    RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
+    ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
+    return apptRequest;
   }
 
-  public List<Student> getAll() {
-    String sql = "SELECT id, name FROM student";
-    RowMapper<Student> rowMapper = new StudentRowMapper();
+  public List<ApptRequest> getAll() {
+    String sql = "SELECT id, student_id, user_id, message, creation_time, request_time, reviewed, approved, response, present FROM apptRequest";
+    RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
-  public void add(Student student) {
-    // Add student
-    String sql = "INSERT INTO student(id, name) values (?, ?)";
-    jdbcTemplate.update(sql, student.id, student.name);
+  public void add(ApptRequest apptRequest) {
+    // Add apptRequest
+    String sql = "INSERT INTO apptRequest(id, student_id, user_id, message, creation_time, request_time, reviewed, approved, response, present) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    jdbcTemplate.update(sql, apptRequest.id, apptRequest.studentId,
+        apptRequest.userId, apptRequest.message, apptRequest.creationTime, apptRequest.requestTime, 
+        apptRequest.reviewed, apptRequest.approved, apptRequest.response, apptRequest.present);
   }
 
-  public void update(Student student) {
-    String sql = "UPDATE student SET id=?, name=? WHERE id=?";
-    jdbcTemplate.update(
-        sql, student.id, student.name, student.id);
+  public void update(ApptRequest apptRequest) {
+    String sql = "UPDATE apptRequest SET id=?, student_id=?, user_id=?, message=?, creation_time=?, request_time=?, reviewed=?. approved=?, response=?, present=? WHERE id=?";
+    jdbcTemplate.update(sql,
+        apptRequest.id,
+        apptRequest.studentId,
+        apptRequest.userId,
+        apptRequest.message, 
+        apptRequest.creationTime, 
+        apptRequest.requestTime,
+        apptRequest.reviewed, 
+        apptRequest.approved, 
+        apptRequest.response, 
+        apptRequest.present);
   }
 
-  public Student deleteById(long id) {
-    Student student = getById(id);
-    String sql = "DELETE FROM student WHERE id=?";
+  public ApptRequest deleteById(long id) {
+    ApptRequest apptRequest = getById(id);
+    String sql = "DELETE FROM apptRequest WHERE id=?";
     jdbcTemplate.update(sql, id);
-    return student;
+    return apptRequest;
   }
 
   public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM student WHERE id=?";
+    String sql = "SELECT count(*) FROM apptRequest WHERE id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
     return count != 0;
   }
 
-  // Restrict students by
-  public List<Student> query(
+  // Restrict apptRequests by
+  public List<ApptRequest> query(
       Long id, // Exact match to id
       String name, // Exact match to name
       String partialName, // Partial match to name
@@ -79,7 +90,7 @@ public class StudentService {
       long count
       ) {
     String sql =
-        "SELECT st.id, st.name FROM student st"
+        "SELECT st.id, st.name FROM apptRequest st"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND st.id = " + id)
             + (name == null ? "" : " AND st.name = " + Utils.escape(name))
@@ -88,29 +99,7 @@ public class StudentService {
             + (" LIMIT " + offset + ", "  + count)
             + ";";
 
-    RowMapper<Student> rowMapper = new StudentRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
-  }
-
-  // find students who are present at this location
-  public List<Student> present(long locationId, long time) {
-    // Find the sessions that have a start date before the  time
-    // If they have an end date it must be after the time
-    // find students who are in this list
-
-    String sql =
-              " SELECT DISTINCT st.id, st.name"
-            + " FROM student st"
-            + " INNER JOIN encounter inen ON st.id = inen.student_id"
-            + " INNER JOIN session ses ON ses.in_encounter_id = inen.id"
-            + " LEFT JOIN encounter outen ON ses.complete AND ses.out_encounter_id = outen.id"
-            + " WHERE 1 = 1 "
-            + (" AND inen.location_id = " + locationId)
-            + (" AND inen.time < " + time)
-            + (" AND outen.time IS NULL OR outen.time > " + time)
-            + " ;";
-
-    RowMapper<Student> rowMapper = new StudentRowMapper();
+    RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 }

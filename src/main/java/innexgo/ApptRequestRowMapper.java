@@ -22,13 +22,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 
-public class StudentRowMapper implements RowMapper<Student> {
+public class ApptRequestRowMapper implements RowMapper<ApptRequest> {
 
   @Override
-  public Student mapRow(ResultSet row, int rowNum) throws SQLException {
-    Student student = new Student();
-    student.id = row.getLong("id");
-    student.name = row.getString("name");
-    return student;
+  public ApptRequest mapRow(ResultSet row, int rowNum) throws SQLException {
+    ApptRequest apptRequest = new ApptRequest();
+    apptRequest.id = row.getLong("id");
+    apptRequest.studentId = row.getLong("student_id");
+    apptRequest.userId = row.getLong("user_id");
+    apptRequest.message = row.getString("message");
+    apptRequest.creationTime = row.getLong("creation_time");
+    apptRequest.requestTime = row.getLong("request_time");
+    apptRequest.reviewed = row.getBoolean("reviewed");
+    apptRequest.approved = row.getBoolean("approved");
+    apptRequest.response = row.getString("response");
+    apptRequest.present = row.getBoolean("present");
+    return apptRequest;
   }
 }
