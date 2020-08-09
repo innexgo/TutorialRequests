@@ -77,7 +77,7 @@ function App() {
         <Route path="/terms_of_service" component={TermsOfService} />
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
           component={UserDashboard} />
-        <AuthenticatedRoute path="/user/apptcreator" {...apiKeyGetSetter}
+        <AuthenticatedRoute path="/userapptcreator" {...apiKeyGetSetter}
           component={UserApptCreator} />
         <AuthenticatedRoute path="/pending" {...apiKeyGetSetter}
           component={Pending} />
@@ -85,7 +85,7 @@ function App() {
           component={Attendance} />
         <StudentRoute path="/student" {...studentGetSetter}
           component={StudentDashboard} />
-        <StudentRoute path="/student/apptcreator" {...studentGetSetter}
+        <StudentRoute path="/studentapptcreator" {...studentGetSetter}
           component={StudentApptCreator} />
         <Route path="/" component={Error404} />
       </Switch>
