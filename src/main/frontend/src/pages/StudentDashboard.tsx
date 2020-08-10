@@ -19,14 +19,12 @@ interface AppointmentCardProps {
 //card that shows appointment
 function AppointmentCard(props: AppointmentCardProps) {
   
-  return (
     
 
 }
 
 
 function StudentDashboard(props: StudentComponentProps) {
-  const loadData = async (apiKey: ApiKey):Promise<UpcomingClassesProps>
 
   return (
   <DashboardLayout name={props.student.name} logoutCallback={()=>props.setStudent(null)} >
@@ -46,13 +44,12 @@ function StudentDashboard(props: StudentComponentProps) {
       dayMaxEvents={true}
       weekends={false}
       initialEvents={[]}
-      dateClick={this.handleDateClick}
+      //dateClick={this.handleDateClick}
     />
     </DashboardLayout>
 );
 
-handleDateClick = (
-
+//handleDateClick = (
 
 }
 

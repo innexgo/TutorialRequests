@@ -3,7 +3,7 @@ import { Card, Button } from 'react-bootstrap';
 import DashboardLayout from '../components/DashboardLayout';
 import ApptCard from '../components/ApptCard';
 import Utility from '../components/Utility';
-import Loader from '../coponents/Loader';
+import Loader from '../components/Loader';
 import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
 
