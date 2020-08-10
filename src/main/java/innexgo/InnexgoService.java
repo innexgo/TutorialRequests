@@ -11,6 +11,7 @@ public class InnexgoService {
   @Autowired ApiKeyService apiKeyService;
   @Autowired StudentService studentService;
   @Autowired UserService userService;
+  @Autowired ApptRequestService apptRequestService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
 
@@ -43,6 +44,18 @@ public class InnexgoService {
    */
   User fillUser(User user) {
     return user;
+  }
+
+  /**
+   * Fills in jackson objects for ApptRequest
+   *
+   * @param apptRequest - ApptRequest object
+   * @return ApptRequest object with recursively filled jackson objects
+   */
+  ApptRequest fillApptRequest(ApptRequest apptRequest) {
+    apptRequest.student = studentService.getById(apptRequest.studentId);
+    apptRequest.user = userService.getById(apptRequest.userId);
+    return apptRequest;
   }
 
   /**
