@@ -19,7 +19,6 @@
 package innexgo;
 
 import java.util.List;
-import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -87,28 +86,6 @@ public class StudentService {
             + (" ORDER BY st.id")
             + (" LIMIT " + offset + ", "  + count)
             + ";";
-
-    RowMapper<Student> rowMapper = new StudentRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
-  }
-
-  // find students who are present at this location
-  public List<Student> present(long locationId, long time) {
-    // Find the sessions that have a start date before the  time
-    // If they have an end date it must be after the time
-    // find students who are in this list
-
-    String sql =
-              " SELECT DISTINCT st.id, st.name"
-            + " FROM student st"
-            + " INNER JOIN encounter inen ON st.id = inen.student_id"
-            + " INNER JOIN session ses ON ses.in_encounter_id = inen.id"
-            + " LEFT JOIN encounter outen ON ses.complete AND ses.out_encounter_id = outen.id"
-            + " WHERE 1 = 1 "
-            + (" AND inen.location_id = " + locationId)
-            + (" AND inen.time < " + time)
-            + (" AND outen.time IS NULL OR outen.time > " + time)
-            + " ;";
 
     RowMapper<Student> rowMapper = new StudentRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);

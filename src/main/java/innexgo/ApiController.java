@@ -42,6 +42,7 @@ public class ApiController {
   @Autowired ApiKeyService apiKeyService;
   @Autowired StudentService studentService;
   @Autowired UserService userService;
+  @Autowired ApptRequestService apptRequestService;
 
   @Autowired InnexgoService innexgoService;
 
@@ -136,6 +137,59 @@ public class ApiController {
     u.passwordHash = Utils.encodePassword(password);
     userService.add(u);
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
+  }
+
+  @RequestMapping("/apptRequest/new/")
+  public ResponseEntity<?> newApptRequest(
+      @RequestParam("userId") Long userId,
+      @RequestParam("studentId") Long studentId,
+      @RequestParam("message") String message,
+      @RequestParam("requestTime") Long requestTime,
+      @RequestParam("approved") Boolean approved,
+      @RequestParam("reviewed") Boolean reviewed,
+      @RequestParam("apiKey") String apiKey
+    ) {
+    if (!innexgoService.isTrusted(apiKey)) {
+      return Errors.MUST_BE_USER.getResponse();
+    }
+    if(!userService.existsById(userId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+    if(!studentService.existsById(studentId)) {
+      return Errors.STUDENT_NONEXISTENT.getResponse();
+    }
+
+    ApptRequest ar = new ApptRequest();
+    ar.userId = userId;
+    ar.studentId = studentId;
+    ar.message = message;
+    ar.creationTime = System.currentTimeMillis();
+    ar.requestTime = requestTime;
+    ar.approved = approved;
+    ar.reviewed = reviewed;
+    ar.response = "";
+    apptRequestService.add(ar);
+    return new ResponseEntity<>(innexgoService.fillApptRequest(ar), HttpStatus.OK);
+  }
+
+  @RequestMapping("/apptRequest/review/")
+  public ResponseEntity<?> reviewApptRequest(
+      @RequestParam("apptRequestId") Long apptRequestId, 
+      @RequestParam("approved") Boolean approved, 
+      @RequestParam("response") String response, 
+      @RequestParam("apiKey") String apiKey) {
+    if (!innexgoService.isTrusted(apiKey)) {
+      return Errors.MUST_BE_USER.getResponse();
+    }
+    if(!apptRequestService.existsById(apptRequestId)) {
+      return Errors.APPT_REQUEST_NONEXISTENT.getResponse();
+    }
+    ApptRequest ar = apptRequestService.getById(apptRequestId);
+    ar.reviewed = true;
+    ar.approved = approved;
+    ar.response = response;
+    apptRequestService.update(ar);
+    return new ResponseEntity<>(ar, HttpStatus.OK);
   }
 
   // This method updates the password for same user only
@@ -255,9 +309,76 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
+  @RequestMapping("/apptRequest/")
+  public ResponseEntity<?> viewApptRequest(
+      @RequestParam("offset") Long offset,
+      @RequestParam("count") Long count,
+      @RequestParam Map<String, String> allRequestParam) {
+    String apiKey = allRequestParam.get("apiKey");
+    if (!innexgoService.isTrusted(apiKey)) {
+      return Errors.MUST_BE_USER.getResponse();
+    }
+    List<ApptRequest> list = apptRequestService.query(
+       Utils.parseLong(allRequestParam.get("id")),// Long id,
+       Utils.parseLong(allRequestParam.get("studentId")),// Long studentId, 
+       Utils.parseLong(allRequestParam.get("userId")),// Long userId,
+       allRequestParam.get("message"),// String message,
+       Utils.parseLong(allRequestParam.get("creationTime")),// Long creationTime,
+       Utils.parseLong(allRequestParam.get("requestTime")),// Long requestTime,
+       Utils.parseBoolean(allRequestParam.get("reviewed")),// Boolean reviewed,
+       Utils.parseBoolean(allRequestParam.get("approved")),// Boolean approved,
+       allRequestParam.get("response"),// String response,
+       Utils.parseBoolean(allRequestParam.get("present")),// Boolean present,
+       offset,// long offset,
+       count// long count)
+      )
+      .stream()
+      .map(x -> innexgoService.fillApptRequest(x))
+      .collect(Collectors.toList());
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
  
   @RequestMapping("/misc/validate/")
   public ResponseEntity<?> validateTrusted(@RequestParam("apiKey") String apiKey) {
     return innexgoService.isTrusted(apiKey) ? Errors.OK.getResponse() : Errors.MUST_BE_USER.getResponse();
   }
+
+  @RequestMapping("/misc/validateStudentId/")
+  public ResponseEntity<?> validateStudentId(@RequestParam("studentId") Long studentId) {
+      if(studentService.existsById(studentId)) {
+        Student student = innexgoService.fillStudent(studentService.getById(studentId));
+        return new ResponseEntity<>(student, HttpStatus.OK);
+      } else {
+        return Errors.STUDENT_NONEXISTENT.getResponse();
+      }
+  }
+
+  @RequestMapping("/misc/studentApptRequest/")
+  public ResponseEntity<?> studentApptRequest(
+      @RequestParam("studentId") Long studentId, 
+      @RequestParam("userId") Long userId, 
+      @RequestParam("requestTime") Long requestTime,
+      @RequestParam("message") String message)  {
+
+    if(!studentService.existsById(studentId)) {
+      return Errors.STUDENT_NONEXISTENT.getResponse();
+    }
+    if(!userService.existsById(userId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    ApptRequest ar = new ApptRequest();
+    ar.userId = userId;
+    ar.studentId = studentId;
+    ar.message = message;
+    ar.creationTime = System.currentTimeMillis();
+    ar.requestTime = requestTime;
+    ar.approved = false;
+    ar.reviewed = false;
+    ar.response = "";
+    apptRequestService.add(ar);
+    return new ResponseEntity<>(ar, HttpStatus.OK);
+  }
+
 }

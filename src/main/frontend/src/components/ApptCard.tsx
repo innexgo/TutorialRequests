@@ -1,5 +1,5 @@
 import React from 'react';
-import {Card, Button } from 'react-bootstrap';
+import { Card, Col, Row, Button, Form } from 'react-bootstrap';
 
 type ApptCardProps = {
   student: string,
@@ -25,15 +25,36 @@ const rejectStyle = {
 return(
 <Card style={cardStyle}>
     <Card.Body style={bodyStyle}>
-      {student} - {date}
-      <Button style={acceptStyle} variant="success">Accept</Button>
-      <Button style={rejectStyle} variant="danger">Reject</Button>
+      <Col style={{margin: '1rem'}}>
+        <Row style={{fontSize: '2rem'}}>
+          {student} - {date}
+        </Row>
+        <Row>
+          <Form.Group controlId="message">
+            <Form.Label>Student's Comment</Form.Label>
+            <Form.Control as="textarea" rows={9} readOnly />
+          </Form.Group>
+        </Row>
+      </Col>
+      <Col style={{margin: '1rem', marginTop: '4rem'}}>
+        <Row>
+          <Form.Group controlId="time">
+            <Form.Label>Start Time</Form.Label>
+            <Form.Control type="time" />
+          </Form.Group>
+          <Form.Group controlId="time">
+            <Form.Label>End Time</Form.Label>
+            <Form.Control type="time" />
+          </Form.Group>
+          <Form.Group controlId="message">
+            <Form.Label>Teacher's Comment</Form.Label>
+            <Form.Control as="textarea" rows={3} />
+          </Form.Group>
+        </Row>
+      </Col>
+        <Button style={acceptStyle} variant="success">Accept</Button>
+        <Button style={rejectStyle} variant="danger">Reject</Button>
     </Card.Body>
   </Card>
 );
 }
-
-
-
-
-
