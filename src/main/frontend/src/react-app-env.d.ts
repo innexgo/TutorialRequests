@@ -11,6 +11,20 @@ type User = {
   email: string,
 }
 
+type ApptRequest = {
+    id:number,
+    student:Student
+    user:User
+    message:string,
+    creationTime:number,
+    requestTime:number,
+    reviewed:boolean,
+    approved:boolean,
+    response:string,
+    present:boolean
+}
+
+
 type ApiKey = {
   id: number,
   administrator: boolean,
