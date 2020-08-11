@@ -19,12 +19,12 @@ export default function Pending(props: AuthenticatedComponentProps) {
   }
 
   const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
-    const appointments = await fetchApi("ApptRequest/new/?" + new URLSearchParams([
-      ["user_id", toString(apiKey.user.id[0])],
-      ["reviewed", false],
-      ["minRequestTime", `${Date.now()}`],
-      ["apiKey", apiKey.key]
-    ])) as apptRequest[];
+    const appointments = await fetchApi('apptRequest/new/?' + new URLSearchParams([
+      ['user_id', `${apiKey.user.id}`],
+      ['reviewed', "false"],
+      ['minRequestTime', `${Date.now()}`],
+      ['apiKey', apiKey.key]
+    ])) as ApptRequest[];
     return {
       appointments,
     }
@@ -33,8 +33,8 @@ export default function Pending(props: AuthenticatedComponentProps) {
   return (
     <DashboardLayout name={props.apiKey.user.name} logoutCallback={()=>props.setApiKey(null)} >
       <h1 style={headerStyle}>Pending Appointments</h1>
-      <ApptCard student="Marek Pinto" date="Aug 20"/>
-      <ApptCard student="Richard Le" date="Aug 23" />
+      <ApptCard student='Marek Pinto' date='Aug 20'/>
+      <ApptCard student='Richard Le' date='Aug 23' />
     </DashboardLayout>
   );
 }
