@@ -12,6 +12,27 @@ interface ApptProps {
   appointments: ApptRequest[]
 }
 
+function pendingAppointments(props: ApptProps) {
+
+  const now = Date.now();
+  const upcomingAppts = props.appointments
+  //sort by time
+  .sort((a, b) => a.startTime - b.startTime);
+
+  return (
+    {
+      upcomingAppts.map((x) =>
+        <ApptCard
+          student={x.student.name}
+          date={moment(x.requestTime).format("MMM Do")}
+          message={x.message}
+          />
+      )
+    }
+  );
+}
+
+
 export default function Pending(props: AuthenticatedComponentProps) {
   const headerStyle = {
     margin: '2%',
@@ -30,11 +51,23 @@ export default function Pending(props: AuthenticatedComponentProps) {
     }
   };
 
+  const informationTooltip = <Popover id="information-tooltip">
+    This screen shows all the future appointments that students have requested. To accept the appointment, fill out an optional start/end time, an optional response, and click Accept. Click Reject to reject the appointment.
+  </Popover>;
+
   return (
     <DashboardLayout name={props.apiKey.user.name} logoutCallback={()=>props.setApiKey(null)} >
-      <h1 style={headerStyle}>Pending Appointments</h1>
-      <ApptCard student='Marek Pinto' date='Aug 20'/>
-      <ApptCard student='Richard Le' date='Aug 23' />
+      <Container fluid className="py-3 px-3">
+        <Utility title="Pending Appointments" overlay={informationTooltip}>
+        <Async promise={loadData(props.apiKey)}>
+          <Async.Pending><Loader /></Async.Pending>
+          <Async.Fulfilled>
+            {data => 
+          </Async.Fulfilled>
+          <ApptCard student='Marek Pinto' date='Aug 20'/>
+          <ApptCard student='Richard Le' date='Aug 23' />
+        </Utility>
+      </Container>
     </DashboardLayout>
   );
 }
