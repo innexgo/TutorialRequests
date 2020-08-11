@@ -6,9 +6,10 @@ import Utility from '../components/Utility';
 import Loader from '../components/Loader';
 import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
+import moment from 'moment';
 
 interface ApptProps {
-  //list of upcoming appts
+  appointments: ApptRequest[]
 }
 
 export default function Pending(props: AuthenticatedComponentProps) {
@@ -16,6 +17,19 @@ export default function Pending(props: AuthenticatedComponentProps) {
     margin: '2%',
     textAlign: 'center' as const,
   }
+
+  const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
+    const appointments = await fetchApi("ApptRequest/new/?" + new URLSearchParams([
+      ["user_id", apiKey.user.userId],
+      ["reviewed", false],
+      ["minRequestTime", `${Date.now()}`],
+      ["apiKey", apiKey.key]
+    ])) as apptRequest[];
+    return {
+      appointments,
+    }
+  };
+
   return (
     <DashboardLayout name={props.apiKey.user.name} logoutCallback={()=>props.setApiKey(null)} >
       <h1 style={headerStyle}>Pending Appointments</h1>

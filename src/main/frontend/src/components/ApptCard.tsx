@@ -4,9 +4,10 @@ import { Card, Col, Row, Button, Form } from 'react-bootstrap';
 type ApptCardProps = {
   student: string,
   date: string,
+  studentMessage: string,
 }
 
-export default function ApptCard({ student, date }: ApptCardProps){
+export default function ApptCard({ student, date, studentMessage }: ApptCardProps){
 const cardStyle = {
   backgroundColor: '#4472C4',
   margin: '0 2%',
@@ -32,7 +33,7 @@ return(
         <Row>
           <Form.Group controlId="message">
             <Form.Label>Student's Comment</Form.Label>
-            <Form.Control as="textarea" rows={9} readOnly />
+            <Form.Control as="textarea" rows={9} readOnly defaultValue={studentMessage} />
           </Form.Group>
         </Row>
       </Col>
