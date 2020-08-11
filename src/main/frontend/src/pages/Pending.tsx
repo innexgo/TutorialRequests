@@ -20,7 +20,7 @@ export default function Pending(props: AuthenticatedComponentProps) {
 
   const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
     const appointments = await fetchApi("ApptRequest/new/?" + new URLSearchParams([
-      ["user_id", apiKey.user.userId],
+      ["user_id", toString(apiKey.user.id[0])],
       ["reviewed", false],
       ["minRequestTime", `${Date.now()}`],
       ["apiKey", apiKey.key]
