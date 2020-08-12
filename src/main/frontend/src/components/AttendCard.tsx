@@ -3,9 +3,10 @@ import {Card, Button } from 'react-bootstrap';
 
 type AttendCardProps = {
   student: string,
+  time?: string,
 }
 
-export default function AttendCard({ student}: AttendCardProps){
+export default function AttendCard({ student, time}: AttendCardProps){
 const cardStyle = {
   backgroundColor: '#4472C4',
   margin: '0 2%',
@@ -24,7 +25,7 @@ const rejectStyle = {
 return(
 <Card style={cardStyle}>
     <Card.Body style={bodyStyle}>
-      {student}
+      {student} - {time}
       <Button style={acceptStyle} variant="success">Present</Button>
       <Button style={rejectStyle} variant="warning">Tardy</Button>
       <Button style={rejectStyle} variant="danger">Absent</Button>

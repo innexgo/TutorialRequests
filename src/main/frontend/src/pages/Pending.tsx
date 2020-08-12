@@ -58,15 +58,17 @@ export default function Pending(props: AuthenticatedComponentProps) {
   return (
     <DashboardLayout name={props.apiKey.user.name} logoutCallback={()=>props.setApiKey(null)} >
       <Container fluid className="py-3 px-3">
+      <CardDeck>
         <Utility title="Pending Appointments" overlay={informationTooltip}>
         <Async promise={loadData(props.apiKey)}>
           <Async.Pending><Loader /></Async.Pending>
           <Async.Fulfilled>
-            {data => 
+            {data => <pendingAppointments {...(data as ApptProps)} />}
           </Async.Fulfilled>
-          <ApptCard student='Marek Pinto' date='Aug 20'/>
-          <ApptCard student='Richard Le' date='Aug 23' />
+          <Async.Rejected>{error => `Something went wrong: ${error.message}`}</Async.Rejected>
+        </Async>
         </Utility>
+      </CardDeck>
       </Container>
     </DashboardLayout>
   );
