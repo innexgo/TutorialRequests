@@ -371,10 +371,11 @@ public class ApiController {
        Utils.parseLong(allRequestParam.get("requestTime")),// Long requestTime,
        Utils.parseLong(allRequestParam.get("minRequestTime")),// Long minRequestTime,
        Utils.parseLong(allRequestParam.get("maxRequestTime")),// Long maxRequestTime,
+       Utils.parseLong(allRequestParam.get("requestDuration")),// Long requestDuration,
        Utils.parseBoolean(allRequestParam.get("reviewed")),// Boolean reviewed,
        Utils.parseBoolean(allRequestParam.get("approved")),// Boolean approved,
        allRequestParam.get("response"),// String response,
-       allRequestParam.get("all"),// Boolean present,
+       kind, // AttendanceStatus attendanceStatus,
        offset,// long offset,
        count// long count)
       )
@@ -423,7 +424,7 @@ public class ApiController {
     ar.approved = false;
     ar.reviewed = false;
     ar.response = "";
-    ar.attendanceStatus = AttendanceStatus.ABSENT
+    ar.attendanceStatus = AttendanceStatus.ABSENT;
     apptRequestService.add(ar);
     return new ResponseEntity<>(ar, HttpStatus.OK);
   }

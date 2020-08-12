@@ -91,6 +91,7 @@ public class ApptRequestService {
       Long requestTime,
       Long minRequestTime,
       Long maxRequestTime,
+      Long requestDuration,
       Boolean reviewed,
       Boolean approved,
       String response,
@@ -109,6 +110,7 @@ public class ApptRequestService {
       + (requestTime == null ? "" : " AND ar.request_time = " + requestTime)
       + (minRequestTime == null ? "" : " AND ar.request_time > " + minRequestTime)
       + (maxRequestTime == null ? "" : " AND ar.request_time < " + maxRequestTime)
+      + (requestDuration == null ? "" : " AND ar.request_duration = " + requestDuration)
       + (reviewed == null ? "" : " AND ar.reviewed = " + reviewed)
       + (approved == null ? "" : " AND ar.approved = " + approved)
       + (response == null ? "" : " AND ar.response = " + Utils.escape(message))
