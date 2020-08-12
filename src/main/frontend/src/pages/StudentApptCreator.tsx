@@ -1,6 +1,10 @@
 import React from 'react'
 import { Form, Button } from 'react-bootstrap';
 import DashboardLayout from '../components/DashboardLayout';
+import { Async } from 'react-async';
+import { fetchApi } from '../utils/utils';
+import moment from 'moment';
+
 
 function StudentApptCreator(props: StudentComponentProps) {
   const formStyle = {
@@ -15,6 +19,27 @@ function StudentApptCreator(props: StudentComponentProps) {
   const buttonStyle = {
     marginTop: '2%',
   };
+
+  const [date. setDate] = React.useState("");
+  const [teacher, setTeacher] = React.useState("");
+  const [message, setMessage] = React.useState("");
+
+
+  async function createAppt(){
+    const start = moment(date, YYYY-M-D).valueOf();
+    const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
+    //TODO dynamically generate dropdown with all users (teachers), with value as teacher Id and placeholder as teacher name. get teacher value and plug into userID.
+      ['userId', ],
+      ['studentId', props.student.id],
+      ['message', message],
+      ['requestTime', start],
+      ['requestDuration', 0],
+      ['approved', 'false'],
+      ['reviewed', 'false'],
+      ['apiKey', apiKey.key],
+  ])) as ApptRequest;
+  }
+
 
   return (
     <DashboardLayout name={props.student.name} logoutCallback={() => props.setStudent(null)} >

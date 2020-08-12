@@ -41,7 +41,10 @@ export default function Pending(props: AuthenticatedComponentProps) {
   }
 
   const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
-    const appointments = await fetchApi('apptRequest/new/?' + new URLSearchParams([
+    const appointments = await fetchApi('apptRequest/?' + new URLSearchParams([
+      ['offset', 0],
+      //TODO make variable count and allow user to move back and forth with arrows
+      ['count', 10],
       ['user_id', `${apiKey.user.id}`],
       ['reviewed', "false"],
       ['minRequestTime', `${Date.now()}`],

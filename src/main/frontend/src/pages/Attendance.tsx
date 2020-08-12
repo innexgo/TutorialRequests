@@ -16,8 +16,8 @@ function attendees(props: AttendanceProps) {
 
   const now = Date.now();
   const todayAppts = props.appointments
-  //TODO sort alphabetically by name
-  .sort();
+  //sort alphabetically by student name
+  .sort((a, b) => a.student.name.localeCompare(b.student.name));
 
   return (
     {
@@ -40,10 +40,14 @@ export default function Attendance(props: AuthenticatedComponentProps) {
   }
 
     const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
-    const appointments = await fetchApi('apptRequest/new/?' + new URLSearchParams([
+    const appointments = await fetchApi('apptRequest/?' + new URLSearchParams([
+      ['offset', 0],
+      ['count', 0xFFFFFFFF],
       ['user_id', `${apiKey.user.id}`],
-      ['reviewed', "false"],
-      ['minRequestTime', `${Date.now()}`],
+      ['reviewed', 'true'],
+      ['accepted', 'true'],
+      ['minRequestTime', `${moment().startOf('day')}`],
+      ['maxRequestTime', `${moment().endOf('day')}`],
       ['apiKey', apiKey.key]
     ])) as ApptRequest[];
     return {
