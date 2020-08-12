@@ -145,6 +145,7 @@ public class ApiController {
       @RequestParam("studentId") Long studentId,
       @RequestParam("message") String message,
       @RequestParam("requestTime") Long requestTime,
+      @RequestParam("requestDuration") Long requestDuration,
       @RequestParam("approved") Boolean approved,
       @RequestParam("reviewed") Boolean reviewed,
       @RequestParam("apiKey") String apiKey
@@ -165,9 +166,11 @@ public class ApiController {
     ar.message = message;
     ar.creationTime = System.currentTimeMillis();
     ar.requestTime = requestTime;
+    ar.requestDuration = requestTime;
     ar.approved = approved;
     ar.reviewed = reviewed;
     ar.response = "";
+    ar.attendanceStatus = AttendanceStatus.ABSENT;
     apptRequestService.add(ar);
     return new ResponseEntity<>(innexgoService.fillApptRequest(ar), HttpStatus.OK);
   }
@@ -177,6 +180,8 @@ public class ApiController {
       @RequestParam("apptRequestId") Long apptRequestId, 
       @RequestParam("approved") Boolean approved, 
       @RequestParam("response") String response, 
+      @RequestParam("requestTime") Long requestTime,
+      @RequestParam("requestDuration") Long requestDuration,
       @RequestParam("apiKey") String apiKey) {
     if (!innexgoService.isTrusted(apiKey)) {
       return Errors.MUST_BE_USER.getResponse();
@@ -188,6 +193,32 @@ public class ApiController {
     ar.reviewed = true;
     ar.approved = approved;
     ar.response = response;
+    ar.requestTime = requestTime;
+    ar.requestDuration = requestDuration;
+    apptRequestService.update(ar);
+    return new ResponseEntity<>(ar, HttpStatus.OK);
+  }
+
+  @RequestMapping("/apptRequest/setAttendance/")
+  public ResponseEntity<?> setAttendanceAppt(
+      @RequestParam("apptRequestId") Long apptRequestId,
+      @RequestParam("attendanceStatus") String attendanceStatusStr,
+      @RequestParam("apiKey") String apiKey
+  ) {
+
+    if (!innexgoService.isTrusted(apiKey)) {
+      return Errors.MUST_BE_USER.getResponse();
+    }
+    if(!apptRequestService.existsById(apptRequestId)) {
+      return Errors.APPT_REQUEST_NONEXISTENT.getResponse();
+    }
+    if(AttendanceStatus.contains(attendanceStatusStr)) {
+        return Errors.INVALID_ATTENDANCE_STATUS_KIND.getResponse();
+    }
+    ApptRequest ar = apptRequestService.getById(apptRequestId);
+    ar.reviewed = true;
+    ar.approved = true;
+    ar.attendanceStatus = AttendanceStatus.valueOf(attendanceStatusStr);
     apptRequestService.update(ar);
     return new ResponseEntity<>(ar, HttpStatus.OK);
   }
@@ -318,17 +349,32 @@ public class ApiController {
     if (!innexgoService.isTrusted(apiKey)) {
       return Errors.MUST_BE_USER.getResponse();
     }
+
+    AttendanceStatus kind = null;
+    if(allRequestParam.containsKey("attendanceStatus")) {
+      String attendanceStatusStr = allRequestParam.get("attendanceStatus");
+      if(AttendanceStatus.contains(attendanceStatusStr)) {
+        kind = AttendanceStatus.valueOf(attendanceStatusStr);
+      } else {
+        return Errors.INVALID_ATTENDANCE_STATUS_KIND.getResponse();
+      }
+    }
+
     List<ApptRequest> list = apptRequestService.query(
        Utils.parseLong(allRequestParam.get("id")),// Long id,
        Utils.parseLong(allRequestParam.get("studentId")),// Long studentId, 
        Utils.parseLong(allRequestParam.get("userId")),// Long userId,
        allRequestParam.get("message"),// String message,
        Utils.parseLong(allRequestParam.get("creationTime")),// Long creationTime,
+       Utils.parseLong(allRequestParam.get("minCreationTime")),// Long minCreationTime,
+       Utils.parseLong(allRequestParam.get("maxCreationTime")),// Long maxCreationTime,
        Utils.parseLong(allRequestParam.get("requestTime")),// Long requestTime,
+       Utils.parseLong(allRequestParam.get("minRequestTime")),// Long minRequestTime,
+       Utils.parseLong(allRequestParam.get("maxRequestTime")),// Long maxRequestTime,
        Utils.parseBoolean(allRequestParam.get("reviewed")),// Boolean reviewed,
        Utils.parseBoolean(allRequestParam.get("approved")),// Boolean approved,
        allRequestParam.get("response"),// String response,
-       Utils.parseBoolean(allRequestParam.get("present")),// Boolean present,
+       allRequestParam.get("all"),// Boolean present,
        offset,// long offset,
        count// long count)
       )
@@ -338,7 +384,6 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
- 
   @RequestMapping("/misc/validate/")
   public ResponseEntity<?> validateTrusted(@RequestParam("apiKey") String apiKey) {
     return innexgoService.isTrusted(apiKey) ? Errors.OK.getResponse() : Errors.MUST_BE_USER.getResponse();
@@ -356,8 +401,8 @@ public class ApiController {
 
   @RequestMapping("/misc/studentApptRequest/")
   public ResponseEntity<?> studentApptRequest(
-      @RequestParam("studentId") Long studentId, 
-      @RequestParam("userId") Long userId, 
+      @RequestParam("studentId") Long studentId,
+      @RequestParam("userId") Long userId,
       @RequestParam("requestTime") Long requestTime,
       @RequestParam("message") String message)  {
 
@@ -374,9 +419,11 @@ public class ApiController {
     ar.message = message;
     ar.creationTime = System.currentTimeMillis();
     ar.requestTime = requestTime;
+    ar.requestDuration = 0;
     ar.approved = false;
     ar.reviewed = false;
     ar.response = "";
+    ar.attendanceStatus = AttendanceStatus.ABSENT
     apptRequestService.add(ar);
     return new ResponseEntity<>(ar, HttpStatus.OK);
   }

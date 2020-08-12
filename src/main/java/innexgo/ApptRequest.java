@@ -24,13 +24,30 @@ public class ApptRequest {
   long userId;
   public String message;
   public long creationTime;
+  // only defined if reviewed is true
   public long requestTime;
+  // only defined if reviewed is true
+  public long requestDuration;
   public boolean reviewed;
   public boolean approved;
   public String response;
-  public boolean present;
+  // only defined if current time is after request time
+  public AttendanceStatus attendanceStatus;
 
   // for jackson
   Student student;
   User user;
+}
+
+enum AttendanceStatus {
+  ABSENT, TARDY, PRESENT;
+
+  public static boolean contains(String str) {
+    for(AttendanceStatus attendanceStatus : AttendanceStatus.values()) {
+      if(attendanceStatus.name().equals(str)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

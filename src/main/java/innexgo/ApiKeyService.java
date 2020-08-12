@@ -53,16 +53,8 @@ public class ApiKeyService {
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
-  public void add(ApiKey apiKey) {
-    // Add API key
-    String sql =
-        "INSERT INTO api_key (id, user_id, administrator, creation_time, expiration_time, key_hash) values (?, ?, ?, ?, ?)";
-    jdbcTemplate.update(
-        sql, apiKey.id, apiKey.userId, apiKey.creationTime, apiKey.expirationTime, apiKey.keyHash);
-
-    // Fetch apiKey id
-    sql =
-        "SELECT id FROM api_key WHERE user_id=? AND administrator=? AND creation_time=? AND expiration_time=? AND key_hash=?";
+  private void syncId(ApiKey apiKey) {
+    String sql = "SELECT id FROM api_key WHERE user_id=? AND administrator=? AND creation_time=? AND expiration_time=? AND key_hash=?";
     long id =
         jdbcTemplate.queryForObject(
             sql,
@@ -75,6 +67,16 @@ public class ApiKeyService {
 
     // Set apiKey id
     apiKey.id = id;
+  }
+
+  public void add(ApiKey apiKey) {
+    // Add API key
+    String sql =
+        "INSERT INTO api_key (id, user_id, administrator, creation_time, expiration_time, key_hash) values (?, ?, ?, ?, ?)";
+    jdbcTemplate.update(
+        sql, apiKey.id, apiKey.userId, apiKey.creationTime, apiKey.expirationTime, apiKey.keyHash);
+    syncId(apiKey);
+
   }
 
   public void update(ApiKey apiKey) {

@@ -33,10 +33,11 @@ public class ApptRequestRowMapper implements RowMapper<ApptRequest> {
     apptRequest.message = row.getString("message");
     apptRequest.creationTime = row.getLong("creation_time");
     apptRequest.requestTime = row.getLong("request_time");
+    apptRequest.requestDuration = row.getLong("request_duration");
     apptRequest.reviewed = row.getBoolean("reviewed");
     apptRequest.approved = row.getBoolean("approved");
     apptRequest.response = row.getString("response");
-    apptRequest.present = row.getBoolean("present");
+    apptRequest.attendanceStatus = AttendanceStatus.valueOf(row.getString("attendance_status"));
     return apptRequest;
   }
 }
