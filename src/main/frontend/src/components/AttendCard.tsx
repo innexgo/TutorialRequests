@@ -22,6 +22,11 @@ const acceptStyle = {
 const rejectStyle = {
   marginLeft: '1%',
 }
+
+async function acceptAppt() {
+  const appt = await fetchApi(`apptRequest/review/?` + new URLSearchParams([
+    [
+
 return(
 <Card style={cardStyle}>
     <Card.Body style={bodyStyle}>

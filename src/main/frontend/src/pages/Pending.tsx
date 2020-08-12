@@ -51,6 +51,7 @@ export default function Pending(props: AuthenticatedComponentProps) {
     }
   };
 
+
   const informationTooltip = <Popover id="information-tooltip">
     This screen shows all the future appointments that students have requested. To accept the appointment, fill out an optional start/end time, an optional response, and click Accept. Click Reject to reject the appointment.
   </Popover>;

@@ -16,12 +16,12 @@ function attendees(props: AttendanceProps) {
 
   const now = Date.now();
   const todayAppts = props.appointments
-  //sort alphabetically
+  //TODO sort alphabetically by name
   .sort();
 
   return (
     {
-      upcomingAppts.map((x) =>
+      todayAppts.map((x) =>
         <AttendCard
           student={x.student.name}
           time={moment(x.requestTime).format("h mm a")}
@@ -62,7 +62,7 @@ export default function Attendance(props: AuthenticatedComponentProps) {
         <Async promise={loadData(props.apiKey)}>
           <Async.Pending><Loader /></Async.Pending>
           <Async.Fulfilled>
-            {data => <atendees {...(data as AttendanceProps)} />}
+            {data => <attendees {...(data as AttendanceProps)} />}
           </Async.Fulfilled>
           <Async.Rejected>{error => `Something went wrong: ${error.message}`}</Async.Rejected>
         </Async>
