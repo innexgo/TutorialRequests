@@ -24,6 +24,7 @@ function attendees(props: AttendanceProps) {
       todayAppts.map((x) =>
         <AttendCard
           student={x.student.name}
+          apptId={x.id}
           time={moment(x.requestTime).format("h mm a")}
           />
       )

@@ -26,6 +26,7 @@ function pendingAppointments(props: ApptProps) {
           student={x.student.name}
           date={moment(x.requestTime).format("MMM Do")}
           message={x.message}
+          apptId={x.id}
           />
       )
     }

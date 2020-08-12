@@ -21,12 +21,16 @@ export default function MakeAppt(props: AuthenticatedComponentProps) {
           <Form.Label>Date</Form.Label>
           <Form.Control type="date" />
         </Form.Group>
-        <Form.Group controlId="time">
-          <Form.Label>Current Time</Form.Label>
+        <Form.Group controlId="startTime">
+          <Form.Label>Start Time</Form.Label>
+          <Form.Control type="time" />
+        </Form.Group>
+        <Form.Group controlId="endTime">
+          <Form.Label>End Time</Form.Label>
           <Form.Control type="time" />
         </Form.Group>
 
-        <Form.Group controlId="teacher">
+        <Form.Group controlId="student">
           <Form.Label>Student</Form.Label>
           <Form.Control as="select">
             <option>Marek</option>

@@ -3,6 +3,7 @@ import {Card, Button } from 'react-bootstrap';
 
 type AttendCardProps = {
   student: string,
+  apptId: number,
   time?: string,
 }
 
@@ -23,17 +24,36 @@ const rejectStyle = {
   marginLeft: '1%',
 }
 
-async function acceptAppt() {
-  const appt = await fetchApi(`apptRequest/review/?` + new URLSearchParams([
-    [
+async function present() {
+  const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
+    ['apptRequestId', {apptId}],
+    ['attendanceStatus', "present"],
+    ['apiKey', apiKey.key],
+    )) as ApptRequest;
+  }
+async function tardy() {
+  const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
+    ['apptRequestId', {apptId}],
+    ['attendanceStatus', "tardy"],
+    ['apiKey', apiKey.key],
+    )) as ApptRequest;
+  }
+async function absent() {
+  const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
+    ['apptRequestId', {apptId}],
+    ['attendanceStatus', "absent"],
+    ['apiKey', apiKey.key],
+    )) as ApptRequest;
+  }
+
 
 return(
 <Card style={cardStyle}>
     <Card.Body style={bodyStyle}>
       {student} - {time}
-      <Button style={acceptStyle} variant="success">Present</Button>
-      <Button style={rejectStyle} variant="warning">Tardy</Button>
-      <Button style={rejectStyle} variant="danger">Absent</Button>
+      <Button style={acceptStyle} variant="success" onClick={async () => present()}>Present</Button>
+      <Button style={rejectStyle} variant="warning" onClick={async () => tardy()}>Tardy</Button>
+      <Button style={rejectStyle} variant="danger"  onClick={async () => absent()}>Absent</Button>
     </Card.Body>
   </Card>
 );
