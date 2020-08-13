@@ -4,14 +4,16 @@ import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
+//date pass date as milliseconds
 type ApptCardProps = {
   student: string,
   date: string,
   studentMessage: string,
   apptId: number,
+  apiKey: ApiKey,
 }
 
-export default function ApptCard({ student, date, studentMessage, apptId }: ApptCardProps){
+export default function ApptCard({ student, date, studentMessage, apptId, apiKey }: ApptCardProps, props: AuthenticatedComponentProps){
 const cardStyle = {
   backgroundColor: '#4472C4',
   margin: '0 2%',
@@ -33,24 +35,31 @@ const [endTime, setEndTime] = React.useState("");
 const [response, setResponse] = React.useState("");
 
 async function acceptAppt(){
+  const dateFormat = moment(date).format("YYYY-M-D");
+  const start = moment(dateFormat + " " + startTime, "YYYY-M-D H:mm").valueOf();
+  const end = moment(dateFormat + " " + endTime, "YYYY-M-D H:mm").valueOf();
+  const duration = end - start;
+
   const appt = await fetchApi(`apptRequest/review/?` + new URLSearchParams([
     ['apptRequestId', {apptId}],
     ['approved', 'true'],
     ['response', response],
     ['requestTime', startTime],
-    ['requestDuration', {endTime - startTime}],
+    ['requestDuration', duration],
     ['apiKey', apiKey.key],
+  ]
 )) as ApptRequest;
 }
 
 async function rejectAppt(){
-  const appt = await fetchApi(`apptRequest/review/?` + new URLSearchParams([
+  const appt = await fetchApi('apptRequest/review/?' + new URLSearchParams([
     ['apptRequestId', {apptId}],
     ['approved', 'false'],
     ['response', response],
     ['requestTime', startTime],
-    ['requestDuration', {endTime - startTime}],
+    ['requestDuration', endTime - startTime],
     ['apiKey', apiKey.key],
+    ]
 )) as ApptRequest;
 
 }

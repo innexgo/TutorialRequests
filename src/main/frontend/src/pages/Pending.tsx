@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button } from 'react-bootstrap';
+import { Card, Button, Popover, Container, CardDeck } from 'react-bootstrap';
 import DashboardLayout from '../components/DashboardLayout';
 import ApptCard from '../components/ApptCard';
 import Utility from '../components/Utility';
@@ -20,6 +20,7 @@ function pendingAppointments(props: ApptProps) {
   .sort((a, b) => a.startTime - b.startTime);
 
   return (
+  <>
     {
       upcomingAppts.map((x) =>
         <ApptCard
@@ -30,6 +31,7 @@ function pendingAppointments(props: ApptProps) {
           />
       )
     }
+    </>
   );
 }
 

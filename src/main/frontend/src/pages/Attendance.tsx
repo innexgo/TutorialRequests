@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button } from 'react-bootstrap';
+import { Card, Button, Popover, Container, CardDeck } from 'react-bootstrap';
 import DashboardLayout from '../components/DashboardLayout';
 import AttendCard from '../components/AttendCard';
 import Utility from '../components/Utility';
@@ -20,6 +20,7 @@ function attendees(props: AttendanceProps) {
   .sort((a, b) => a.student.name.localeCompare(b.student.name));
 
   return (
+  <>
     {
       todayAppts.map((x) =>
         <AttendCard
@@ -29,6 +30,7 @@ function attendees(props: AttendanceProps) {
           />
       )
     }
+    </>
   );
 }
 

@@ -10,7 +10,7 @@ type AttendCardProps = {
   time?: string,
 }
 
-export default function AttendCard({ student, time}: AttendCardProps){
+export default function AttendCard({ student, apptId, time}: AttendCardProps){
 const cardStyle = {
   backgroundColor: '#4472C4',
   margin: '0 2%',
@@ -32,6 +32,7 @@ async function present() {
     ['apptRequestId', {apptId}],
     ['attendanceStatus', "present"],
     ['apiKey', apiKey.key],
+    ]
     )) as ApptRequest;
   }
 async function tardy() {
@@ -39,6 +40,7 @@ async function tardy() {
     ['apptRequestId', {apptId}],
     ['attendanceStatus', "tardy"],
     ['apiKey', apiKey.key],
+    ]
     )) as ApptRequest;
   }
 async function absent() {
@@ -46,7 +48,8 @@ async function absent() {
     ['apptRequestId', {apptId}],
     ['attendanceStatus', "absent"],
     ['apiKey', apiKey.key],
-    )) as ApptRequest;
+  ]
+  )) as ApptRequest;
   }
 
 

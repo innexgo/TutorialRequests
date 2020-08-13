@@ -20,7 +20,7 @@ function StudentApptCreator(props: StudentComponentProps) {
     marginTop: '2%',
   };
 
-  const [date. setDate] = React.useState("");
+  const [date, setDate] = React.useState("");
   const [teacher, setTeacher] = React.useState("");
   const [message, setMessage] = React.useState("");
 

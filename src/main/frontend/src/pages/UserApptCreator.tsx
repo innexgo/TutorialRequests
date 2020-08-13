@@ -25,8 +25,8 @@ export default function UserApptCreator(props: AuthenticatedComponentProps) {
   const [message, setMessage] = React.useState("");
 
   async function createAppt(){
-    const start = moment(date + " " + startTime, YYYY-M-D H:mm).valueOf();
-    const end = moment(date + " " + endTime, YYYY-M-D H:mm).valueOf();
+    const start = moment(date + " " + startTime, "YYYY-M-D H:mm").valueOf();
+    const end = moment(date + " " + endTime, "YYYY-M-D H:mm").valueOf();
     const duration = end-start;
     const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
       ['userId', apiKey.user.id],
