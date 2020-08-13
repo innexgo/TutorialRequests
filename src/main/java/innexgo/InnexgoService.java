@@ -84,17 +84,8 @@ public class InnexgoService {
    * @return true if administrator; false if not administrator or invalid
    */
   boolean isAdministrator(String key) {
-    if (key == null) {
-      return false;
-    }
-    String hash = Utils.encodeApiKey(key);
-    if (apiKeyService.existsByKeyHash(hash)) {
-      ApiKey apiKey = apiKeyService.getByKeyHash(hash);
-      if (apiKey.expirationTime > System.currentTimeMillis()) {
-        return apiKey.administrator;
-      }
-    }
-    return false;
+    // TODO this is a hack
+    return isTrusted(key);
   }
 
   /**
