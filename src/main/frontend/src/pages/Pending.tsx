@@ -9,15 +9,16 @@ import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
 interface ApptProps {
-  appointments: ApptRequest[]
+  appointments: ApptRequest[],
+  apiKey: ApiKey,
 }
 
-function pendingAppointments(props: ApptProps) {
+function PendingAppointments(props: ApptProps) {
 
   const now = Date.now();
   const upcomingAppts = props.appointments
   //sort by time
-  .sort((a, b) => a.startTime - b.startTime);
+  .sort((a, b) => a.requestTime - b.requestTime);
 
   return (
   <>
@@ -26,8 +27,9 @@ function pendingAppointments(props: ApptProps) {
         <ApptCard
           student={x.student.name}
           date={moment(x.requestTime).format("MMM Do")}
-          message={x.message}
+          studentMessage={x.message}
           apptId={x.id}
+          apiKey={props.apiKey}
           />
       )
     }
@@ -44,9 +46,9 @@ export default function Pending(props: AuthenticatedComponentProps) {
 
   const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
     const appointments = await fetchApi('apptRequest/?' + new URLSearchParams([
-      ['offset', 0],
+      ['offset', '0'],
       //TODO make variable count and allow user to move back and forth with arrows
-      ['count', 10],
+      ['count', '10'],
       ['user_id', `${apiKey.user.id}`],
       ['reviewed', "false"],
       ['minRequestTime', `${Date.now()}`],
@@ -54,6 +56,7 @@ export default function Pending(props: AuthenticatedComponentProps) {
     ])) as ApptRequest[];
     return {
       appointments,
+      apiKey,
     }
   };
 
@@ -70,7 +73,7 @@ export default function Pending(props: AuthenticatedComponentProps) {
         <Async promise={loadData(props.apiKey)}>
           <Async.Pending><Loader /></Async.Pending>
           <Async.Fulfilled>
-            {data => <pendingAppointments {...(data as ApptProps)} />}
+            {data => <PendingAppointments {...(data as ApptProps)} />}
           </Async.Fulfilled>
           <Async.Rejected>{error => `Something went wrong: ${error.message}`}</Async.Rejected>
         </Async>

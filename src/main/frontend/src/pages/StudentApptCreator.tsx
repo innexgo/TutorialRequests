@@ -25,8 +25,8 @@ function StudentApptCreator(props: StudentComponentProps) {
   const [message, setMessage] = React.useState("");
 
 
-  async function createAppt(){
-    const start = moment(date, YYYY-M-D).valueOf();
+  /*async function createAppt(){
+    const start = moment(date, 'YYYY-M-D').valueOf();
     const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
     //TODO dynamically generate dropdown with all users (teachers), with value as teacher Id and placeholder as teacher name. get teacher value and plug into userID.
       ['userId', ],
@@ -38,7 +38,7 @@ function StudentApptCreator(props: StudentComponentProps) {
       ['reviewed', 'false'],
       ['apiKey', apiKey.key],
   ])) as ApptRequest;
-  }
+  }*/
 
 
   return (

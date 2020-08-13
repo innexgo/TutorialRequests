@@ -8,9 +8,10 @@ type AttendCardProps = {
   student: string,
   apptId: number,
   time?: string,
+  apiKey: ApiKey,
 }
 
-export default function AttendCard({ student, apptId, time}: AttendCardProps){
+export default function AttendCard({ student, apptId, time, apiKey}: AttendCardProps){
 const cardStyle = {
   backgroundColor: '#4472C4',
   margin: '0 2%',
@@ -29,7 +30,7 @@ const rejectStyle = {
 
 async function present() {
   const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
-    ['apptRequestId', {apptId}],
+    ['apptRequestId', `${apptId}`],
     ['attendanceStatus', "present"],
     ['apiKey', apiKey.key],
     ]
@@ -37,7 +38,7 @@ async function present() {
   }
 async function tardy() {
   const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
-    ['apptRequestId', {apptId}],
+    ['apptRequestId', `${apptId}`],
     ['attendanceStatus', "tardy"],
     ['apiKey', apiKey.key],
     ]
@@ -45,7 +46,7 @@ async function tardy() {
   }
 async function absent() {
   const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
-    ['apptRequestId', {apptId}],
+    ['apptRequestId', `${apptId}`],
     ['attendanceStatus', "absent"],
     ['apiKey', apiKey.key],
   ]

@@ -9,10 +9,11 @@ import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
 interface AttendanceProps {
-  appointments: ApptRequest[]
+  appointments: ApptRequest[],
+  apiKey: ApiKey,
 }
 
-function attendees(props: AttendanceProps) {
+function Attendees(props: AttendanceProps) {
 
   const now = Date.now();
   const todayAppts = props.appointments
@@ -27,6 +28,7 @@ function attendees(props: AttendanceProps) {
           student={x.student.name}
           apptId={x.id}
           time={moment(x.requestTime).format("h mm a")}
+          apiKey={props.apiKey}
           />
       )
     }
@@ -41,10 +43,10 @@ export default function Attendance(props: AuthenticatedComponentProps) {
     textAlign: 'center' as const,
   }
 
-    const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
+    const loadData = async (apiKey: ApiKey):Promise<AttendanceProps> => {
     const appointments = await fetchApi('apptRequest/?' + new URLSearchParams([
-      ['offset', 0],
-      ['count', 0xFFFFFFFF],
+      ['offset', '0'],
+      ['count', '0xFFFFFFFF'],
       ['user_id', `${apiKey.user.id}`],
       ['reviewed', 'true'],
       ['accepted', 'true'],
@@ -54,6 +56,7 @@ export default function Attendance(props: AuthenticatedComponentProps) {
     ])) as ApptRequest[];
     return {
       appointments,
+      apiKey
     }
   };
 
@@ -69,7 +72,7 @@ export default function Attendance(props: AuthenticatedComponentProps) {
         <Async promise={loadData(props.apiKey)}>
           <Async.Pending><Loader /></Async.Pending>
           <Async.Fulfilled>
-            {data => <attendees {...(data as AttendanceProps)} />}
+            {data => <Attendees {...(data as AttendanceProps)} />}
           </Async.Fulfilled>
           <Async.Rejected>{error => `Something went wrong: ${error.message}`}</Async.Rejected>
         </Async>

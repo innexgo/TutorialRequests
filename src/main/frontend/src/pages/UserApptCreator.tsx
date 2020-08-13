@@ -29,14 +29,14 @@ export default function UserApptCreator(props: AuthenticatedComponentProps) {
     const end = moment(date + " " + endTime, "YYYY-M-D H:mm").valueOf();
     const duration = end-start;
     const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-      ['userId', apiKey.user.id],
-      ['studentId', student],
+      ['userId', `${props.apiKey.user.id}`],
+      ['studentId', `${student}`],
       ['message', message],
-      ['requestTime', start],
-      ['requestDuration', duration],
+      ['requestTime', `${start}`],
+      ['requestDuration', `${duration}`],
       ['approved', 'true'],
       ['reviewed', 'true'],
-      ['apiKey', apiKey.key],
+      ['apiKey', `${props.apiKey.key}`],
   ])) as ApptRequest;
   }
 
