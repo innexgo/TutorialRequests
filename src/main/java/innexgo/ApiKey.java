@@ -21,8 +21,21 @@ package innexgo;
 public class ApiKey {
   public long id;
   long userId;
+
   public long creationTime;
   public long expirationTime;
+
+  public CapabilityKind readUser;
+  public CapabilityKind writeUser;
+
+  public CapabilityKind readApiKey;
+  public CapabilityKind writeApiKey;
+
+  public CapabilityKind readApptRequest;
+  public CapabilityKind writeApptRequest;
+
+  public CapabilityKind readAppt;
+  public CapabilityKind writeAppt;
 
   // not public
   String keyHash;
@@ -30,4 +43,17 @@ public class ApiKey {
   // Initialized by jackson during serialization, but not persisted
   public String key;
   public User user;
+}
+
+enum CapabilityKind {
+  GLOBAL, MY, NONE;
+
+  public static boolean contains(String str) {
+    for(CapabilityKind capabilityKind : CapabilityKind.values()) {
+      if(capabilityKind.name().equals(str)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

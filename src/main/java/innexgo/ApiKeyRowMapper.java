@@ -30,6 +30,19 @@ public class ApiKeyRowMapper implements RowMapper<ApiKey> {
     apiKey.userId = row.getLong("user_id");
     apiKey.creationTime = row.getLong("creation_time");
     apiKey.expirationTime = row.getLong("expiration_time");
+
+    apiKey.readUser = CapabilityKind.valueOf(row.getString("read_user"));
+    apiKey.writeUser = CapabilityKind.valueOf(row.getString("write_user"));
+
+    apiKey.readApiKey = CapabilityKind.valueOf(row.getString("read_api_key"));
+    apiKey.writeApiKey = CapabilityKind.valueOf(row.getString("write_api_key"));
+
+    apiKey.readApptRequest = CapabilityKind.valueOf(row.getString("read_appt_request"));
+    apiKey.writeApptRequest = CapabilityKind.valueOf(row.getString("write_appt_request"));
+
+    apiKey.readAppt = CapabilityKind.valueOf(row.getString("read_appt"));
+    apiKey.writeAppt = CapabilityKind.valueOf(row.getString("write_appt"));
+
     apiKey.keyHash = row.getString("key_hash");
     return apiKey;
   }

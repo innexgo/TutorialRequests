@@ -28,6 +28,8 @@ public class UserRowMapper implements RowMapper<User> {
   public User mapRow(ResultSet row, int rowNum) throws SQLException {
     User u = new User();
     u.id = row.getLong("id");
+    u.secondaryId = row.getLong("secondary_id");
+    u.schoolId = row.getLong("school_id");
     u.name = row.getString("name");
     u.email = row.getString("email");
     u.passwordHash = row.getString("password_hash");
