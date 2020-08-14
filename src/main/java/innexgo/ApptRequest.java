@@ -40,11 +40,13 @@ public class ApptRequest {
 }
 
 enum AttendanceStatus {
-  ABSENT, TARDY, PRESENT;
+  ABSENT,
+  TARDY,
+  PRESENT;
 
   public static boolean contains(String str) {
-    for(AttendanceStatus attendanceStatus : AttendanceStatus.values()) {
-      if(attendanceStatus.name().equals(str)) {
+    for (AttendanceStatus attendanceStatus : AttendanceStatus.values()) {
+      if (attendanceStatus.name().equals(str)) {
         return true;
       }
     }

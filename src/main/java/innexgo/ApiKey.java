@@ -25,6 +25,9 @@ public class ApiKey {
   public long creationTime;
   public long expirationTime;
 
+  // not public
+  String keyHash;
+
   public CapabilityKind readUser;
   public CapabilityKind writeUser;
 
@@ -37,20 +40,19 @@ public class ApiKey {
   public CapabilityKind readAppt;
   public CapabilityKind writeAppt;
 
-  // not public
-  String keyHash;
-
   // Initialized by jackson during serialization, but not persisted
   public String key;
   public User user;
 }
 
 enum CapabilityKind {
-  GLOBAL, MY, NONE;
+  GLOBAL,
+  MY,
+  NONE;
 
   public static boolean contains(String str) {
-    for(CapabilityKind capabilityKind : CapabilityKind.values()) {
-      if(capabilityKind.name().equals(str)) {
+    for (CapabilityKind capabilityKind : CapabilityKind.values()) {
+      if (capabilityKind.name().equals(str)) {
         return true;
       }
     }

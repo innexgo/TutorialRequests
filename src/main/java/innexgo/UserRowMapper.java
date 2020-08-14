@@ -31,6 +31,7 @@ public class UserRowMapper implements RowMapper<User> {
     u.secondaryId = row.getLong("secondary_id");
     u.schoolId = row.getLong("school_id");
     u.name = row.getString("name");
+    u.kind = UserKind.valueOf(row.getString("kind"));
     u.email = row.getString("email");
     u.passwordHash = row.getString("password_hash");
     return u;

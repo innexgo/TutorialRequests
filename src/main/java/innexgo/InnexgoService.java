@@ -26,7 +26,7 @@ public class InnexgoService {
     return apiKey;
   }
 
-   /**
+  /**
    * Fills in jackson objects (none at the moment) for Student
    *
    * @param student - Student object
@@ -102,4 +102,3 @@ public class InnexgoService {
     return user != null;
   }
 }
-

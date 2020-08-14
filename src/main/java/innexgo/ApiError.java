@@ -1,7 +1,6 @@
 package innexgo;
 
 import java.sql.Timestamp;
-
 import org.springframework.http.HttpStatus;
 
 public class ApiError {

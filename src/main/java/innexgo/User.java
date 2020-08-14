@@ -22,7 +22,7 @@ public class User {
   public long id;
   public long secondaryId;
   long schoolId;
-  public UserKind userKind;
+  public UserKind kind;
   public String name;
   public String email;
   // not public so they don't get serialized to jackson
@@ -33,11 +33,13 @@ public class User {
 }
 
 enum UserKind {
-  STUDENT, USER, ADMIN;
+  STUDENT,
+  USER,
+  ADMIN;
 
   public static boolean contains(String str) {
-    for(UserKind userKind : UserKind.values()) {
-      if(userKind.name().equals(str)) {
+    for (UserKind userKind : UserKind.values()) {
+      if (userKind.name().equals(str)) {
         return true;
       }
     }

@@ -28,24 +28,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Repository
 public class UserService {
+
   @Autowired private JdbcTemplate jdbcTemplate;
 
   public User getById(long id) {
-    String sql = "SELECT id, secondary_id, school_id, name, email, password_hash FROM user WHERE id=?";
+    String sql =
+        "SELECT id, secondary_id, school_id, kind, name, email, password_hash FROM user WHERE id=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return user;
   }
 
   public User getByEmail(String email) {
-    String sql = "SELECT id, secondary_id, school_id, name, email, password_hash FROM user WHERE email=?";
+    String sql =
+        "SELECT id, secondary_id, school_id, name, kind, email, password_hash FROM user WHERE email=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, email);
     return user;
   }
 
   public List<User> getAll() {
-    String sql = "SELECT  id, secondary_id, school_id, name, email, password_hash FROM user";
+    String sql = "SELECT  id, secondary_id, school_id, name, kind, email, password_hash FROM user";
     RowMapper<User> rowMapper = new UserRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
@@ -53,28 +56,44 @@ public class UserService {
   public void add(User user) {
     // Add user
     String sql =
-        "INSERT INTO user (id, secondary_id, school_id, name, email, password_hash) values (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO user (id, secondary_id, school_id, name, kind, email, password_hash) values (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
-        sql, user.id, user.secondaryId, user.schoolId, user.name, user.email, user.passwordHash);
+        sql,
+        user.id,
+        user.secondaryId,
+        user.schoolId,
+        user.name,
+        user.kind.name(),
+        user.email,
+        user.passwordHash);
 
     // Fetch user id
     sql =
-        "SELECT id FROM user WHERE secondary_id=? AND school_id=? AND name=? AND email=? AND password_hash=?";
+        "SELECT id FROM user WHERE secondary_id=? AND school_id=? AND name=? AND kind=?, AND email=? AND password_hash=?";
     long id =
         jdbcTemplate.queryForObject(
-            sql, Long.class, user.secondaryId, user.schoolId, user.name, user.email, user.passwordHash);
+            sql,
+            Long.class,
+            user.secondaryId,
+            user.schoolId,
+            user.name,
+            user.kind.name(),
+            user.email,
+            user.passwordHash);
 
     // Set user id
     user.id = id;
   }
 
   public void update(User user) {
-    String sql =
-        "UPDATE user SET id=?, name=?, email=?, password_hash=? WHERE id=?";
+    String sql = "UPDATE user SET id=?, name=?, email=?, password_hash=? WHERE id=?";
     jdbcTemplate.update(
         sql,
         user.id,
+        user.secondaryId,
+        user.schoolId,
         user.name,
+        user.kind.name(),
         user.email,
         user.passwordHash,
         user.id);
@@ -95,19 +114,30 @@ public class UserService {
 
   public boolean existsByEmail(String email) {
     String sql = "SELECT count(*) FROM user WHERE email=?";
-    int count = jdbcTemplate.queryForObject(sql, Integer.class, email);
+    long count = jdbcTemplate.queryForObject(sql, Long.class, email);
     return count != 0;
   }
 
-  public List<User> query(Long id, secondary_id, school_id, String name, String email, long offset, long count) {
+  public List<User> query(
+      Long id,
+      Long secondaryId,
+      Long schoolId,
+      String name,
+      UserKind kind,
+      String email,
+      long offset,
+      long count) {
     String sql =
-        "SELECT u.id, secondary_id, school_id, u.name, u.password_hash, u.email, u.ring FROM user u"
+        "SELECT u.id, u.secondary_id, u.school_id, u.name, u.kind() u.password_hash, u.email, u.ring FROM user u"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND u.id = " + id)
+            + (secondaryId == null ? "" : " AND u.secondary_id = " + secondaryId)
+            + (schoolId == null ? "" : " AND u.school_id = " + schoolId)
             + (name == null ? "" : " AND u.name = " + Utils.escape(name))
+            + (kind == null ? "" : " AND u.kind = " + kind.name())
             + (email == null ? "" : " AND u.email = " + Utils.escape(email))
             + (" ORDER BY u.id")
-            + (" LIMIT " + offset + ", "  + count)
+            + (" LIMIT " + offset + ", " + count)
             + ";";
 
     RowMapper<User> rowMapper = new UserRowMapper();

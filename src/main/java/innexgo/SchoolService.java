@@ -75,7 +75,7 @@ public class SchoolService {
             + (id == null ? "" : " AND l.id = " + id)
             + (name == null ? "" : " AND l.name = " + Utils.escape(name))
             + (" ORDER BY l.id")
-            + (" LIMIT " + offset + ", "  + count)
+            + (" LIMIT " + offset + ", " + count)
             + ";";
 
     RowMapper<School> rowMapper = new SchoolRowMapper();
