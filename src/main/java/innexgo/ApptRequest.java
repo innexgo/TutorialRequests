@@ -20,36 +20,14 @@ package innexgo;
 
 public class ApptRequest {
   public long id;
-  long studentId;
-  long userId;
+  long creatorId;
+  long targetId;
   public String message;
   public long creationTime;
-  // only defined if reviewed is true
-  public long requestTime;
-  // only defined if reviewed is true
-  public long requestDuration;
-  public boolean reviewed;
-  public boolean approved;
-  public String response;
-  // only defined if current time is after request time
-  public AttendanceStatus attendanceStatus;
+  public long suggestedTime;
 
   // for jackson
-  Student student;
-  User user;
+  User creator;
+  User target;
 }
 
-enum AttendanceStatus {
-  ABSENT,
-  TARDY,
-  PRESENT;
-
-  public static boolean contains(String str) {
-    for (AttendanceStatus attendanceStatus : AttendanceStatus.values()) {
-      if (attendanceStatus.name().equals(str)) {
-        return true;
-      }
-    }
-    return false;
-  }
-}

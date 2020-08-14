@@ -18,21 +18,36 @@
 
 package innexgo;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.springframework.jdbc.core.RowMapper;
+public class Appt {
+  public long id;
+  long hostId;
+  long attendeeId;
+  long apptRequestId;
+  public String message;
+  public long creationTime;
+  public long time;
+  public long duration;
+  // only valid after the date of the status has passed
+  // defaults to absent
+  public AttendanceStatus attendanceStatus;
 
-public class ApptRequestRowMapper implements RowMapper<ApptRequest> {
+  // for jackson
+  User host;
+  User attendee;
+  ApptRequest apptRequest;
+}
 
-  @Override
-  public ApptRequest mapRow(ResultSet row, int rowNum) throws SQLException {
-    ApptRequest apptRequest = new ApptRequest();
-    apptRequest.id = row.getLong("id");
-    apptRequest.creatorId = row.getLong("creator_id");
-    apptRequest.targetId = row.getLong("target_id");
-    apptRequest.message = row.getString("message");
-    apptRequest.creationTime = row.getLong("creation_time");
-    apptRequest.suggestedTime = row.getLong("suggested_time");
-    return apptRequest;
+enum AttendanceStatus {
+  ABSENT,
+  TARDY,
+  PRESENT;
+
+  public static boolean contains(String str) {
+    for (AttendanceStatus attendanceStatus : AttendanceStatus.values()) {
+      if (attendanceStatus.name().equals(str)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

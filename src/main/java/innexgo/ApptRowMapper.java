@@ -22,17 +22,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 
-public class ApptRequestRowMapper implements RowMapper<ApptRequest> {
+public class ApptRowMapper implements RowMapper<Appt> {
 
   @Override
-  public ApptRequest mapRow(ResultSet row, int rowNum) throws SQLException {
-    ApptRequest apptRequest = new ApptRequest();
-    apptRequest.id = row.getLong("id");
-    apptRequest.creatorId = row.getLong("creator_id");
-    apptRequest.targetId = row.getLong("target_id");
-    apptRequest.message = row.getString("message");
-    apptRequest.creationTime = row.getLong("creation_time");
-    apptRequest.suggestedTime = row.getLong("suggested_time");
-    return apptRequest;
+  public Appt mapRow(ResultSet row, int rowNum) throws SQLException {
+    Appt appt = new Appt();
+    appt.id = row.getLong("id");
+    appt.hostId = row.getLong("host_id");
+    appt.attendeeId = row.getLong("attendee_id");
+    appt.message = row.getString("message");
+    appt.creationTime = row.getLong("creation_time");
+    appt.time = row.getLong("time");
+    appt.duration = row.getLong("duration");
+    appt.apptRequestId = row.getLong("appt_request_id");
+    appt.attendanceStatus = AttendanceStatus.valueOf(row.getString("attendance_status"));
+    return appt;
   }
 }

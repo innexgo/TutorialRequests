@@ -33,7 +33,7 @@ public class ApptRequestService {
 
   public ApptRequest getById(long id) {
     String sql =
-        "SELECT id, student_id, user_id, message, creation_time, request_time, request_duration, reviewed, approved, response, attendance_status FROM appt_request WHERE id=?";
+        "SELECT id, creator_id, target_id, message, creation_time, suggested_time WHERE id=?";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apptRequest;
@@ -41,59 +41,50 @@ public class ApptRequestService {
 
   public List<ApptRequest> getAll() {
     String sql =
-        "SELECT id, student_id, user_id, message, creation_time, request_time, request_duration, reviewed, approved, response, attendance_status FROM apptRequest";
+        "SELECT id, creator_id, target_id, message, creation_time, suggested_time FROM apptRequest";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
   private void syncId(ApptRequest apptRequest) {
     String sql =
-        "SELECT id FROM appt_request WHERE student_id=? AND user_id=? AND creation_time=? AND request_time=?";
+        "SELECT id FROM appt_request WHERE creator_id=? AND target_id=? AND creation_time=? AND suggested_time=?";
     apptRequest.id =
         jdbcTemplate.queryForObject(
             sql,
             Long.class,
-            apptRequest.studentId,
-            apptRequest.userId,
+            apptRequest.creatorId,
+            apptRequest.targetId,
             apptRequest.creationTime,
-            apptRequest.requestTime);
+            apptRequest.suggestedTime);
   }
 
   public void add(ApptRequest apptRequest) {
     // Add apptRequest
     String sql =
-        "INSERT INTO apptRequest(id, student_id, user_id, message, creation_time, request_time, request_duration, reviewed, approved, response, attendance_status) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO apptRequest(id, creator_id, target_id, message, creation_time, suggested_time, request_duration, reviewed, approved, response, attendance_status) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         apptRequest.id,
-        apptRequest.studentId,
-        apptRequest.userId,
+        apptRequest.creatorId,
+        apptRequest.targetId,
         apptRequest.message,
         apptRequest.creationTime,
-        apptRequest.requestTime,
-        apptRequest.reviewed,
-        apptRequest.approved,
-        apptRequest.response,
-        apptRequest.attendanceStatus.name());
+        apptRequest.suggestedTime );
     syncId(apptRequest);
   }
 
   public void update(ApptRequest apptRequest) {
     String sql =
-        "UPDATE apptRequest SET id=?, student_id=?, user_id=?, message=?, creation_time=?, request_time=?, request_duration=?, reviewed=?. approved=?, response=?, attendance_status=? WHERE id=?";
+        "UPDATE apptRequest SET id=?, creator_id=?, target_id=?, message=?, creation_time=?, suggested_time=? WHERE id=?";
     jdbcTemplate.update(
         sql,
         apptRequest.id,
-        apptRequest.studentId,
-        apptRequest.userId,
+        apptRequest.creatorId,
+        apptRequest.targetId,
         apptRequest.message,
         apptRequest.creationTime,
-        apptRequest.requestTime,
-        apptRequest.requestDuration,
-        apptRequest.reviewed,
-        apptRequest.approved,
-        apptRequest.response,
-        apptRequest.attendanceStatus.name());
+        apptRequest.suggestedTime);
   }
 
   public ApptRequest deleteById(long id) {
@@ -112,42 +103,30 @@ public class ApptRequestService {
   // Restrict apptRequests by
   public List<ApptRequest> query(
       Long id,
-      Long studentId,
-      Long userId,
+      Long creatorId,
+      Long targetId,
       String message,
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
-      Long requestTime,
-      Long minRequestTime,
-      Long maxRequestTime,
-      Long requestDuration,
-      Boolean reviewed,
-      Boolean approved,
-      String response,
-      AttendanceStatus attendanceStatus,
+      Long suggestedTime,
+      Long minSuggestedTime,
+      Long maxSuggestedTime,
       long offset,
       long count) {
     String sql =
-        "SELECT ar.id, ar.student_id, ar.user_id, ar.message, ar.creation_time, ar.request_time, ar.request_duration, ar.reviewed, ar.approved, ar.response, ar.attendance_status FROM appt_request ar"
+        "SELECT ar.id, ar.creator_id, ar.target_id, ar.message, ar.creation_time, ar.suggested_time, ar.request_duration, ar.reviewed, ar.approved, ar.response, ar.attendance_status FROM appt_request ar"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND ar.id = " + id)
-            + (studentId == null ? "" : " AND ar.student_id = " + studentId)
-            + (userId == null ? "" : " AND ar.user_id = " + userId)
+            + (creatorId == null ? "" : " AND ar.creator_id = " + creatorId)
+            + (targetId == null ? "" : " AND ar.target_id = " + targetId)
             + (message == null ? "" : " AND ar.message = " + Utils.escape(message))
             + (creationTime == null ? "" : " AND ar.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND ar.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND ar.creation_time < " + maxCreationTime)
-            + (requestTime == null ? "" : " AND ar.request_time = " + requestTime)
-            + (minRequestTime == null ? "" : " AND ar.request_time > " + minRequestTime)
-            + (maxRequestTime == null ? "" : " AND ar.request_time < " + maxRequestTime)
-            + (requestDuration == null ? "" : " AND ar.request_duration = " + requestDuration)
-            + (reviewed == null ? "" : " AND ar.reviewed = " + reviewed)
-            + (approved == null ? "" : " AND ar.approved = " + approved)
-            + (response == null ? "" : " AND ar.response = " + Utils.escape(message))
-            + (attendanceStatus == null
-                ? ""
-                : " AND ar.attendance_status = " + attendanceStatus.name())
+            + (suggestedTime == null ? "" : " AND ar.suggested_time = " + suggestedTime)
+            + (minSuggestedTime == null ? "" : " AND ar.suggested_time > " + minSuggestedTime)
+            + (maxSuggestedTime == null ? "" : " AND ar.suggested_time < " + maxSuggestedTime)
             + (" ORDER BY ar.id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
