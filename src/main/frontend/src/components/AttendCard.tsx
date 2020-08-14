@@ -7,7 +7,7 @@ import moment from 'moment';
 type AttendCardProps = {
   student: string,
   apptId: number,
-  time?: string,
+  time: string,
   apiKey: ApiKey,
 }
 
