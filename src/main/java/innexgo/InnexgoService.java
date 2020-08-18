@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 public class InnexgoService {
 
   @Autowired ApiKeyService apiKeyService;
-  @Autowired StudentService studentService;
   @Autowired UserService userService;
+  @Autowired ApptService apptService;
   @Autowired ApptRequestService apptRequestService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
@@ -24,16 +24,6 @@ public class InnexgoService {
   ApiKey fillApiKey(ApiKey apiKey) {
     apiKey.user = fillUser(userService.getById(apiKey.userId));
     return apiKey;
-  }
-
-  /**
-   * Fills in jackson objects (none at the moment) for Student
-   *
-   * @param student - Student object
-   * @return Student object with filled jackson objects
-   */
-  Student fillStudent(Student student) {
-    return student;
   }
 
   /**
@@ -53,9 +43,21 @@ public class InnexgoService {
    * @return ApptRequest object with recursively filled jackson objects
    */
   ApptRequest fillApptRequest(ApptRequest apptRequest) {
-    apptRequest.student = studentService.getById(apptRequest.studentId);
-    apptRequest.user = userService.getById(apptRequest.userId);
+    apptRequest.creator = userService.getById(apptRequest.creatorId);
+    apptRequest.target = userService.getById(apptRequest.targetId);
     return apptRequest;
+  }
+
+  /**
+   * Fills in jackson objects for Appt
+   *
+   * @param appt - Appt object
+   * @return Appt object with recursively filled jackson objects
+   */
+  Appt fillAppt(Appt appt) {
+    appt.host = userService.getById(appt.hostId);
+    appt.attendee = userService.getById(appt.attendeeId);
+    return appt;
   }
 
   /**
@@ -68,37 +70,12 @@ public class InnexgoService {
     String hash = Utils.encodeApiKey(key);
     if (apiKeyService.existsByKeyHash(hash)) {
       ApiKey apiKey = apiKeyService.getByKeyHash(hash);
-      if (apiKey.expirationTime > System.currentTimeMillis()) {
+      if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
         if (userService.existsById(apiKey.userId)) {
           return userService.getById(apiKey.userId);
         }
       }
     }
     return null;
-  }
-
-  /**
-   * Checks if a user is an administrator
-   *
-   * @param key - apikey code of a User
-   * @return true if administrator; false if not administrator or invalid
-   */
-  boolean isAdministrator(String key) {
-    // TODO this is a hack
-    return isTrusted(key);
-  }
-
-  /**
-   * Checks whether a User is trusted
-   *
-   * @param key - apikey code of User
-   * @return true if User is trusted; false if User not trusted
-   */
-  boolean isTrusted(String key) {
-    if (key == null) {
-      return false;
-    }
-    User user = getUserIfValid(key);
-    return user != null;
   }
 }

@@ -32,7 +32,7 @@ public class ApiKeyService {
 
   public ApiKey getById(long id) {
     String sql =
-        "SELECT id, user_id, creation_time, expiration_time, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt FROM api_key WHERE id=?";
+        "SELECT id, user_id, creation_time, duration, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt FROM api_key WHERE id=?";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     ApiKey apiKey = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apiKey;
@@ -41,7 +41,7 @@ public class ApiKeyService {
   // Gets the last created key with the keyhash
   public ApiKey getByKeyHash(String keyHash) {
     String sql =
-        "SELECT id, user_id, creation_time, expiration_time, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
+        "SELECT id, user_id, creation_time, duration, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     List<ApiKey> apiKeys = jdbcTemplate.query(sql, rowMapper, keyHash);
     return apiKeys.size() > 0 ? apiKeys.get(0) : null;
@@ -49,21 +49,21 @@ public class ApiKeyService {
 
   public List<ApiKey> getAll() {
     String sql =
-        "SELECT id, user_id, creation_time, expiration_time, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt FROM api_key";
+        "SELECT id, user_id, creation_time, duration, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt FROM api_key";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
   private void syncId(ApiKey apiKey) {
     String sql =
-        "SELECT id FROM api_key WHERE user_id=? AND creation_time=? AND expiration_time=? AND key_hash=? AND read_user=? AND write_user=? AND read_api_key=? AND write_api_key=? AND read_appt_request=? AND write_appt_request=? AND read_appt=? AND write_appt=?";
+        "SELECT id FROM api_key WHERE user_id=? AND creation_time=? AND duration=? AND key_hash=? AND read_user=? AND write_user=? AND read_api_key=? AND write_api_key=? AND read_appt_request=? AND write_appt_request=? AND read_appt=? AND write_appt=?";
     long id =
         jdbcTemplate.queryForObject(
             sql,
             Long.class,
             apiKey.userId,
             apiKey.creationTime,
-            apiKey.expirationTime,
+            apiKey.duration,
             apiKey.keyHash,
             apiKey.readUser.name(),
             apiKey.writeUser.name(),
@@ -81,13 +81,13 @@ public class ApiKeyService {
   public void add(ApiKey apiKey) {
     // Add API key
     String sql =
-        "INSERT INTO api_key (id, user_id, creation_time, expiration_time, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt) values (?,?,?,?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO api_key (id, user_id, creation_time, duration, key_hash, read_user, write_user, read_api_key, write_api_key, read_appt_request, write_appt_request, read_appt, write_appt) values (?,?,?,?,?,?,?,?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
         apiKey.id,
         apiKey.userId,
         apiKey.creationTime,
-        apiKey.expirationTime,
+        apiKey.duration,
         apiKey.keyHash,
         apiKey.readUser.name(),
         apiKey.writeUser.name(),
@@ -136,7 +136,7 @@ public class ApiKeyService {
       long offset,
       long count) {
     String sql =
-        "SELECT a.id, a.user_id, a.creation_time, a.expiration_time, a.key_hash, a.read_user, a.write_user, a.read_api_key, a.write_api_key, a.read_appt_request, a.write_appt_request, a.read_appt, a.write_appt FROM api_key a WHERE 1=1"
+        "SELECT a.id, a.user_id, a.creation_time, a.duration, a.key_hash, a.read_user, a.write_user, a.read_api_key, a.write_api_key, a.read_appt_request, a.write_appt_request, a.read_appt, a.write_appt FROM api_key a WHERE 1=1"
             + (id == null ? "" : " AND a.id=" + id)
             + (userId == null ? "" : " AND a.user_id =" + userId)
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)

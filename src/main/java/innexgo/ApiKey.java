@@ -23,7 +23,7 @@ public class ApiKey {
   long userId;
 
   public long creationTime;
-  public long expirationTime;
+  public long duration;
 
   // not public
   String keyHash;
@@ -46,9 +46,7 @@ public class ApiKey {
 }
 
 enum CapabilityKind {
-  GLOBAL,
-  MY,
-  NONE;
+  GLOBAL, MY, NONE;
 
   public static boolean contains(String str) {
     for (CapabilityKind capabilityKind : CapabilityKind.values()) {
@@ -57,5 +55,19 @@ enum CapabilityKind {
       }
     }
     return false;
+  }
+
+  public int toInt() {
+    switch (this) {
+      case GLOBAL: {
+        return 2;
+      }
+      case MY: {
+        return 1;
+      }
+      default: {
+        return 0;
+      }
+    }
   }
 }

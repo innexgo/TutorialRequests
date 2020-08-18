@@ -39,7 +39,6 @@ public class ApiController {
   Logger logger = LoggerFactory.getLogger(ApiController.class);
 
   @Autowired ApiKeyService apiKeyService;
-  @Autowired StudentService studentService;
   @Autowired UserService userService;
   @Autowired ApptRequestService apptRequestService;
 
@@ -58,57 +57,53 @@ public class ApiController {
    */
   @RequestMapping("/apiKey/new/")
   public ResponseEntity<?> newApiKey(
-      @RequestParam(value = "userId", defaultValue = "-1") Long userId,
-      @RequestParam(value = "userEmail", defaultValue = "") String email,
-      @RequestParam("expirationTime") Long expirationTime,
-      @RequestParam("userPassword") String password) {
-    // if they gave a username instead of a userId
-    if (userId == -1 && !Utils.isEmpty(email)) {
-      // if the email is registered
-      if (userService.existsByEmail(email)) {
-        // get email
-        userId = userService.getByEmail(email).id;
-      }
-    }
+      @RequestParam("userEmail") String userEmail,
+			@RequestParam("userPassword") String password,
+			@RequestParam("duration") Long duration,
+			@RequestParam("readUser") String readUser,
+			@RequestParam("writeUser") String writeUser,
+			@RequestParam("readApiKey") String readApiKey,
+			@RequestParam("writeApiKey") String writeApiKey,
+			@RequestParam("readApptRequest") String readApptRequest,
+			@RequestParam("writeApptRequest") String writeApptRequest,
+			@RequestParam("readAppt") String readAppt,
+			@RequestParam("writeAppt") String writeAppt
+      ) {
     // Ensure user exists
-    if (!userService.existsById(userId)) {
+    if (!userService.existsByEmail(userEmail)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
     // Ensure password is valid
-    User u = userService.getById(userId);
+    User u = userService.getByEmail(userEmail);
     if (!Utils.matchesPassword(password, u.passwordHash)) {
       return Errors.PASSWORD_INCORRECT.getResponse();
     }
+
+    switch(u.kind) {
+			 case STUDENT: {
+				// students can
+				//read my users, write none,
+				//read none apikey, write none,
+				//read self apptrequest, write self apptrequest,
+				//read self appt write none
+				if(read
+			 }
+    }
+
+    // validate requests are within bounds for each user class
+    if(u.kind == UserKind.STUDENT || u.kind == UserKind.USER) {
+
+    }
+
     // now actually make apiKey
     ApiKey apiKey = new ApiKey();
-    apiKey.userId = userId;
+    apiKey.userId = u.id;
     apiKey.creationTime = System.currentTimeMillis();
     apiKey.expirationTime = expirationTime;
     apiKey.key = Utils.generateKey();
     apiKey.keyHash = Utils.encodeApiKey(apiKey.key);
     apiKeyService.add(apiKey);
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
-  }
-
-  @RequestMapping("/student/new/")
-  public ResponseEntity<?> newStudent(
-      @RequestParam("studentId") Long studentId,
-      @RequestParam("studentName") String name,
-      @RequestParam("apiKey") String apiKey) {
-    if (!innexgoService.isAdministrator(apiKey)) {
-      return Errors.MUST_BE_ADMIN.getResponse();
-    }
-    if (studentService.existsById(studentId)) {
-      return Errors.STUDENT_EXISTENT.getResponse();
-    }
-    if (Utils.isEmpty(name)) {
-      return Errors.STUDENT_NAME_EMPTY.getResponse();
-    }
-    Student student = new Student();
-    student.id = studentId;
-    student.name = name.toUpperCase();
-    studentService.add(student);
-    return new ResponseEntity<>(innexgoService.fillStudent(student), HttpStatus.OK);
   }
 
   @RequestMapping("/user/new/")
@@ -282,29 +277,6 @@ public class ApiController {
                 count)
             .stream()
             .map(x -> innexgoService.fillApiKey(x))
-            .collect(Collectors.toList());
-    return new ResponseEntity<>(list, HttpStatus.OK);
-  }
-
-  @RequestMapping("/student/")
-  public ResponseEntity<?> viewStudent(
-      @RequestParam("offset") Long offset,
-      @RequestParam("count") Long count,
-      @RequestParam Map<String, String> allRequestParam) {
-    String apiKey = allRequestParam.get("apiKey");
-    if (!innexgoService.isTrusted(apiKey)) {
-      return Errors.MUST_BE_USER.getResponse();
-    }
-    List<Student> list =
-        studentService
-            .query(
-                Utils.parseLong(allRequestParam.get("studentId")),
-                allRequestParam.get("studentName"),
-                allRequestParam.get("studentNamePartial"),
-                offset,
-                count)
-            .stream()
-            .map(x -> innexgoService.fillStudent(x))
             .collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }

@@ -62,7 +62,7 @@ public class ApptRequestService {
   public void add(ApptRequest apptRequest) {
     // Add apptRequest
     String sql =
-        "INSERT INTO apptRequest(id, creator_id, target_id, message, creation_time, suggested_time, request_duration, reviewed, approved, response, attendance_status) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO apptRequest(id, creator_id, target_id, message, creation_time, suggested_time ) values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         apptRequest.id,
