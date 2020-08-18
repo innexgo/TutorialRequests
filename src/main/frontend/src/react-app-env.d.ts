@@ -18,6 +18,7 @@ type ApptRequest = {
     message:string,
     creationTime:number,
     requestTime:number,
+    requestDuration:number,
     reviewed:boolean,
     approved:boolean,
     response:string,
