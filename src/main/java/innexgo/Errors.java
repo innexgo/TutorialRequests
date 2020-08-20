@@ -36,6 +36,8 @@ public enum Errors {
   STUDENT_NAME_EMPTY("the student name must not be empty", HttpStatus.BAD_REQUEST),
   USER_NAME_EMPTY("the user name must not be empty", HttpStatus.BAD_REQUEST),
   USER_EMAIL_EMPTY("the user email must not be empty", HttpStatus.BAD_REQUEST),
+  USERKIND_INVALID("must be one of STUDENT, USER, or ADMIN", HttpStatus.BAD_REQUEST),
+  ATTENDANCEKIND_INVALID("must be one of ABSENT, PRESENT, or TARDY", HttpStatus.BAD_REQUEST),
   UNKNOWN("an unknown error has occured", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;

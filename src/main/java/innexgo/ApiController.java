@@ -137,7 +137,8 @@ public class ApiController {
   public ResponseEntity<?> newUser(@RequestParam("userName") String name, @RequestParam("userEmail") String email,
       @RequestParam("userPassword") String password, @RequestParam("userKind") UserKind kind,
       @RequestParam("apiKey") String apiKey) {
-    if (!innexgoService.getApiKeyIfValid(apiKey).canWriteUser) {
+          ApiKey key =innexgoService.getApiKeyIfValid(apiKey); 
+    if (key == null || !key.canWriteUser) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
     if (Utils.isEmpty(email)) {
@@ -158,46 +159,19 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
-  // This method updates the password for same user only
-  @RequestMapping("/user/updatePassword/")
-  public ResponseEntity<?> updatePassword(@RequestParam("userId") Long userId,
-      @RequestParam("userOldPassword") String oldPassword, @RequestParam("userNewPassword") String newPassword) {
-
-    if (!userService.existsById(userId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
-    }
-
-    User user = userService.getById(userId);
-
-    if (!Utils.isEmpty(oldPassword) && Utils.matchesPassword(oldPassword, user.passwordHash)) {
-      return Errors.PASSWORD_INCORRECT.getResponse();
-    }
-
-    if (Utils.isEmpty(newPassword)) {
-      return Errors.PASSWORD_INSECURE.getResponse();
-    }
-
-    user.passwordHash = Utils.encodePassword(newPassword);
-    userService.update(user);
-    return new ResponseEntity<>(innexgoService.fillUser(user), HttpStatus.OK);
-  }
-
   @RequestMapping("/apptRequest/new/")
-  public ResponseEntity<?> newApptRequest(@RequestParam("creatorId") Long creatorId,
-      @RequestParam("targetId") Long targetId, @RequestParam("message") String message,
+  public ResponseEntity<?> newApptRequest(@RequestParam("targetId") Long targetId, @RequestParam("message") String message,
       @RequestParam("suggestedTime") Long suggestedTime, @RequestParam("apiKey") String apiKey) {
-    if (!innexgoService.getApiKeyIfValid(apiKey).canWriteApptRequest) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null || !key.canWriteApptRequest) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
-    }
-    if (!userService.existsById(creatorId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
     }
     if (!userService.existsById(targetId)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
     ApptRequest ar = new ApptRequest();
-    ar.creatorId = creatorId;
+    ar.creatorId = key.userId;
     ar.targetId = targetId;
     ar.message = message;
     ar.creationTime = System.currentTimeMillis();
@@ -210,7 +184,8 @@ public class ApiController {
   public ResponseEntity<?> newAppt(@RequestParam("hostId") Long hostId, @RequestParam("attendeeId") Long attendeeId,
       @RequestParam("message") String message, @RequestParam("time") Long time, @RequestParam("duration") Long duration,
       @RequestParam("apiKey") String apiKey) {
-    if (!innexgoService.getApiKeyIfValid(apiKey).canWriteAppt) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null || !key.canWriteAppt) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
     if (!userService.existsById(hostId)) {
@@ -237,7 +212,9 @@ public class ApiController {
                                     @RequestParam("count") Long count,
                                     @RequestParam("apiKey") String apiKey,
                                     @RequestParam Map<String, String> allRequestParam) {
-    if (!innexgoService.getApiKeyIfValid(apiKey).canReadUser) {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null || !key.canReadUser) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
@@ -247,7 +224,7 @@ public class ApiController {
       if (UserKind.contains(userKindStr)) {
         kind = UserKind.valueOf(userKindStr);
       } else {
-        return Errors.INVALID_ATTENDANCE_STATUS_KIND.getResponse();
+        return Errors.USERKIND_INVALID.getResponse();
       }
     }
 
@@ -255,7 +232,7 @@ public class ApiController {
         .query(
             Utils.parseLong(allRequestParam.get("userId")),
             Utils.parseLong(allRequestParam.get("userSecondaryId")),
-            innexgoService.getUserIfValid(apiKey).schoolId,
+            userService.getById(key.userId).schoolId,
             allRequestParam.get("userName"),
             allRequestParam.get("userEmail"),
             kind,
@@ -273,8 +250,9 @@ public class ApiController {
                                     @RequestParam("count") Long count,
                                     @RequestParam("apiKey") String apiKey,
                                     @RequestParam Map<String, String> allRequestParam) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
 
-    if (!innexgoService.getApiKeyIfValid(apiKey).canReadApptRequest) {
+    if (key == null || !key.canReadApptRequest) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
@@ -301,7 +279,9 @@ public class ApiController {
                                     @RequestParam("count") Long count,
                                     @RequestParam("apiKey") String apiKey,
                                     @RequestParam Map<String, String> allRequestParam) {
-    if (!innexgoService.getApiKeyIfValid(apiKey).canReadApptRequest) {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null || key.canReadAppt) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
@@ -311,7 +291,7 @@ public class ApiController {
       if (AttendanceStatus.contains(attendanceStatusStr)) {
         kind = AttendanceStatus.valueOf(attendanceStatusStr);
       } else {
-        return Errors.INVALID_ATTENDANCE_STATUS_KIND.getResponse();
+        return Errors.ATTENDANCEKIND_INVALID.getResponse();
       }
     }
 
@@ -336,40 +316,27 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/validateStudentId/")
-  public ResponseEntity<?> validateStudentId(@RequestParam("studentId") Long studentId) {
-    if (studentService.existsById(studentId)) {
-      Student student = innexgoService.fillStudent(studentService.getById(studentId));
-      return new ResponseEntity<>(student, HttpStatus.OK);
-    } else {
-      return Errors.STUDENT_NONEXISTENT.getResponse();
-    }
-  }
+  // This method updates the password for same user only
+  @RequestMapping("/misc/updatePassword/")
+  public ResponseEntity<?> updatePassword(@RequestParam("userId") Long userId,
+      @RequestParam("userOldPassword") String oldPassword, @RequestParam("userNewPassword") String newPassword) {
 
-  @RequestMapping("/misc/studentApptRequest/")
-  public ResponseEntity<?> studentApptRequest(@RequestParam("studentId") Long studentId,
-      @RequestParam("userId") Long userId, @RequestParam("requestTime") Long requestTime,
-      @RequestParam("message") String message) {
-
-    if (!studentService.existsById(studentId)) {
-      return Errors.STUDENT_NONEXISTENT.getResponse();
-    }
     if (!userService.existsById(userId)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
-    ApptRequest ar = new ApptRequest();
-    ar.userId = userId;
-    ar.studentId = studentId;
-    ar.message = message;
-    ar.creationTime = System.currentTimeMillis();
-    ar.requestTime = requestTime;
-    ar.requestDuration = 0;
-    ar.approved = false;
-    ar.reviewed = false;
-    ar.response = "";
-    ar.attendanceStatus = AttendanceStatus.ABSENT;
-    apptRequestService.add(ar);
-    return new ResponseEntity<>(ar, HttpStatus.OK);
+    User user = userService.getById(userId);
+
+    if (!Utils.isEmpty(oldPassword) && Utils.matchesPassword(oldPassword, user.passwordHash)) {
+      return Errors.PASSWORD_INCORRECT.getResponse();
+    }
+
+    if (Utils.isEmpty(newPassword)) {
+      return Errors.PASSWORD_INSECURE.getResponse();
+    }
+
+    user.passwordHash = Utils.encodePassword(newPassword);
+    userService.update(user);
+    return new ResponseEntity<>(innexgoService.fillUser(user), HttpStatus.OK);
   }
 }

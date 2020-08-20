@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class DevelopmentController {
 
   @Autowired ApiKeyService apiKeyService;
-  @Autowired StudentService studentService;
   @Autowired UserService userService;
   @Autowired InnexgoService innexgoService;
 
@@ -50,7 +49,7 @@ public class DevelopmentController {
     ApiKey apiKey = new ApiKey();
     apiKey.userId = user.id;
     apiKey.creationTime = System.currentTimeMillis();
-    apiKey.expirationTime = Long.MAX_VALUE;
+    apiKey.duration = Long.MAX_VALUE;
     apiKey.key = "testlmao";
     apiKey.keyHash = Utils.encodeApiKey(apiKey.key);
     apiKeyService.add(apiKey);
