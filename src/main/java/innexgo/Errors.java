@@ -23,32 +23,19 @@ import org.springframework.http.ResponseEntity;
 
 public enum Errors {
   OK("operation completed successfully", HttpStatus.OK),
-  MUST_BE_ROOT("this api key is not registered to a root user", HttpStatus.UNAUTHORIZED),
-  MUST_BE_ADMIN("this api key is not registered to an admin user", HttpStatus.UNAUTHORIZED),
-  MUST_BE_USER("this api key is not registered to a user", HttpStatus.UNAUTHORIZED),
+  NO_CAPABILITY("user is not authorized to create api key with these capabilities", HttpStatus.UNAUTHORIZED),
+  APIKEY_UNAUTHORIZED("this api key does not have the capability to access this task", HttpStatus.UNAUTHORIZED),
   DATABASE_INITIALIZED("the database already contains some users", HttpStatus.UNAUTHORIZED),
   PASSWORD_INCORRECT("this password is not valid for this user", HttpStatus.UNAUTHORIZED),
   PASSWORD_INSECURE("this password does not meet security requirements", HttpStatus.UNAUTHORIZED),
-  USER_NONEXISTENT(
-      "the user you are trying to perform this operation on does not exist",
-      HttpStatus.BAD_REQUEST),
-  APIKEY_NONEXISTENT(
-      "the api key you are trying to perform this operation on does not exist",
-      HttpStatus.BAD_REQUEST),
-  STUDENT_EXISTENT("the student you are trying to create already exists", HttpStatus.BAD_REQUEST),
+  USER_NONEXISTENT("the user you are trying to perform this operation on does not exist", HttpStatus.BAD_REQUEST),
+  APIKEY_NONEXISTENT("the api key you are trying to perform this operation on does not exist", HttpStatus.BAD_REQUEST),
   USER_EXISTENT("a user with this email already exists", HttpStatus.BAD_REQUEST),
-  STUDENT_NONEXISTENT(
-      "the student you are trying to perform this operation on does not exist",
-      HttpStatus.BAD_REQUEST),
-  APPT_REQUEST_NONEXISTENT(
-      "the appointment request you are trying to perform this operation on does not exist",
+  APPT_REQUEST_NONEXISTENT("the appointment request you are trying to perform this operation on does not exist",
       HttpStatus.BAD_REQUEST),
   STUDENT_NAME_EMPTY("the student name must not be empty", HttpStatus.BAD_REQUEST),
   USER_NAME_EMPTY("the user name must not be empty", HttpStatus.BAD_REQUEST),
   USER_EMAIL_EMPTY("the user email must not be empty", HttpStatus.BAD_REQUEST),
-  INVALID_ATTENDANCE_STATUS_KIND(
-      "the attendance status provided is not one of \"PRESENT\",  \"TARDY\", or \"ABSENT\"",
-      HttpStatus.BAD_REQUEST),
   UNKNOWN("an unknown error has occured", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;

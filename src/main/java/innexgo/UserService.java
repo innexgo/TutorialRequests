@@ -123,8 +123,8 @@ public class UserService {
       Long secondaryId,
       Long schoolId,
       String name,
-      UserKind kind,
       String email,
+      UserKind kind,
       long offset,
       long count) {
     String sql =

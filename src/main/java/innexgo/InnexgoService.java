@@ -61,6 +61,23 @@ public class InnexgoService {
   }
 
   /**
+   * Returns an apiKey if valid
+   *
+   * @param key - apikey code of the User
+   * @return ApiKey or null if invalid
+   */
+  ApiKey getApiKeyIfValid(String key) {
+    String hash = Utils.encodeApiKey(key);
+    if (apiKeyService.existsByKeyHash(hash)) {
+      ApiKey apiKey = apiKeyService.getByKeyHash(hash);
+      if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
+        return apiKey;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Returns a user if valid
    *
    * @param key - apikey code of the User

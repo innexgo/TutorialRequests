@@ -28,46 +28,16 @@ public class ApiKey {
   // not public
   String keyHash;
 
-  public CapabilityKind readUser;
-  public CapabilityKind writeUser;
-
-  public CapabilityKind readApiKey;
-  public CapabilityKind writeApiKey;
-
-  public CapabilityKind readApptRequest;
-  public CapabilityKind writeApptRequest;
-
-  public CapabilityKind readAppt;
-  public CapabilityKind writeAppt;
+  public boolean canLogIn;
+  public boolean canReadUser;
+  public boolean canWriteUser;
+  public boolean canChangePassword;
+  public boolean canReadApptRequest;
+  public boolean canWriteApptRequest;
+  public boolean canReadAppt;
+  public boolean canWriteAppt;
 
   // Initialized by jackson during serialization, but not persisted
   public String key;
   public User user;
-}
-
-enum CapabilityKind {
-  GLOBAL, MY, NONE;
-
-  public static boolean contains(String str) {
-    for (CapabilityKind capabilityKind : CapabilityKind.values()) {
-      if (capabilityKind.name().equals(str)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public int toInt() {
-    switch (this) {
-      case GLOBAL: {
-        return 2;
-      }
-      case MY: {
-        return 1;
-      }
-      default: {
-        return 0;
-      }
-    }
-  }
 }
