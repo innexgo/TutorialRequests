@@ -33,7 +33,7 @@ public class ApptService {
 
   public Appt getById(long id) {
     String sql =
-        "SELECT id, host_id, attendee_id, message, creation_time, time, duration, attendance_status WHERE id=?";
+        "SELECT id, host_id, attendee_id, message, creation_time, start_time, duration FROM appt WHERE id=?";
     RowMapper<Appt> rowMapper = new ApptRowMapper();
     Appt appt = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return appt;
@@ -41,14 +41,14 @@ public class ApptService {
 
   public List<Appt> getAll() {
     String sql =
-        "SELECT id, host_id, attendee_id, message, creation_time, time, duration, attendance_status FROM appt";
+        "SELECT id, host_id, attendee_id, message, creation_time, start_time, duration FROM appt";
     RowMapper<Appt> rowMapper = new ApptRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
   private void syncId(Appt appt) {
     String sql =
-        "SELECT id FROM appt_request WHERE host_id=? AND attendee_id=? AND creation_time=? AND time=? AND attendance_status=?";
+        "SELECT id FROM appt WHERE host_id=? AND attendee_id=? AND creation_time=? AND start_time=? AND duration=?";
     appt.id =
         jdbcTemplate.queryForObject(
             sql,
@@ -56,15 +56,14 @@ public class ApptService {
             appt.hostId,
             appt.attendeeId,
             appt.creationTime,
-            appt.time,
-            appt.duration,
-            appt.attendanceStatus.name());
+            appt.startTime,
+            appt.duration);
   }
 
   public void add(Appt appt) {
     // Add appt
     String sql =
-        "INSERT INTO appt(id, host_id, attendee_id, message, creation_time, time, duration, attendance_status) values (?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO appt(id, host_id, attendee_id, message, creation_time, start_time, duration) values (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         appt.id,
@@ -72,32 +71,9 @@ public class ApptService {
         appt.attendeeId,
         appt.message,
         appt.creationTime,
-        appt.time,
-        appt.duration,
-        appt.attendanceStatus.name());
+        appt.startTime,
+        appt.duration);
     syncId(appt);
-  }
-
-  public void update(Appt appt) {
-    String sql =
-        "UPDATE appt SET id=?, host_id=?, attendee_id=?, message=?, creation_time=?, time=?, duration=?, attendance_status=? WHERE id=?";
-    jdbcTemplate.update(
-        sql,
-        appt.id,
-        appt.hostId,
-        appt.attendeeId,
-        appt.message,
-        appt.creationTime,
-        appt.time,
-        appt.duration,
-        appt.attendanceStatus.name());
-  }
-
-  public Appt deleteById(long id) {
-    Appt appt = getById(id);
-    String sql = "DELETE FROM appt WHERE id=?";
-    jdbcTemplate.update(sql, id);
-    return appt;
   }
 
   public boolean existsById(long id) {
@@ -116,16 +92,15 @@ public class ApptService {
       Long minCreationTime,
       Long maxCreationTime,
       Long time,
-      Long minTime, 
-      Long maxTime,
+      Long minStartTime, 
+      Long maxStartTime,
       Long duration,
       Long minDuration, 
       Long maxDuration,
-      AttendanceStatus attendanceStatus,
       long offset,
       long count) {
     String sql =
-        "SELECT a.id, a.host_id, a.attendee_id, a.message, a.creation_time, a.time, a.request_duration, a.reviewed, a.approved, a.response, a.attendance_status FROM appt_request a"
+        "SELECT a.id, a.host_id, a.attendee_id, a.message, a.creation_time, a.start_time, a.duration FROM appt a"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND a.id = " + id)
             + (hostId == null ? "" : " AND a.host_id = " + hostId)
@@ -134,13 +109,12 @@ public class ApptService {
             + (creationTime == null ? "" : " AND a.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND a.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND a.creation_time < " + maxCreationTime)
-            + (time == null ? "" : " AND a.time = " + time)
-            + (minTime == null ? "" : " AND a.time > " + minTime)
-            + (maxTime == null ? "" : " AND a.time < " + maxTime)
+            + (time == null ? "" : " AND a.start_time = " + time)
+            + (minStartTime == null ? "" : " AND a.start_time > " + minStartTime)
+            + (maxStartTime == null ? "" : " AND a.start_time < " + maxStartTime)
             + (duration == null ? "" : " AND a.duration = " + duration)
             + (minDuration == null ? "" : " AND a.duration > " + minDuration)
             + (maxDuration == null ? "" : " AND a.duration < " + maxDuration)
-            + (attendanceStatus == null ? "" : " AND a.attendance_status= " + attendanceStatus.name())
             + (" ORDER BY a.id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

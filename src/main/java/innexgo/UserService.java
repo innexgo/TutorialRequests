@@ -69,7 +69,7 @@ public class UserService {
 
     // Fetch user id
     sql =
-        "SELECT id FROM user WHERE secondary_id=? AND school_id=? AND name=? AND kind=?, AND email=? AND password_hash=?";
+        "SELECT id FROM user WHERE secondary_id=? AND school_id=? AND name=? AND kind=? AND email=? AND password_hash=?";
     long id =
         jdbcTemplate.queryForObject(
             sql,
@@ -83,27 +83,6 @@ public class UserService {
 
     // Set user id
     user.id = id;
-  }
-
-  public void update(User user) {
-    String sql = "UPDATE user SET id=?, name=?, email=?, password_hash=? WHERE id=?";
-    jdbcTemplate.update(
-        sql,
-        user.id,
-        user.secondaryId,
-        user.schoolId,
-        user.name,
-        user.kind.name(),
-        user.email,
-        user.passwordHash,
-        user.id);
-  }
-
-  public User deleteById(long id) {
-    User user = getById(id);
-    String sql = "DELETE FROM user WHERE id=?";
-    jdbcTemplate.update(sql, id);
-    return user;
   }
 
   public boolean existsById(long id) {
@@ -128,7 +107,7 @@ public class UserService {
       long offset,
       long count) {
     String sql =
-        "SELECT u.id, u.secondary_id, u.school_id, u.name, u.kind() u.password_hash, u.email, u.ring FROM user u"
+        "SELECT u.id, u.secondary_id, u.school_id, u.name, u.kind, u.password_hash, u.email FROM user u"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND u.id = " + id)
             + (secondaryId == null ? "" : " AND u.secondary_id = " + secondaryId)

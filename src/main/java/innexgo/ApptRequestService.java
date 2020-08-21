@@ -33,7 +33,7 @@ public class ApptRequestService {
 
   public ApptRequest getById(long id) {
     String sql =
-        "SELECT id, creator_id, target_id, message, creation_time, suggested_time WHERE id=?";
+        "SELECT id, creator_id, target_id, message, creation_time, suggested_time WHERE id=? FROM appt_request";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apptRequest;
@@ -41,7 +41,7 @@ public class ApptRequestService {
 
   public List<ApptRequest> getAll() {
     String sql =
-        "SELECT id, creator_id, target_id, message, creation_time, suggested_time FROM apptRequest";
+        "SELECT id, creator_id, target_id, message, creation_time, suggested_time FROM appt_request";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
@@ -115,7 +115,7 @@ public class ApptRequestService {
       long offset,
       long count) {
     String sql =
-        "SELECT ar.id, ar.creator_id, ar.target_id, ar.message, ar.creation_time, ar.suggested_time, ar.request_duration, ar.reviewed, ar.approved, ar.response, ar.attendance_status FROM appt_request ar"
+        "SELECT ar.id, ar.creator_id, ar.target_id, ar.message, ar.creation_time, ar.suggested_time FROM appt_request ar"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND ar.id = " + id)
             + (creatorId == null ? "" : " AND ar.creator_id = " + creatorId)

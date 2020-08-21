@@ -18,18 +18,27 @@
 
 package innexgo;
 
-public class Appt {
+public class Attendance {
   public long id;
-  long hostId;
-  long attendeeId;
-  long apptRequestId;
-  public String message;
   public long creationTime;
-  public long startTime;
-  public long duration;
+  public AttendanceKind kind;
+  long apptId;
 
   // for jackson
-  User host;
-  User attendee;
-  ApptRequest apptRequest;
+  Appt appt;
+}
+
+
+enum AttendanceKind {
+  ABSENT,
+  TARDY,
+  PRESENT;
+  public static boolean contains(String str) {
+    for (AttendanceKind a: AttendanceKind.values()) {
+      if (a.name().equals(str)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
