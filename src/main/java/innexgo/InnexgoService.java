@@ -61,6 +61,18 @@ public class InnexgoService {
   }
 
   /**
+   * Fills in jackson objects for Attendance
+   *
+   * @param attendance - Attendance object
+   * @return Attendance object with recursively filled jackson objects
+   */
+  Attendance fillAttendance(Attendance attendance) {
+    attendance.appt= apptService.getById(attendance.apptId);
+    return attendance;
+  }
+
+
+  /**
    * Returns an apiKey if valid
    *
    * @param key - apikey code of the User

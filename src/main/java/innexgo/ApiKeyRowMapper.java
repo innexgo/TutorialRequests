@@ -39,6 +39,8 @@ public class ApiKeyRowMapper implements RowMapper<ApiKey> {
     apiKey.canWriteApptRequest = row.getBoolean("can_write_appt_request");
     apiKey.canReadAppt = row.getBoolean("can_read_appt");
     apiKey.canWriteAppt = row.getBoolean("can_write_appt");
+    apiKey.canReadAttendance = row.getBoolean("can_read_attendance");
+    apiKey.canWriteAttendance = row.getBoolean("can_write_attendance");
 
     apiKey.keyHash = row.getString("key_hash");
     return apiKey;

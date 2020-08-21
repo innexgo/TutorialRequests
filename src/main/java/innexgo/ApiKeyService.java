@@ -32,7 +32,7 @@ public class ApiKeyService {
 
   public ApiKey getById(long id) {
     String sql =
-        "SELECT id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt FROM api_key WHERE id=?";
+        "SELECT id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt, can_read_attendance, can_write_attendance FROM api_key WHERE id=?";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     ApiKey apiKey = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apiKey;
@@ -41,7 +41,7 @@ public class ApiKeyService {
   // Gets the last created key with the keyhash
   public ApiKey getByKeyHash(String keyHash) {
     String sql =
-        "SELECT id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
+        "SELECT id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt, can_read_attendance, can_write_attendance FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     List<ApiKey> apiKeys = jdbcTemplate.query(sql, rowMapper, keyHash);
     return apiKeys.size() > 0 ? apiKeys.get(0) : null;
@@ -49,14 +49,14 @@ public class ApiKeyService {
 
   public List<ApiKey> getAll() {
     String sql =
-        "SELECT id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt FROM api_key";
+        "SELECT id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt, can_read_attendance, can_write_attendance FROM api_key";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
   private void syncId(ApiKey apiKey) {
     String sql =
-        "SELECT id FROM api_key WHERE user_id=? AND creation_time=? AND duration=? AND key_hash=? AND can_log_in=? AND can_read_user=? AND can_write_user=? AND can_change_password=? AND can_read_appt_request=? AND can_write_appt_request=? AND can_read_appt=? AND can_write_appt=?";
+        "SELECT id FROM api_key WHERE user_id=? AND creation_time=? AND duration=? AND key_hash=? AND can_log_in=? AND can_read_user=? AND can_write_user=? AND can_change_password=? AND can_read_appt_request=? AND can_write_appt_request=? AND can_read_appt=? AND can_write_appt=? AND can_read_attendance=? AND can_write_attendance=?";
     long id =
         jdbcTemplate.queryForObject(
             sql,
@@ -72,7 +72,10 @@ public class ApiKeyService {
             apiKey.canReadApptRequest,
             apiKey.canWriteApptRequest,
             apiKey.canReadAppt,
-            apiKey.canWriteAppt);
+            apiKey.canWriteAppt,
+            apiKey.canReadAttendance,
+            apiKey.canWriteAttendance
+        );
 
     // Set apiKey id
     apiKey.id = id;
@@ -81,7 +84,7 @@ public class ApiKeyService {
   public void add(ApiKey apiKey) {
     // Add API key
     String sql =
-        "INSERT INTO api_key (id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt) values (?,?,?,?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO api_key (id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt, can_read_attendance, can_write_attendance) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
         apiKey.id,
@@ -96,15 +99,10 @@ public class ApiKeyService {
         apiKey.canReadApptRequest,
         apiKey.canWriteApptRequest,
         apiKey.canReadAppt,
-        apiKey.canWriteAppt);
+        apiKey.canWriteAppt,
+        apiKey.canReadAttendance,
+        apiKey.canWriteAttendance);
     syncId(apiKey);
-  }
-
-  public ApiKey deleteById(long id) {
-    ApiKey apiKey = getById(id);
-    String sql = "DELETE FROM api_key WHERE id=?";
-    jdbcTemplate.update(sql, id);
-    return apiKey;
   }
 
   public boolean existsById(long id) {
@@ -133,10 +131,12 @@ public class ApiKeyService {
       Boolean canWriteApptRequest,
       Boolean canReadAppt,
       Boolean canWriteAppt,
+      Boolean canReadAttendance,
+      Boolean canWriteAttendance,
       long offset,
       long count) {
     String sql =
-        "SELECT a.id, a.user_id, a.creation_time, a.duration, a.key_hash, a.can_log_in, a.can_read_user, a.can_write_user, a.can_change_password, a.can_read_appt_request, a.can_write_appt_request, a.can_read_appt, a.can_write_appt FROM api_key a WHERE 1=1"
+        "SELECT a.id, a.user_id, a.creation_time, a.duration, a.key_hash, a.can_log_in, a.can_read_user, a.can_write_user, a.can_change_password, a.can_read_appt_request, a.can_write_appt_request, a.can_read_appt, a.can_write_appt, a.can_read_attendance, a.can_write_attendance FROM api_key a WHERE 1=1"
             + (id == null ? "" : " AND a.id=" + id)
             + (userId == null ? "" : " AND a.user_id =" + userId)
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)
@@ -154,6 +154,8 @@ public class ApiKeyService {
                 : " AND a.can_write_appt_request = " + canWriteApptRequest)
             + (canReadAppt == null ? "" : " AND a.can_read_appt = " + canReadAppt)
             + (canWriteAppt == null ? "" : " AND a.can_write_appt = " + canWriteAppt)
+            + (canReadAttendance == null ? "" : " AND a.can_read_attendance = " + canReadAttendance)
+            + (canWriteAttendance == null ? "" : " AND a.can_write_attendance = " + canWriteAttendance)
             + (" ORDER BY a.id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

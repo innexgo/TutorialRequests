@@ -31,6 +31,8 @@ can_read_appt_request boolean not null,
 can_write_appt_request boolean not null,
 can_read_appt boolean not null,
 can_write_appt boolean not null,
+can_read_attendance boolean not null,
+can_write_attendance boolean not null,
 key_hash char(64) not null,
 primary key (id)
 );

@@ -36,6 +36,8 @@ public class ApiKey {
   public boolean canWriteApptRequest;
   public boolean canReadAppt;
   public boolean canWriteAppt;
+  public boolean canReadAttendance;
+  public boolean canWriteAttendance;
 
   // Initialized by jackson during serialization, but not persisted
   public String key;

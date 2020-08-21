@@ -46,6 +46,8 @@ public class ApiController {
   ApptRequestService apptRequestService;
   @Autowired
   ApptService apptService;
+  @Autowired
+  AttendanceService attendanceService;
 
   @Autowired
   InnexgoService innexgoService;
@@ -181,8 +183,13 @@ public class ApiController {
   }
 
   @RequestMapping("/appt/new/")
-  public ResponseEntity<?> newAppt(@RequestParam("hostId") Long hostId, @RequestParam("attendeeId") Long attendeeId,
-      @RequestParam("message") String message, @RequestParam("time") Long time, @RequestParam("duration") Long duration,
+  public ResponseEntity<?> newAppt(
+      @RequestParam("apptRequestId") Long apptRequestId,
+      @RequestParam("hostId") Long hostId,
+      @RequestParam("attendeeId") Long attendeeId,
+      @RequestParam("message") String message,
+      @RequestParam("startTime") Long startTime,
+      @RequestParam("duration") Long duration,
       @RequestParam("apiKey") String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null || !key.canWriteAppt) {
@@ -196,14 +203,33 @@ public class ApiController {
     }
 
     Appt a = new Appt();
+    a.apptRequestId = apptRequestId;
     a.hostId = hostId;
     a.attendeeId = attendeeId;
     a.message = message;
     a.creationTime = System.currentTimeMillis();
-    a.time = time;
+    a.startTime = startTime;
     a.duration = duration;
     apptService.add(a);
     return new ResponseEntity<>(innexgoService.fillAppt(a), HttpStatus.OK);
+  }
+
+  @RequestMapping("/attendance/new/")
+  public ResponseEntity<?> newAttendance(
+      @RequestParam("apptId") Long apptId,
+      @RequestParam("kind") AttendanceKind attendanceKind,
+      @RequestParam("apiKey") String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null || !key.canWriteAttendance) {
+      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    }
+
+    Attendance a = new Attendance();
+    a.apptId = apptId;
+    a.creationTime = System.currentTimeMillis();
+    a.kind = attendanceKind;
+    attendanceService.add(a);
+    return new ResponseEntity<>(innexgoService.fillAttendance(a), HttpStatus.OK);
   }
 
   @RequestMapping("/user/")
@@ -285,16 +311,6 @@ public class ApiController {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    AttendanceStatus kind = null;
-    if (allRequestParam.containsKey("attendanceStatus")) {
-      String attendanceStatusStr = allRequestParam.get("attendanceStatus");
-      if (AttendanceStatus.contains(attendanceStatusStr)) {
-        kind = AttendanceStatus.valueOf(attendanceStatusStr);
-      } else {
-        return Errors.ATTENDANCEKIND_INVALID.getResponse();
-      }
-    }
-
     List<Appt> list = apptService.query(
         Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("hostId")), // Long hostId,
@@ -309,10 +325,44 @@ public class ApiController {
         Utils.parseLong(allRequestParam.get("duration")), // Long duration,
         Utils.parseLong(allRequestParam.get("minDuration")), // Long minDuration,
         Utils.parseLong(allRequestParam.get("maxDuration")), // Long maxDuration,
-        kind, // AttendanceStatus attendanceStatus,
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillAppt(x)).collect(Collectors.toList());
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/attendance/")
+  public ResponseEntity<?> viewAttendance(
+                                    @RequestParam("offset") Long offset,
+                                    @RequestParam("count") Long count,
+                                    @RequestParam("apiKey") String apiKey,
+                                    @RequestParam Map<String, String> allRequestParam) {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null || key.canReadAttendance) {
+      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    }
+
+    AttendanceKind kind = null;
+    if (allRequestParam.containsKey("attendanceKind")) {
+      String attendanceKindStr = allRequestParam.get("attendanceKind");
+      if (AttendanceKind.contains(attendanceKindStr)) {
+        kind = AttendanceKind.valueOf(attendanceKindStr);
+      } else {
+        return Errors.ATTENDANCEKIND_INVALID.getResponse();
+      }
+    }
+
+    List<Attendance> list = attendanceService.query(
+        Utils.parseLong(allRequestParam.get("id")), // Long id,
+        Utils.parseLong(allRequestParam.get("apptId")), // Long apptId,
+        Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
+        Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,
+        Utils.parseLong(allRequestParam.get("maxCreationTime")), // Long maxCreationTime,
+        kind, // AttendanceKind kind,
+        offset, // long offset,
+        count // long count)
+    ).stream().map(x -> innexgoService.fillAttendance(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 

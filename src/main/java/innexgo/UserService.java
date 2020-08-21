@@ -85,6 +85,20 @@ public class UserService {
     user.id = id;
   }
 
+  public void update(User user) {
+    String sql =
+        "UPDATE user SET id=?, secondary_id=?, school_id=?, name=?, kind=?, email=?, password_hash=? WHERE id=?";
+    jdbcTemplate.update(
+        sql,
+        user.id,
+        user.secondaryId,
+        user.schoolId,
+        user.name,
+        user.kind.name(),
+        user.email,
+        user.passwordHash,
+        user.id);
+  }
   public boolean existsById(long id) {
     String sql = "SELECT count(*) FROM user WHERE id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
