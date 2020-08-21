@@ -25,11 +25,8 @@ public class Appt {
   long apptRequestId;
   public String message;
   public long creationTime;
-  public long time;
+  public long startTime;
   public long duration;
-  // only valid after the date of the status has passed
-  // defaults to absent
-  public AttendanceStatus attendanceStatus;
 
   // for jackson
   User host;

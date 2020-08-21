@@ -32,10 +32,9 @@ public class ApptRowMapper implements RowMapper<Appt> {
     appt.attendeeId = row.getLong("attendee_id");
     appt.message = row.getString("message");
     appt.creationTime = row.getLong("creation_time");
-    appt.time = row.getLong("time");
+    appt.startTime= row.getLong("start_time");
     appt.duration = row.getLong("duration");
     appt.apptRequestId = row.getLong("appt_request_id");
-    appt.attendanceStatus = AttendanceStatus.valueOf(row.getString("attendance_status"));
     return appt;
   }
 }
