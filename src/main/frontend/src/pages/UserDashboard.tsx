@@ -41,11 +41,15 @@ function LoadEvents(props: ApptProps){
       }}
       initialView='dayGridMonth'
       editable={false}
-      selectable={false}
+      selectable={true}
       selectMirror={true}
       dayMaxEvents={true}
       weekends={false}
+      select={handleDateSelect}
+      eventClick={handleEventClick}
+
       initialEvents={INITIAL_EVENTS}
+
     />
   </>
   );

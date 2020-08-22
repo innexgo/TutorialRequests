@@ -13,8 +13,8 @@ type User = {
 
 type ApptRequest = {
     id:number,
-    student:Student
-    user:User
+    student:Student,
+    user:User,
     message:string,
     creationTime:number,
     requestTime:number,
@@ -40,7 +40,3 @@ interface AuthenticatedComponentProps {
   setApiKey: (data: ApiKey | null) => void
 }
 
-interface StudentComponentProps {
-  student: Student
-  setStudent: (data: Student | null) => void
-}

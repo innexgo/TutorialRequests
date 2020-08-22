@@ -51,7 +51,7 @@ function LoadEvents(props: ApptProps){
   );
  } 
 
-function StudentCalendar(props: StudentComponentProps) {
+function StudentCalendar(props: AuthenticatedComponentProps) {
   const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
     const appointments = await fetchApi('apptRequest/?' + new URLSearchParams([
       ['offset', '0'],
