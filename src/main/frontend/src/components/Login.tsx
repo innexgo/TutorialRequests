@@ -10,10 +10,20 @@ import innexgo_logo from '../img/innexgo_logo_dark.png';
 import blurred_bg from '../img/homepage-bg.png';
 
 interface LoginProps {
+  canLogIn: boolean,
+  canReadUser: boolean,
+  canWriteUser: boolean,
+  canChangePassword: boolean,
+  canReadApptRequest: boolean,
+  canWriteApptRequest: boolean,
+  canReadAppt: boolean,
+  canWriteAppt: boolean,
+  canReadAttendance: boolean,
+  canWriteAttendance: boolean,
   setApiKey: (data: ApiKey | null) => void
 }
 
-function Login({ setApiKey }: LoginProps) {
+function Login(props: LoginProps) {
   const bgStyle = {
     backgroundImage: `radial-gradient(rgba(0, 0, 0, 0.9),rgba(0, 0, 0, 0.1)), url(${blurred_bg})`,
     height: "100vh",
@@ -40,17 +50,31 @@ function Login({ setApiKey }: LoginProps) {
     /*****************************************************************************/
     /*****************************************************************************/
     // DEVELOPER ONLY TODO TODO don't do this in production
-    setApiKey({
+    props.setApiKey({
       id: 0,
       creationTime: moment().valueOf(),
-      expirationTime: moment().add(30, 'hours').valueOf(),
+      duration: moment().add(30, 'hours').valueOf(),
       key: "dummy",
       user: {
         id: 0,
+        secondaryId: 0,
+        school: {
+          id: 0,
+          name: "Test High School"
+        } as School,
         name: "Ralph Johnson",
-        email: "example@example.com",
-        ring: 0
-      } as User
+        email: "example@example.com"
+      } as User,
+      canLogIn: props.canLogIn,
+      canReadUser: props.canReadUser,
+      canWriteUser: props.canWriteUser,
+      canChangePassword: props.canChangePassword,
+      canReadApptRequest: props.canReadApptRequest,
+      canWriteApptRequest: props.canWriteApptRequest,
+      canReadAppt: props.canReadAppt,
+      canWriteAppt: props.canWriteAppt,
+      canReadAttendance: props.canReadAttendance,
+      canWriteAttendance: props.canWriteAttendance,
     } as ApiKey);
     return;
     /*****************************************************************************/
@@ -58,14 +82,23 @@ function Login({ setApiKey }: LoginProps) {
     /*****************************************************************************/
     /*****************************************************************************/
 
-    const apiKeyExpirationTime = moment().add(30, 'hours').valueOf();
     try {
       const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
         ['userEmail', userName],
         ['userPassword', password],
-        ['expirationTime', `${apiKeyExpirationTime}`],
+        ['duration', `${0xFFFFFFFF}`],
+        ['canLogIn',  `${props.canLogIn}`],
+        ['canReadUser',  `${props.canReadUser}`],
+        ['canWriteUser',  `${props.canWriteUser}`],
+        ['canChangePassword',  `${props.canChangePassword}`],
+        ['canReadApptRequest',  `${props.canReadApptRequest}`],
+        ['canWriteApptRequest',  `${props.canWriteApptRequest}`],
+        ['canReadAppt',  `${props.canReadAppt}`],
+        ['canWriteAppt',  `${props.canWriteAppt}`],
+        ['canReadAttendance',  `${props.canReadAttendance}`],
+        ['canWriteAttendance',  `${props.canWriteAttendance}`],
       ])) as ApiKey;
-      setApiKey(apiKey);
+      props.setApiKey(apiKey);
     } catch (e) {
       console.log(e);
       setErrorText("Your Username or Password did not match our records");

@@ -1,46 +1,70 @@
 declare module '*.png'
 
-type Student = {
+type School = {
   id: number,
   name: string
 }
 
+enum UserKind {
+  Student,
+  User,
+  Admin,
+}
+
 type User = {
   id: number,
+  secondaryId: number,
+  school: School,
+  kind: UserKind,
   name: string,
   email: string,
 }
 
-type ApptRequest = {
-    id:number,
-    student:Student
-    user:User
-    message:string,
-    creationTime:number,
-    requestTime:number,
-    requestDuration:number,
-    reviewed:boolean,
-    approved:boolean,
-    response:string,
-    present:boolean
-}
-
-
 type ApiKey = {
   id: number,
-  administrator: boolean,
   creationTime: number,
-  expirationTime: number,
+  duration: number,
+  canLogIn: boolean,
+  canChangePassword: boolean,
+  canReadUser: boolean,
+  canWriteUser: boolean,
+  canReadApptRequest: boolean,
+  canWriteApptRequest: boolean,
+  canReadAppt: boolean,
+  canWriteAppt: boolean,
+  canReadAttendance: boolean,
+  canWriteAttendance: boolean,
   key: string,
   user: User,
+}
+
+type ApptRequest = {
+  id:number,
+  creator:Student
+  target:User
+  message:string,
+  creationTime:number,
+  suggestedTime:boolean
+}
+
+type Appt = {
+  id: number,
+  host:User,
+  attendee:User,
+  apptRequest:ApptRequest,
+  message:string,
+  creationTime: number,
+  startTime:number,
+  duration:number
+}
+
+type Attendance = {
+  id: number,
+  appt:Appt,
+  creationTime: number
 }
 
 interface AuthenticatedComponentProps {
   apiKey: ApiKey
   setApiKey: (data: ApiKey | null) => void
-}
-
-interface StudentComponentProps {
-  student: Student
-  setStudent: (data: Student | null) => void
 }

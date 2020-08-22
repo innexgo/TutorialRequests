@@ -1,13 +1,13 @@
 import React from "react";
-import StudentLogin from "../components/StudentLogin";
+import Login from "../components/Login";
 import { RouteProps } from "react-router";
 import { Route } from "react-router-dom";
 
 
 interface StudentRouteProps extends Omit<RouteProps, 'component'> {
-  component: React.ComponentType<StudentComponentProps>
-	student: Student | null,
-	setStudent: (student:Student|null)=>void
+  component: React.ComponentType<AuthenticatedComponentProps>
+	student: User | null,
+	setStudent: (student:User|null)=>void
 }
 
 function StudentRoute({
