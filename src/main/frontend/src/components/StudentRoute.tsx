@@ -6,22 +6,35 @@ import { Route } from "react-router-dom";
 
 interface StudentRouteProps extends Omit<RouteProps, 'component'> {
   component: React.ComponentType<AuthenticatedComponentProps>
-	student: User | null,
-	setStudent: (student:User|null)=>void
+  apiKey: ApiKey | null,
+  setApiKey: (data: ApiKey | null) => void
 }
 
 function StudentRoute({
-    component:StudentComponent,
-    student,
-    setStudent,
-    ...rest
-  }: StudentRouteProps ) {
+  component: AuthenticatedComponent,
+  apiKey,
+  setApiKey,
+  ...rest
+}: StudentRouteProps) {
+
+  const isAuthenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now();
 
   return (
     <Route {...rest} >
-      {student != null
-          ? <StudentComponent student={student!} setStudent={setStudent} />
-          : <StudentLogin setStudent={setStudent}/> }
+      {isAuthenticated
+        ? <AuthenticatedComponent apiKey={apiKey!} setApiKey={setApiKey} />
+        : <Login setApiKey={setApiKey}
+          canLogIn={true}
+          canReadUser={true}
+          canWriteUser={false}
+          canChangePassword={true}
+          canReadApptRequest={true}
+          canWriteApptRequest={true}
+          canReadAppt={true}
+          canWriteAppt={false}
+          canReadAttendance={true}
+          canWriteAttendance={false}
+        />}
     </Route>
   );
 }

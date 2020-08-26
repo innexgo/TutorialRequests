@@ -6,25 +6,35 @@ import { Route } from "react-router-dom";
 
 interface AuthenticatedRouteProps extends Omit<RouteProps, 'component'> {
   component: React.ComponentType<AuthenticatedComponentProps>
-	apiKey: ApiKey | null,
-	setApiKey: (data:ApiKey|null)=>void
+  apiKey: ApiKey | null,
+  setApiKey: (data: ApiKey | null) => void
 }
 
 function AuthenticatedRoute({
-    component:AuthenticatedComponent,
-    apiKey,
-    setApiKey,
-    ...rest
-  }: AuthenticatedRouteProps) {
+  component: AuthenticatedComponent,
+  apiKey,
+  setApiKey,
+  ...rest
+}: AuthenticatedRouteProps) {
 
-	const apiKeyExpirationTime = apiKey?.expirationTime;
-  const isAuthenticated = apiKeyExpirationTime && apiKeyExpirationTime > Date.now() ;
+  const isAuthenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now();
 
   return (
     <Route {...rest} >
       {isAuthenticated
-          ? <AuthenticatedComponent apiKey={apiKey!} setApiKey={setApiKey} />
-          : <Login setApiKey={setApiKey}/> }
+        ? <AuthenticatedComponent apiKey={apiKey!} setApiKey={setApiKey} />
+        : <Login setApiKey={setApiKey}
+          canLogIn={true}
+          canReadUser={true}
+          canWriteUser={true}
+          canChangePassword={true}
+          canReadApptRequest={true}
+          canWriteApptRequest={true}
+          canReadAppt={true}
+          canWriteAppt={true}
+          canReadAttendance={true}
+          canWriteAttendance={true}
+        />}
     </Route>
   );
 }

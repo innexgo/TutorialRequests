@@ -33,22 +33,6 @@ function getPreexistingApiKey() {
   }
 }
 
-function getPreexistingStudent() {
-  const preexistingStudentString = localStorage.getItem("student");
-  if (preexistingStudentString == null) {
-    return null;
-  } else {
-    try {
-      // TODO validate here
-      return JSON.parse(preexistingStudentString) as Student;
-    } catch (e) {
-      // try to clean up a bad config
-      localStorage.setItem("student", JSON.stringify(null));
-      return null;
-    }
-  }
-}
-
 function App() {
 
   const [apiKey, setApiKeyState] = React.useState(getPreexistingApiKey());
@@ -58,15 +42,6 @@ function App() {
       localStorage.setItem("apiKey", JSON.stringify(data));
       setApiKeyState(data);
     }
-  };
-
-  const [student, setStudent] = React.useState(getPreexistingStudent());
-  const studentGetSetter = {
-      student: student,
-      setStudent: (data: Student | null) => {
-          localStorage.setItem("student", JSON.stringify(data));
-          setStudent(data);
-      }
   };
 
   return (
@@ -83,9 +58,9 @@ function App() {
           component={Pending} />
         <AuthenticatedRoute path="/attendance" {...apiKeyGetSetter}
           component={Attendance} />
-        <StudentRoute path="/student" {...studentGetSetter}
+        <StudentRoute path="/student" {...apiKeyGetSetter}
           component={StudentDashboard} />
-        <StudentRoute path="/studentapptcreator" {...studentGetSetter}
+        <StudentRoute path="/studentapptcreator" {...apiKeyGetSetter}
           component={StudentApptCreator} />
         <Route path="/" component={Error404} />
       </Switch>

@@ -18,7 +18,7 @@ function Attendees(props: AttendanceProps) {
   const now = Date.now();
   const todayAppts = props.appointments
   //sort alphabetically by student name
-  .sort((a, b) => a.student.name.localeCompare(b.student.name));
+  .sort((a, b) => a.target.name.localeCompare(b.target.name));
 
   return (
   <>
