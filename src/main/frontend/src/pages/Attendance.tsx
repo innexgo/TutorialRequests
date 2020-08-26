@@ -9,7 +9,7 @@ import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
 interface AttendanceProps {
-  appointments: ApptRequest[],
+  appointments: Appt[],
   apiKey: ApiKey,
 }
 
@@ -18,16 +18,16 @@ function Attendees(props: AttendanceProps) {
   const now = Date.now();
   const todayAppts = props.appointments
   //sort alphabetically by student name
-  .sort((a, b) => a.target.name.localeCompare(b.target.name));
+  .sort((a, b) => a.attendee.name.localeCompare(b.attendee.name));
 
   return (
   <>
     {
       todayAppts.map((x) =>
         <AttendCard
-          student={x.student.name}
+          student={x.attendee.name}
           apptId={x.id}
-          time={moment(x.requestTime).format("h mm a")}
+          time={moment(x.startTime).format("h mm a")}
           apiKey={props.apiKey}
           />
       )
@@ -44,16 +44,14 @@ export default function Attendance(props: AuthenticatedComponentProps) {
   }
 
     const loadData = async (apiKey: ApiKey):Promise<AttendanceProps> => {
-    const appointments = await fetchApi('apptRequest/?' + new URLSearchParams([
+    const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
       ['count', '0xFFFFFFFF'],
-      ['user_id', `${apiKey.user.id}`],
-      ['reviewed', 'true'],
-      ['accepted', 'true'],
-      ['minRequestTime', `${moment().startOf('day')}`],
-      ['maxRequestTime', `${moment().endOf('day')}`],
+      ['hostId', `${apiKey.user.id}`],
+      ['minTime', `${moment().startOf('day')}`],
+      ['maxTime', `${moment().endOf('day')}`],
       ['apiKey', apiKey.key]
-    ])) as ApptRequest[];
+    ])) as Appt[];
     return {
       appointments,
       apiKey

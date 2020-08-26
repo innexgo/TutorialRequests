@@ -18,15 +18,15 @@ function PendingAppointments(props: ApptProps) {
   const now = Date.now();
   const upcomingAppts = props.appointments
   //sort by time
-  .sort((a, b) => a.requestTime - b.requestTime);
+  .sort((a, b) => a.creationTime - b.creationTime);
 
   return (
   <>
     {
       upcomingAppts.map((x) =>
         <ApptCard
-          student={x.student.name}
-          date={moment(x.requestTime).format("MMM Do")}
+          student={x.creator.name}
+          date={moment(x.suggestedTime).format("MMM Do")}
           studentMessage={x.message}
           apptId={x.id}
           apiKey={props.apiKey}

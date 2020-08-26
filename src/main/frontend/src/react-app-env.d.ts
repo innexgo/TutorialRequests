@@ -44,7 +44,7 @@ type ApptRequest = {
   target:User
   message:string,
   creationTime:number,
-  suggestedTime:boolean
+  suggestedTime:number
 }
 
 type Appt = {

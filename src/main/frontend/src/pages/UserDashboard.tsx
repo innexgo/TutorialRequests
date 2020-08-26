@@ -13,23 +13,23 @@ import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
 interface ApptProps {
-  appointments: ApptRequest[],
+  appointments: Appt[],
 }
 
 function LoadEvents(props: ApptProps){
   const events = props.appointments;
-
+  
   const INITIAL_EVENTS: EventInput[] = 
     events.map((x) =>
     ({
       id: `${x.id}`,
-      title: `${x.student.name}`,
-      start: `${moment(x.requestTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
-      end: `${moment(x.requestTime + x.requestDuration).format("yyyy-mm-dd[T]h:mm:ss")}`,
+      title: `${x.attendee.name}`,
+      start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
+      end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
       allDay: false
      })
      );
-
+    
     return(
       <>
           <FullCalendar
@@ -45,8 +45,6 @@ function LoadEvents(props: ApptProps){
       selectMirror={true}
       dayMaxEvents={true}
       weekends={false}
-      select={handleDateSelect}
-      eventClick={handleEventClick}
 
       initialEvents={INITIAL_EVENTS}
 
@@ -55,15 +53,15 @@ function LoadEvents(props: ApptProps){
   );
  } 
 
+
 function TeacherCalendar(props: AuthenticatedComponentProps) {
   const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
-    const appointments = await fetchApi('apptRequest/?' + new URLSearchParams([
+    const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
       ['count', '0xFFFFFFFF'],
-      ['user_id', `${apiKey.user.id}`],
-      ['approved', 'true'],
+      ['hostId', `${apiKey.user.id}`],
       ['apiKey', apiKey.key]
-    ])) as ApptRequest[];
+    ])) as Appt[];
     return {
       appointments
     }

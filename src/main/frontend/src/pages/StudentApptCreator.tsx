@@ -6,7 +6,7 @@ import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
 
-function StudentApptCreator(props: StudentComponentProps) {
+function StudentApptCreator(props: AuthenticatedComponentProps) {
   const formStyle = {
     padding: '0% 3%',
   };
@@ -42,7 +42,7 @@ function StudentApptCreator(props: StudentComponentProps) {
 
 
   return (
-    <DashboardLayout name={props.student.name} logoutCallback={() => props.setStudent(null)} >
+    <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
       <h1 style={headerStyle}>Make an Appointment</h1>
       <Form style={formStyle}>
         <Form.Group controlId="date">
