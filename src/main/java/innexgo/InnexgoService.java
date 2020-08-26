@@ -12,6 +12,7 @@ public class InnexgoService {
   @Autowired UserService userService;
   @Autowired ApptService apptService;
   @Autowired ApptRequestService apptRequestService;
+  @Autowired SchoolService schoolService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
 
@@ -27,12 +28,23 @@ public class InnexgoService {
   }
 
   /**
-   * Fills in jackson objects (none at the moment) for User
+   * Fills in jackson objects (none at the moment) for School
+   *
+   * @param school - School object
+   * @return School object with filled jackson objects
+   */
+  School fillSchool(School school) {
+    return school;
+  }
+
+  /**
+   * Fills in jackson objects for User
    *
    * @param user - User object
    * @return User object with filled jackson objects
    */
   User fillUser(User user) {
+    user.school = fillSchool(schoolService.getById(user.schoolId));
     return user;
   }
 

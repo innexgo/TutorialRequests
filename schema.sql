@@ -1,7 +1,7 @@
 drop table if exists school;
 create table school(
 id bigint(20) not null auto_increment,
-name varchar(100) not null,
+name varchar(100) not null unique,
 primary key(id)
 );
 
@@ -66,7 +66,7 @@ create table attendance(
 id bigint(20) not null auto_increment,
 appt_id bigint(20) not null,
 creation_time bigint(20) not null,
-attendance enum('ABSENT', 'TARDY', 'PRESENT'),
+attendance enum('ABSENT', 'TARDY', 'PRESENT') not null,
 primary key(id)
 );
 

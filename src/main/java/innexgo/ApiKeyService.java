@@ -84,7 +84,7 @@ public class ApiKeyService {
   public void add(ApiKey apiKey) {
     // Add API key
     String sql =
-        "INSERT INTO api_key (id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt, can_read_attendance, can_write_attendance) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO api_key (id, user_id, creation_time, duration, key_hash, can_log_in, can_read_user, can_write_user, can_change_password, can_read_appt_request, can_write_appt_request, can_read_appt, can_write_appt, can_read_attendance, can_write_attendance) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
         apiKey.id,

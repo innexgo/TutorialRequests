@@ -30,18 +30,29 @@ public class DevelopmentController {
 
   @Autowired ApiKeyService apiKeyService;
   @Autowired UserService userService;
+  @Autowired SchoolService schoolService;
   @Autowired InnexgoService innexgoService;
 
-  static final String rootEmail = "root@example.com";
+  static final String ROOT_EMAIL = "root@example.com";
 
   @RequestMapping("/initializeRoot/")
   public ResponseEntity<?> populateUsers() {
     if (userService.getAll().size() != 0) {
       return Errors.DATABASE_INITIALIZED.getResponse();
     }
+
+    // create school
+    School school = new School();
+    school.name = "Squidward Community College";
+    schoolService.add(school);
+
+    // create user
     User user = new User();
     user.name = "root";
-    user.email = rootEmail;
+    user.secondaryId = 0;
+    user.schoolId = school.id;
+    user.email = ROOT_EMAIL;
+    user.kind = UserKind.ADMIN;
     user.passwordHash = Utils.encodePassword("1234");
     userService.add(user);
 
@@ -52,7 +63,19 @@ public class DevelopmentController {
     apiKey.duration = Long.MAX_VALUE;
     apiKey.key = "testlmao";
     apiKey.keyHash = Utils.encodeApiKey(apiKey.key);
+
+    apiKey.canChangePassword = true;
+    apiKey.canLogIn= true;
+    apiKey.canReadUser = true;
+    apiKey.canWriteUser = true;
+    apiKey.canReadAppt = true;
+    apiKey.canWriteAppt = true;
+    apiKey.canReadApptRequest= true;
+    apiKey.canWriteApptRequest= true;
+    apiKey.canReadAttendance = true;
+    apiKey.canWriteAttendance = true;
+
     apiKeyService.add(apiKey);
-    return new ResponseEntity<>(apiKey, HttpStatus.OK);
+    return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
   }
 }

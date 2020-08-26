@@ -29,13 +29,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class SchoolService {
 
-  @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   public School getById(long id) {
     String sql = "SELECT id, name FROM school WHERE id=?";
     RowMapper<School> rowMapper = new SchoolRowMapper();
-    School school = jdbcTemplate.queryForObject(sql, rowMapper, id);
-    return school;
+    List<School> schools = jdbcTemplate.query(sql, rowMapper, id);
+    if (schools.isEmpty()) {
+      return null;
+    } else {
+      return schools.get(0);
+    }
   }
 
   public List<School> getAll() {
@@ -48,6 +53,13 @@ public class SchoolService {
     // Add school
     String sql = "INSERT INTO school (id, name) values (?, ?)";
     jdbcTemplate.update(sql, school.id, school.name);
+
+    // Fetch user id
+    sql = "SELECT id FROM school WHERE name=?";
+    long id = jdbcTemplate.queryForObject(sql, Long.class, school.name);
+
+    // Set user id
+    school.id = id;
   }
 
   public void update(School school) {
@@ -69,14 +81,9 @@ public class SchoolService {
   }
 
   public List<School> query(Long id, String name, long offset, long count) {
-    String sql =
-        "SELECT l.id, l.name FROM school l"
-            + " WHERE 1=1 "
-            + (id == null ? "" : " AND l.id = " + id)
-            + (name == null ? "" : " AND l.name = " + Utils.escape(name))
-            + (" ORDER BY l.id")
-            + (" LIMIT " + offset + ", " + count)
-            + ";";
+    String sql = "SELECT l.id, l.name FROM school l" + " WHERE 1=1 " + (id == null ? "" : " AND l.id = " + id)
+        + (name == null ? "" : " AND l.name = " + Utils.escape(name)) + (" ORDER BY l.id")
+        + (" LIMIT " + offset + ", " + count) + ";";
 
     RowMapper<School> rowMapper = new SchoolRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
