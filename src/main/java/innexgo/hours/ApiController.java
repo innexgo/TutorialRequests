@@ -74,7 +74,10 @@ public class ApiController {
       @RequestParam("canReadUser") Boolean canReadUser, @RequestParam("canWriteUser") Boolean canWriteUser,
       @RequestParam("canReadApptRequest") Boolean canReadApptRequest,
       @RequestParam("canWriteApptRequest") Boolean canWriteApptRequest,
-      @RequestParam("canReadAppt") Boolean canReadAppt, @RequestParam("canWriteAppt") Boolean canWriteAppt) {
+      @RequestParam("canReadAppt") Boolean canReadAppt, @RequestParam("canWriteAppt") Boolean canWriteAppt,
+
+@RequestParam("canReadAttendance") Boolean canReadAttendance, @RequestParam("canWriteAttendance") Boolean canWriteAttendance
+  ) {
     // Ensure user exists
     if (!userService.existsByEmail(userEmail)) {
       return Errors.USER_NONEXISTENT.getResponse();
@@ -131,6 +134,8 @@ public class ApiController {
     apiKey.canWriteApptRequest = canWriteApptRequest;
     apiKey.canReadAppt = canReadAppt;
     apiKey.canWriteAppt = canWriteAppt;
+    apiKey.canReadAttendance = canReadAttendance;
+    apiKey.canWriteAttendance = canWriteAttendance;
     apiKeyService.add(apiKey);
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
   }
