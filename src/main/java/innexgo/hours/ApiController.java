@@ -312,7 +312,7 @@ public class ApiController {
                                     @RequestParam Map<String, String> allRequestParam) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || key.canReadAppt) {
+    if (key == null || !key.canReadAppt) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
@@ -344,7 +344,7 @@ public class ApiController {
                                     @RequestParam Map<String, String> allRequestParam) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || key.canReadAttendance) {
+    if (key == null || !key.canReadAttendance) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 

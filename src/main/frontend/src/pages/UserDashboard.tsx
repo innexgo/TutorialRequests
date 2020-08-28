@@ -58,7 +58,7 @@ function TeacherCalendar(props: AuthenticatedComponentProps) {
   const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
-      ['count', '0xFFFFFFFF'],
+      ['count', `${0xFFFFFFFF}`],
       ['hostId', `${apiKey.user.id}`],
       ['apiKey', apiKey.key]
     ])) as Appt[];
