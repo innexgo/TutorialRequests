@@ -44,44 +44,6 @@ function Login(props: LoginProps) {
   const [password, setPassword] = React.useState("");
 
   async function postLogin() {
-
-    /*****************************************************************************/
-    /*****************************************************************************/
-    /*****************************************************************************/
-    /*****************************************************************************/
-    // DEVELOPER ONLY TODO TODO don't do this in production
-    props.setApiKey({
-      id: 0,
-      creationTime: moment().valueOf(),
-      duration: moment().add(30, 'hours').valueOf(),
-      key: "dummy",
-      user: {
-        id: 0,
-        secondaryId: 0,
-        school: {
-          id: 0,
-          name: "Test High School"
-        } as School,
-        name: "Ralph Johnson",
-        email: "example@example.com"
-      } as User,
-      canLogIn: props.canLogIn,
-      canReadUser: props.canReadUser,
-      canWriteUser: props.canWriteUser,
-      canChangePassword: props.canChangePassword,
-      canReadApptRequest: props.canReadApptRequest,
-      canWriteApptRequest: props.canWriteApptRequest,
-      canReadAppt: props.canReadAppt,
-      canWriteAppt: props.canWriteAppt,
-      canReadAttendance: props.canReadAttendance,
-      canWriteAttendance: props.canWriteAttendance,
-    } as ApiKey);
-    return;
-    /*****************************************************************************/
-    /*****************************************************************************/
-    /*****************************************************************************/
-    /*****************************************************************************/
-
     try {
       const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
         ['userEmail', userName],
