@@ -16,18 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package innexgo;
+package hours;
 
-public class ApptRequest {
-  public long id;
-  long creatorId;
-  long targetId;
-  public String message;
-  public long creationTime;
-  public long suggestedTime;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-  // for jackson
-  User creator;
-  User target;
+@Configuration
+@EnableScheduling
+@SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
+public class InnexgoApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(InnexgoApplication.class, args);
+  }
 }
-

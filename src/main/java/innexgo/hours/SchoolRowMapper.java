@@ -16,30 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package innexgo;
+package hours;
 
-public class ApiKey {
-  public long id;
-  long userId;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  public long creationTime;
-  public long duration;
+public class SchoolRowMapper implements RowMapper<School> {
 
-  // not public
-  String keyHash;
-
-  public boolean canLogIn;
-  public boolean canReadUser;
-  public boolean canWriteUser;
-  public boolean canChangePassword;
-  public boolean canReadApptRequest;
-  public boolean canWriteApptRequest;
-  public boolean canReadAppt;
-  public boolean canWriteAppt;
-  public boolean canReadAttendance;
-  public boolean canWriteAttendance;
-
-  // Initialized by jackson during serialization, but not persisted
-  public String key;
-  public User user;
+  @Override
+  public School mapRow(ResultSet row, int rowNum) throws SQLException {
+    School loc = new School();
+    loc.id = row.getLong("id");
+    loc.name = row.getString("name");
+    return loc;
+  }
 }

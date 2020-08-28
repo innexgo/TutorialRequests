@@ -16,20 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package innexgo;
+package hours;
 
-public class Appt {
-  public long id;
-  long hostId;
-  long attendeeId;
-  long apptRequestId;
-  public String message;
-  public long creationTime;
-  public long startTime;
-  public long duration;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  // for jackson
-  User host;
-  User attendee;
-  ApptRequest apptRequest;
+public class AttendanceRowMapper implements RowMapper<Attendance> {
+
+  @Override
+  public Attendance mapRow(ResultSet row, int rowNum) throws SQLException {
+    Attendance attendance = new Attendance();
+    attendance.id = row.getLong("id");
+    attendance.apptId = row.getLong("appt_id");
+    attendance.creationTime = row.getLong("creation_time");
+    attendance.kind = AttendanceKind.valueOf(row.getString("kind"));
+    return attendance;
+  }
 }

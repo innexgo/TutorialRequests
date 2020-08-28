@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package innexgo;
+package hours;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;

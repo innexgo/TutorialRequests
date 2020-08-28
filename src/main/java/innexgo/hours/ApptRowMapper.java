@@ -16,9 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package innexgo;
+package hours;
 
-public class School {
-  public long id;
-  public String name;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
+
+public class ApptRowMapper implements RowMapper<Appt> {
+
+  @Override
+  public Appt mapRow(ResultSet row, int rowNum) throws SQLException {
+    Appt appt = new Appt();
+    appt.id = row.getLong("id");
+    appt.hostId = row.getLong("host_id");
+    appt.attendeeId = row.getLong("attendee_id");
+    appt.message = row.getString("message");
+    appt.creationTime = row.getLong("creation_time");
+    appt.startTime= row.getLong("start_time");
+    appt.duration = row.getLong("duration");
+    appt.apptRequestId = row.getLong("appt_request_id");
+    return appt;
+  }
 }

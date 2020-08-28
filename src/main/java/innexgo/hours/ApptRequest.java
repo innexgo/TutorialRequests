@@ -16,24 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package innexgo;
+package hours;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.springframework.jdbc.core.RowMapper;
+public class ApptRequest {
+  public long id;
+  long creatorId;
+  long targetId;
+  public String message;
+  public long creationTime;
+  public long suggestedTime;
 
-public class UserRowMapper implements RowMapper<User> {
-
-  @Override
-  public User mapRow(ResultSet row, int rowNum) throws SQLException {
-    User u = new User();
-    u.id = row.getLong("id");
-    u.secondaryId = row.getLong("secondary_id");
-    u.schoolId = row.getLong("school_id");
-    u.name = row.getString("name");
-    u.kind = UserKind.valueOf(row.getString("kind"));
-    u.email = row.getString("email");
-    u.passwordHash = row.getString("password_hash");
-    return u;
-  }
+  // for jackson
+  User creator;
+  User target;
 }
+

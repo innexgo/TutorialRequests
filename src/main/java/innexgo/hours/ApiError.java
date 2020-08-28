@@ -1,4 +1,4 @@
-package innexgo;
+package hours;
 
 import java.sql.Timestamp;
 import org.springframework.http.HttpStatus;
