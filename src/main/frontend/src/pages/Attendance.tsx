@@ -17,21 +17,21 @@ function Attendees(props: AttendanceProps) {
 
   const now = Date.now();
   const todayAppts = props.appointments
-  //sort alphabetically by student name
-  .sort((a, b) => a.attendee.name.localeCompare(b.attendee.name));
+    //sort alphabetically by student name
+    .sort((a, b) => a.attendee.name.localeCompare(b.attendee.name));
 
   return (
-  <>
-    {
-      todayAppts.map((x) =>
-        <AttendCard
-          student={x.attendee.name}
-          apptId={x.id}
-          time={moment(x.startTime).format("h mm a")}
-          apiKey={props.apiKey}
+    <>
+      {
+        todayAppts.map((x) =>
+          <AttendCard
+            student={x.attendee.name}
+            apptId={x.id}
+            time={moment(x.startTime).format("h mm a")}
+            apiKey={props.apiKey}
           />
-      )
-    }
+        )
+      }
     </>
   );
 }
@@ -43,7 +43,7 @@ export default function Attendance(props: AuthenticatedComponentProps) {
     textAlign: 'center' as const,
   }
 
-    const loadData = async (apiKey: ApiKey):Promise<AttendanceProps> => {
+  const loadData = async (apiKey: ApiKey): Promise<AttendanceProps> => {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
       ['count', '0xFFFFFFFF'],
@@ -63,19 +63,16 @@ export default function Attendance(props: AuthenticatedComponentProps) {
   </Popover>;
 
   return (
-    <DashboardLayout name={props.apiKey.user.name} logoutCallback={()=>props.setApiKey(null)} >
+    <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
       <Container fluid className="py-3 px-3">
-      <CardDeck>
-        <Utility title="Attendance" overlay={informationTooltip}>
-        <Async promise={loadData(props.apiKey)}>
-          <Async.Pending><Loader /></Async.Pending>
-          <Async.Fulfilled>
-            {data => <Attendees {...(data as AttendanceProps)} />}
-          </Async.Fulfilled>
-          <Async.Rejected>{error => `Something went wrong: ${error.message}`}</Async.Rejected>
-        </Async>
-        </Utility>
-      </CardDeck>
+        <CardDeck>
+          <Utility<AttendanceProps> title="Attendance"
+            overlay={informationTooltip}
+            promise={loadData(props.apiKey)}
+            handler={(error: Error) => <h1>Something went wrong: {error.message}</h1>} >
+            {data => <Attendees {...data} />}
+          </Utility>
+        </CardDeck>
       </Container>
     </DashboardLayout>
   );

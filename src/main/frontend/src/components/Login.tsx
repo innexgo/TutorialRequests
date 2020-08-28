@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button, Card, Form } from 'react-bootstrap'
-import moment from 'moment';
 
 import ExternalLayout from '../components/ExternalLayout';
 import { fetchApi } from '../utils/utils';
@@ -48,7 +47,7 @@ function Login(props: LoginProps) {
       const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
         ['userEmail', userName],
         ['userPassword', password],
-        ['duration', `${0xFFFFFFFF}`],
+        ['duration', `${5*60*60*1000}`], // 5 hours
         ['canLogIn',  `${props.canLogIn}`],
         ['canReadUser',  `${props.canReadUser}`],
         ['canWriteUser',  `${props.canWriteUser}`],

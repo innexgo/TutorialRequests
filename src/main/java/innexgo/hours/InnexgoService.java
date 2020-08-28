@@ -91,7 +91,6 @@ public class InnexgoService {
    * @return ApiKey or null if invalid
    */
   ApiKey getApiKeyIfValid(String key) {
-    System.out.println("================== nice ==============");
     String hash = Utils.encodeApiKey(key);
     if (apiKeyService.existsByKeyHash(hash)) {
       ApiKey apiKey = apiKeyService.getByKeyHash(hash);
