@@ -73,15 +73,9 @@ function StudentCalendar(props: AuthenticatedComponentProps) {
   <DashboardLayout name={props.apiKey.user.name} logoutCallback={()=>props.setApiKey(null)} >
     <Container fluid className="py-3 px-3">
     <CardDeck>
-      <Utility title="Calendar" overlay={informationTooltip}>
-      <Async promise={loadData(props.apiKey)}>
-        <Async.Pending><Loader /></Async.Pending>
-        <Async.Fulfilled>
-          {data => <LoadEvents {...(data as ApptProps)} />}
-        </Async.Fulfilled>
-        <Async.Rejected>{error => `Something went wrong: ${error.message}`}</Async.Rejected>
-      </Async>
-      </Utility>
+            <Utility<ApptProps> title="Pending Appointments" overlay={informationTooltip} promise={loadData(props.apiKey)} handler={(error:Error) => <h1>Something went wrong: {error.message}</h1>}>
+            {data => <LoadEvents {...data } />}
+        </Utility>
     </CardDeck>
     </Container>
   </DashboardLayout>
