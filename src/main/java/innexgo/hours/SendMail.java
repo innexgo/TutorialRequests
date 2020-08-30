@@ -31,7 +31,32 @@ public class SendMail {
     return mail;
   }
 
-  public void dynamicTemplateExample(long ID) throws IOException {
+  public Mail buildForgotPasswordTemplate(long ID) {
+    User user = userService.getById(ID);
+    Mail mail = new Mail();
+
+    Email fromEmail = new Email();
+    fromEmail.setName("Reset Password");
+    fromEmail.setEmail("reset-password@hours.innexgo.com");
+    mail.setFrom(fromEmail);
+
+    mail.setTemplateId("d-deadbeefdeadbeefdeadbeefdeadbeef"); //TODO set template
+
+    Personalization personalization = new Personalization();
+    personalization.addDynamicTemplateData("name", user.name);
+    //personalization.addDynamicTemplateData("resetLink", ); //TODO add verif link generator 
+    personalization.addTo(new Email(user.email));
+    mail.addPersonalization(personalization);
+
+    return mail;
+  }
+
+  public void emailResetPasswordTemplate(long ID) throws IOException {
+    final Mail dynamicTemplate = buildForgotPasswordTemplate(ID);
+    send(dynamicTemplate);
+  }
+
+  public void emailVerificationTemplate(long ID) throws IOException {
     final Mail dynamicTemplate = buildAccVerificationTemplate(ID);
     send(dynamicTemplate);
   }
