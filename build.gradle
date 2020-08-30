@@ -21,6 +21,7 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.springframework.boot:spring-boot-starter-tomcat'
   implementation 'org.springframework.boot:spring-boot-starter-websocket'
-  implementation 'org.springframework.boot:spring-boot-starter-security'
-  runtimeOnly 'mysql:mysql-connector-java'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'com.sendgrid:sendgrid-java:4.6.4'
+	runtimeOnly 'mysql:mysql-connector-java'
 }
