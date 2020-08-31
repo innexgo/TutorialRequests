@@ -6,7 +6,8 @@ import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
 
-function StudentApptCreator(props: AuthenticatedComponentProps) {
+
+export default function StudentApptCreator(props: AuthenticatedComponentProps) {
   const formStyle = {
     padding: '0% 3%',
   };
@@ -29,14 +30,13 @@ function StudentApptCreator(props: AuthenticatedComponentProps) {
     const start = moment(date, 'YYYY-M-D').valueOf();
     const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
     //TODO dynamically generate dropdown with all users (teachers), with value as teacher Id and placeholder as teacher name. get teacher value and plug into userID.
-      ['userId', ],
-      ['studentId', props.student.id],
+      ['studentId', `${props.apiKey.id}],
       ['message', message],
       ['requestTime', start],
       ['requestDuration', 0],
       ['approved', 'false'],
       ['reviewed', 'false'],
-      ['apiKey', apiKey.key],
+      ['apiKey', props.apiKey.key],
   ])) as ApptRequest;
   }*/
 
@@ -47,16 +47,19 @@ function StudentApptCreator(props: AuthenticatedComponentProps) {
       <Form style={formStyle}>
         <Form.Group controlId="date">
           <Form.Label>Date</Form.Label>
-          <Form.Control type="date" />
-        </Form.Group>
-        <Form.Group controlId="time">
-          <Form.Label>Time</Form.Label>
-          <Form.Control type="time" />
+          <Form.Control type="date"
+            onChange={e => {
+              setDate(e.target.value);
+              }} />
         </Form.Group>
 
         <Form.Group controlId="teacher">
           <Form.Label>Teacher</Form.Label>
-          <Form.Control as="select">
+          <Form.Control as="select"
+onChange={e => {
+              setTeacher(e.target.value);
+            }} 
+          >
             <option>Ms. Ng</option>
             <option>Ms. Cornejo</option>
             <option>Ms. Dimas</option>
@@ -65,7 +68,11 @@ function StudentApptCreator(props: AuthenticatedComponentProps) {
 
         <Form.Group controlId="message">
           <Form.Label>Message</Form.Label>
-          <Form.Control as="textarea" rows={3} />
+          <Form.Control as="textarea" rows={3} 
+            onChange={e => {
+              setMessage(e.target.value);
+         }} 
+          />
         </Form.Group>
 
         <Button style={buttonStyle} variant="primary" type="submit">Submit</Button>
@@ -73,6 +80,3 @@ function StudentApptCreator(props: AuthenticatedComponentProps) {
     </DashboardLayout>
   );
 }
-
-
-export default StudentApptCreator;

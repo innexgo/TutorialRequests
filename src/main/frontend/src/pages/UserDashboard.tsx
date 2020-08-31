@@ -1,11 +1,11 @@
-import React from 'react'
-import FullCalendar, { EventInput } from '@fullcalendar/react'
+import React, { useState } from 'react'
+import FullCalendar, { EventInput, EventClickArg, DateSelectArg } from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import DashboardLayout from '../components/DashboardLayout';
 
-import { Popover, Container, CardDeck } from 'react-bootstrap';
+import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
 import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
@@ -13,9 +13,40 @@ import moment from 'moment';
 
 interface ApptProps {
   appointments: Appt[],
+  apiKey: ApiKey
 }
 
+
+
 function LoadEvents(props: ApptProps) {
+
+const [show, setShow] = useState(false);
+const [date, setDate] = useState("");
+const handleClose = () => setShow(false);
+
+
+  const [apptDate, setApptDate] = React.useState("");
+  const [startTime, setStartTime] = React.useState("");
+  const [endTime, setEndTime] = React.useState("");
+  const [student, setStudent] = React.useState("");
+  const [message, setMessage] = React.useState("");
+
+async function createAppt(){
+    const start = moment(date + " " + startTime, "YYYY-M-D H:mm").valueOf();
+    const end = moment(date + " " + endTime, "YYYY-M-D H:mm").valueOf();
+    const duration = end-start;
+    const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
+      ['userId', `${props.apiKey.user.id}`],
+      ['studentId', `${student}`],
+      ['message', message],
+      ['requestTime', `${start}`],
+      ['requestDuration', `${duration}`],
+      ['approved', 'true'],
+      ['reviewed', 'true'],
+      ['apiKey', `${props.apiKey.key}`],
+  ])) as ApptRequest;
+  }
+
   const events = props.appointments;
 
   const INITIAL_EVENTS: EventInput[] =
@@ -28,6 +59,33 @@ function LoadEvents(props: ApptProps) {
         allDay: false
       })
     );
+
+  const handleEventClick = (clickInfo: EventClickArg) => {
+    if (window.confirm(`Are you sure you want to delete the appointment with'${clickInfo.event.title}'`)) {
+      clickInfo.event.remove()
+      //TODO NEED TO ACTUALLY DELETE EVENT FROm BACKEND
+    }
+  }
+
+  const handleDateSelect = (selectInfo: DateSelectArg) => {
+    
+    let calendarApi = selectInfo.view.calendar
+
+    calendarApi.unselect() // clear date selection
+
+    setShow(true);
+    setDate(selectInfo.startStr);
+    
+     /* calendarApi.addEvent({
+        id: createEventId(),
+        title,
+        start: selectInfo.startStr,
+        end: selectInfo.endStr,
+        allDay: selectInfo.allDay
+      })*/
+      //TODO not sure if we need to add event through calendar api
+    }
+  
 
   return (
     <>
@@ -44,10 +102,71 @@ function LoadEvents(props: ApptProps) {
         selectMirror={true}
         dayMaxEvents={true}
         weekends={false}
-
+        select={handleDateSelect}
+        eventClick={handleEventClick}
         initialEvents={INITIAL_EVENTS}
 
       />
+      <Modal
+        show={show}
+        onHide={handleClose}
+        backdrop="static"
+        keyboard={false}
+        size="lg"
+        centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title id="modal-title">Make Appointment</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+                  <Form>
+        <Form.Group controlId="date">
+          <Form.Label>Date</Form.Label>
+          <Form.Control type="date" value={date}
+            onChange={e => {
+              setApptDate(e.target.value);
+              }} />
+        </Form.Group>
+        <Form.Group controlId="startTime">
+          <Form.Label>Start Time</Form.Label>
+          <Form.Control type="time" 
+            onChange={e => {
+              setStartTime(e.target.value);
+            }} />
+        </Form.Group>
+        <Form.Group controlId="endTime">
+          <Form.Label>End Time</Form.Label>
+          <Form.Control type="time" 
+            onChange={e => {
+              setEndTime(e.target.value);
+              }} />
+        </Form.Group>
+
+        <Form.Group controlId="student">
+          <Form.Label>Student ID</Form.Label>
+          <Form.Control as="textarea" rows={1} 
+            onChange={e => {
+              setStudent(e.target.value);
+            }} />
+        </Form.Group>
+
+        <Form.Group controlId="message">
+          <Form.Label>Message</Form.Label>
+          <Form.Control as="textarea" rows={3} 
+            onChange={e => {
+              setMessage(e.target.value);
+         }} />
+        </Form.Group>
+
+        <Button variant="primary" type="submit" onClick={async () => createAppt()}>Submit</Button>
+      </Form>
+          </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
@@ -62,9 +181,14 @@ function TeacherCalendar(props: AuthenticatedComponentProps) {
       ['apiKey', apiKey.key]
     ])) as Appt[];
     return {
-      appointments
+      appointments,
+      apiKey
     }
   };
+
+
+
+  
 
   const informationTooltip = <Popover id="information-tooltip">
     This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.

@@ -11,6 +11,10 @@ import UserDashboard from './pages/UserDashboard';
 import UserApptCreator from './pages/UserApptCreator';
 import Pending from './pages/Pending';
 import Attendance from './pages/Attendance';
+import Admin from './pages/Admin';
+import Register from './pages/Register';
+import RegisterConfirm from './pages/RegisterConfirm';
+import moment from 'moment';
 
 import StudentDashboard from './pages/StudentDashboard';
 import StudentApptCreator from './pages/StudentApptCreator';
@@ -44,6 +48,8 @@ function App() {
     }
   };
 
+  const date = moment().format('YYYY-MM-DD');
+
   return (
     <BrowserRouter>
       <Switch>
@@ -53,11 +59,17 @@ function App() {
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
           component={UserDashboard} />
         <AuthenticatedRoute path="/userapptcreator" {...apiKeyGetSetter}
-          component={UserApptCreator} />
+          component={UserApptCreator}/>
         <AuthenticatedRoute path="/pending" {...apiKeyGetSetter}
           component={Pending} />
         <AuthenticatedRoute path="/attendance" {...apiKeyGetSetter}
-          component={Attendance} />
+          component={Attendance} /> 
+        <AuthenticatedRoute path="/admin" {...apiKeyGetSetter}
+          component={Admin} />
+          <AuthenticatedRoute path="/register" {...apiKeyGetSetter}
+          component={Register} />
+          <AuthenticatedRoute path="/registerconfirm" {...apiKeyGetSetter}
+          component={RegisterConfirm} />
         <StudentRoute path="/student" {...apiKeyGetSetter}
           component={StudentDashboard} />
         <StudentRoute path="/studentapptcreator" {...apiKeyGetSetter}
