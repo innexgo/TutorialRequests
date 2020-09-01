@@ -48,7 +48,7 @@ export default function UserApptCreator(props: AuthenticatedComponentProps) {
       <Form style={formStyle}>
         <Form.Group controlId="date">
           <Form.Label>Date</Form.Label>
-          <Form.Control type="date" 
+          <Form.Control type="date"
             onChange={e => {
               setDate(e.target.value);
               }} />
@@ -89,3 +89,4 @@ export default function UserApptCreator(props: AuthenticatedComponentProps) {
     </DashboardLayout>
   );
 }
+
