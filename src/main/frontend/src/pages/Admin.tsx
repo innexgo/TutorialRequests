@@ -4,7 +4,6 @@ import DashboardLayout from '../components/DashboardLayout';
 import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
 import moment from 'moment';
-import 'bs-custom-file-input';
 
 
 function Admin(props: AuthenticatedComponentProps) {
