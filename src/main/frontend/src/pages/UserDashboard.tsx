@@ -3,7 +3,7 @@ import FullCalendar, { EventInput, EventClickArg, DateSelectArg } from '@fullcal
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import DashboardLayout from '../components/DashboardLayout';
+import UserDashboardLayout from '../components/UserDashboardLayout';
 
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
@@ -19,9 +19,9 @@ interface ApptProps {
 
 function LoadEvents(props: ApptProps) {
 
-const [show, setShow] = useState(false);
-const [date, setDate] = useState("");
-const handleClose = () => setShow(false);
+  const [show, setShow] = useState(false);
+  const [date, setDate] = useState("");
+  const handleClose = () => setShow(false);
 
 
   const [apptDate, setApptDate] = React.useState("");
@@ -30,10 +30,10 @@ const handleClose = () => setShow(false);
   const [student, setStudent] = React.useState("");
   const [message, setMessage] = React.useState("");
 
-async function createAppt(){
+  async function createAppt() {
     const start = moment(date + " " + startTime, "YYYY-M-D H:mm").valueOf();
     const end = moment(date + " " + endTime, "YYYY-M-D H:mm").valueOf();
-    const duration = end-start;
+    const duration = end - start;
     const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
       ['userId', `${props.apiKey.user.id}`],
       ['studentId', `${student}`],
@@ -43,7 +43,7 @@ async function createAppt(){
       ['approved', 'true'],
       ['reviewed', 'true'],
       ['apiKey', `${props.apiKey.key}`],
-  ])) as ApptRequest;
+    ])) as ApptRequest;
   }
 
   const events = props.appointments;
@@ -67,24 +67,24 @@ async function createAppt(){
   }
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
-    
+
     let calendarApi = selectInfo.view.calendar
 
     calendarApi.unselect() // clear date selection
 
     setShow(true);
     setDate(selectInfo.startStr);
-    
-     /* calendarApi.addEvent({
-        id: createEventId(),
-        title,
-        start: selectInfo.startStr,
-        end: selectInfo.endStr,
-        allDay: selectInfo.allDay
-      })*/
-      //TODO not sure if we need to add event through calendar api
-    }
-  
+
+    /* calendarApi.addEvent({
+       id: createEventId(),
+       title,
+       start: selectInfo.startStr,
+       end: selectInfo.endStr,
+       allDay: selectInfo.allDay
+     })*/
+    //TODO not sure if we need to add event through calendar api
+  }
+
 
   return (
     <>
@@ -113,53 +113,53 @@ async function createAppt(){
         keyboard={false}
         size="lg"
         centered
-        >
-          <Modal.Header closeButton>
-            <Modal.Title id="modal-title">Make Appointment</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-                  <Form>
-        <Form.Group controlId="date">
-          <Form.Label>Date</Form.Label>
-          <Form.Control type="date" value={date}
-            onChange={e => {
-              setApptDate(e.target.value);
-              }} />
-        </Form.Group>
-        <Form.Group controlId="startTime">
-          <Form.Label>Start Time</Form.Label>
-          <Form.Control type="time" 
-            onChange={e => {
-              setStartTime(e.target.value);
-            }} />
-        </Form.Group>
-        <Form.Group controlId="endTime">
-          <Form.Label>End Time</Form.Label>
-          <Form.Control type="time" 
-            onChange={e => {
-              setEndTime(e.target.value);
-              }} />
-        </Form.Group>
+      >
+        <Modal.Header closeButton>
+          <Modal.Title id="modal-title">Make Appointment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="date">
+              <Form.Label>Date</Form.Label>
+              <Form.Control type="date" value={date}
+                onChange={e => {
+                  setApptDate(e.target.value);
+                }} />
+            </Form.Group>
+            <Form.Group controlId="startTime">
+              <Form.Label>Start Time</Form.Label>
+              <Form.Control type="time"
+                onChange={e => {
+                  setStartTime(e.target.value);
+                }} />
+            </Form.Group>
+            <Form.Group controlId="endTime">
+              <Form.Label>End Time</Form.Label>
+              <Form.Control type="time"
+                onChange={e => {
+                  setEndTime(e.target.value);
+                }} />
+            </Form.Group>
 
-        <Form.Group controlId="student">
-          <Form.Label>Student ID</Form.Label>
-          <Form.Control as="textarea" rows={1} 
-            onChange={e => {
-              setStudent(e.target.value);
-            }} />
-        </Form.Group>
+            <Form.Group controlId="student">
+              <Form.Label>Student ID</Form.Label>
+              <Form.Control as="textarea" rows={1}
+                onChange={e => {
+                  setStudent(e.target.value);
+                }} />
+            </Form.Group>
 
-        <Form.Group controlId="message">
-          <Form.Label>Message</Form.Label>
-          <Form.Control as="textarea" rows={3} 
-            onChange={e => {
-              setMessage(e.target.value);
-         }} />
-        </Form.Group>
+            <Form.Group controlId="message">
+              <Form.Label>Message</Form.Label>
+              <Form.Control as="textarea" rows={3}
+                onChange={e => {
+                  setMessage(e.target.value);
+                }} />
+            </Form.Group>
 
-        <Button variant="primary" type="submit" onClick={async () => createAppt()}>Submit</Button>
-      </Form>
-          </Modal.Body>
+            <Button variant="primary" type="submit" onClick={async () => createAppt()}>Submit</Button>
+          </Form>
+        </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
             Close
@@ -185,23 +185,19 @@ function UserDashboard(props: AuthenticatedComponentProps) {
     }
   };
 
-  const informationTooltip = <Popover id="information-tooltip">
-    This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.
-  </Popover>;
-
   return (
-    <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
+    <UserDashboardLayout {...props} >
       <Container fluid className="py-3 px-3">
         <CardDeck>
-          <Utility<ApptProps> title="Calendar"
-                   overlay={informationTooltip}
-                   promise={loadData(props.apiKey)}
-                   handler={(error:Error) => <h1>Something went wrong: {error.message}</h1>} >
-            {data => <LoadEvents {...data } />}
+          <Utility<ApptProps> title="Calendar" promise={loadData(props.apiKey)}>
+            <Popover id="information-tooltip">
+              This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.
+           </Popover>
+           {data => <LoadEvents {...data} />}
           </Utility>
         </CardDeck>
       </Container>
-    </DashboardLayout>
+    </UserDashboardLayout>
   )
 };
 

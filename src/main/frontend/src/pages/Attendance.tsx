@@ -3,8 +3,6 @@ import { Card, Button, Popover, Container, CardDeck } from 'react-bootstrap';
 import DashboardLayout from '../components/DashboardLayout';
 import AttendCard from '../components/AttendCard';
 import Utility from '../components/Utility';
-import Loader from '../components/Loader';
-import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
@@ -38,11 +36,6 @@ function Attendees(props: AttendanceProps) {
 
 
 export default function Attendance(props: AuthenticatedComponentProps) {
-  const headerStyle = {
-    margin: '2%',
-    textAlign: 'center' as const,
-  }
-
   const loadData = async (apiKey: ApiKey): Promise<AttendanceProps> => {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
@@ -58,18 +51,14 @@ export default function Attendance(props: AuthenticatedComponentProps) {
     }
   };
 
-  const informationTooltip = <Popover id="information-tooltip">
-    Every day during tutorial, take attendance of your students here.
-  </Popover>;
-
   return (
     <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
       <Container fluid className="py-3 px-3">
         <CardDeck>
-          <Utility<AttendanceProps> title="Attendance"
-            overlay={informationTooltip}
-            promise={loadData(props.apiKey)}
-            handler={(error: Error) => <h1>Something went wrong: {error.message}</h1>} >
+          <Utility<AttendanceProps> title="Attendance" promise={loadData(props.apiKey)}>
+            <Popover id="information-tooltip">
+              Every day during tutorial, take attendance of your students here.
+            </Popover>
             {data => <Attendees {...data} />}
           </Utility>
         </CardDeck>
