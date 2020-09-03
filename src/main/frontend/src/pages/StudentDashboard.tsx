@@ -3,7 +3,7 @@ import FullCalendar, { EventInput, EventClickArg, DateSelectArg } from '@fullcal
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import DashboardLayout from '../components/DashboardLayout';
+import StudentDashboardLayout from '../components/StudentDashboardLayout';
 
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
@@ -175,7 +175,7 @@ function StudentCalendar(props: AuthenticatedComponentProps) {
   </Popover>;
 
   return (
-    <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
+    <StudentDashboardLayout {...props} >
       <Container fluid className="py-3 px-3">
         <CardDeck>
           <Utility<ApptProps>
@@ -187,7 +187,7 @@ function StudentCalendar(props: AuthenticatedComponentProps) {
           </Utility>
         </CardDeck>
       </Container>
-    </DashboardLayout>
+    </StudentDashboardLayout>
   )
 };
 

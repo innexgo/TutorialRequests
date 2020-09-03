@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { SvgIconComponent, Settings, Home, ExitToApp, BarChart, Search, Menu } from '@material-ui/icons';
+import { SvgIconComponent, ExitToApp, Menu } from '@material-ui/icons';
 
 // Bootstrap CSS & Js
 import '../style/dashboard.scss';
@@ -12,59 +12,47 @@ const iconStyle = {
   height: "2rem",
 };
 
+const DashboardLayoutContext = React.createContext<boolean>(true)
+
 interface SidebarEntryProps {
   label: string,
   icon: SvgIconComponent,
   href: string,
-  collapsed: boolean,
 }
 
-function SidebarEntry(props: SidebarEntryProps) {
+const SidebarEntry: React.FunctionComponent<SidebarEntryProps> = props => {
   const style = {
     color: "#fff"
   }
-
   const Icon = props.icon;
-  if (props.collapsed) {
+  if (React.useContext(DashboardLayoutContext)) {
+    // collapsed
     return <Link style={style} className="nav-item nav-link" to={props.href}>
       <Icon style={iconStyle} />
     </Link>
   } else {
+    // not collapsed
     return <Link style={style} className="nav-item nav-link" to={props.href}>
       <Icon style={iconStyle} /> {props.label}
     </Link>
   }
 }
 
-interface DashboardLayoutState {
-  sidebarCollapsed: boolean;
+const Body: React.StatelessComponent = props => <> {props.children} </>
+
+interface DashboardLayoutComposition {
+  SidebarEntry: React.FunctionComponent<SidebarEntryProps>
+  Body: React.StatelessComponent
 }
 
 interface DashboardLayoutProps {
   name: string
-  homeUrl: string,
-  settingsUrl: string,
-  statisticsUrl: string,
-  searchUrl: string,
   logoutCallback: () => void
 }
 
-class DashboardLayout extends React.Component<DashboardLayoutProps, DashboardLayoutState> {
-
-  constructor(props: DashboardLayoutProps) {
-    super(props);
-    this.state = {
-      sidebarCollapsed: true
-    };
-  }
-
-  toggleSidebar = (_: React.MouseEvent) => {
-    this.setState({ sidebarCollapsed: !this.state.sidebarCollapsed });
-  }
-
-  render() {
-
-    const collapsed = this.state.sidebarCollapsed;
+const DashboardLayout: React.FunctionComponent<React.PropsWithChildren<DashboardLayoutProps>> & DashboardLayoutComposition =
+  props => {
+    let [collapsed, setCollapsed] = React.useState<boolean>(true);
 
     const widthrem = collapsed ? 4 : 15;
 
@@ -86,46 +74,56 @@ class DashboardLayout extends React.Component<DashboardLayoutProps, DashboardLay
       left: 0,
     };
 
-    const nonSidebarStyle = {
-      marginLeft: `${widthrem}rem`
-    }
+    let sidebarChildren: React.ReactElement[] = [];
+    let nonSidebarChildren: React.ReactNode[] = [];
+
+    React.Children.forEach(props.children, child => {
+      if (React.isValidElement(child)) {
+        if (child.type == SidebarEntry) {
+          sidebarChildren.push(child);
+        } else if (child.type == Body) {
+          nonSidebarChildren.push(child);
+        }
+      }
+    });
 
     return (
-      <div>
-        <nav className="bg-dark text-light" style={sidebarStyle}>
-          <div>
-            <button type="button" className="btn btn-lg text-light float-right" onClick={this.toggleSidebar}>
-              <Menu style={iconStyle} />
-            </button>
+      <DashboardLayoutContext.Provider value={collapsed}>
+        <div>
+          <nav className="bg-dark text-light" style={sidebarStyle}>
+            <div>
+              <button type="button" className="btn btn-lg text-light float-right" onClick={_ => setCollapsed(!collapsed)}>
+                <Menu style={iconStyle} />
+              </button>
+            </div>
+            {
+              collapsed
+                ? ""
+                : <div className="nav-item nav-link mx-auto my-3">
+                  <h6>{props.name}</h6>
+                </div>
+            }
+            {sidebarChildren}
+            <div style={sidebarBottom}>
+              <button
+                style={{ color: "#fff" }}
+                type="button"
+                className="btn nav-item nav-link"
+                onClick={() => props.logoutCallback()}
+              >
+                <ExitToApp style={iconStyle} /> {collapsed ? "" : "Log Out"}
+              </button>
+            </div>
+          </nav>
+          <div style={{ marginLeft: `${widthrem}rem` }}>
+            {nonSidebarChildren}
           </div>
-          {
-            collapsed
-              ? ""
-              : <div className="nav-item nav-link mx-auto my-3">
-                <h6>{this.props.name}</h6>
-              </div>
-          }
-          <SidebarEntry label="Home" href={this.props.homeUrl} collapsed={collapsed} icon={Home} />
-          <div style={sidebarBottom}>
-            <SidebarEntry label="Settings" href={this.props.settingsUrl} collapsed={collapsed} icon={Settings} />
-            <SidebarEntry label="Statistics" href={this.props.statisticsUrl} collapsed={collapsed} icon={BarChart} />
-            <SidebarEntry label="Search" href={this.props.searchUrl} collapsed={collapsed} icon={Search} />
-            <button
-              style={{ color: "#fff" }}
-              type="button"
-              className="btn nav-item nav-link"
-              onClick={() => this.props.logoutCallback()}
-            >
-              <ExitToApp style={iconStyle} /> {collapsed ? "" : "Log Out"}
-            </button>
-          </div>
-        </nav>
-        <div style={nonSidebarStyle}>
-          {this.props.children}
         </div>
-      </div>
+      </DashboardLayoutContext.Provider>
     )
   }
-}
+
+DashboardLayout.SidebarEntry = SidebarEntry;
+DashboardLayout.Body = Body;
 
 export default DashboardLayout;
