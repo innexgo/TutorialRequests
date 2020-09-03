@@ -7,21 +7,19 @@ import DashboardLayout from '../components/DashboardLayout';
 
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
-import Loader from '../components/Loader';
-import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
 interface ApptProps {
   appointments: Appt[],
-    apiKey: ApiKey
+  apiKey: ApiKey
 }
 
-function LoadEvents(props: ApptProps){
+function LoadEvents(props: ApptProps) {
 
-const [show, setShow] = useState(false);
-const [date, setDate] = useState("");
-const handleClose = () => setShow(false);
+  const [show, setShow] = useState(false);
+  const [date, setDate] = useState("");
+  const handleClose = () => setShow(false);
 
   const [apptDate, setapptDate] = React.useState("");
   const [teacher, setTeacher] = React.useState("");
@@ -44,16 +42,16 @@ const handleClose = () => setShow(false);
 
   const events = props.appointments;
 
-  const INITIAL_EVENTS: EventInput[] = 
+  const INITIAL_EVENTS: EventInput[] =
     events.map((x) =>
-    ({
-      id: `${x.id}`,
-      title: `${x.host.name}`,
-      start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
-      end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
-      allDay: false
-     })
-     );
+      ({
+        id: `${x.id}`,
+        title: `${x.host.name}`,
+        start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
+        end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
+        allDay: false
+      })
+    );
 
 
   const handleEventClick = (clickInfo: EventClickArg) => {
@@ -64,101 +62,101 @@ const handleClose = () => setShow(false);
   }
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
-    
+
     let calendarApi = selectInfo.view.calendar
 
     calendarApi.unselect() // clear date selection
 
     setShow(true);
     setDate(selectInfo.startStr);
-    
-     /* calendarApi.addEvent({
-        id: createEventId(),
-        title,
-        start: selectInfo.startStr,
-        end: selectInfo.endStr,
-        allDay: selectInfo.allDay
-      })*/
-      //TODO not sure if we need to add event through calendar api
-    }
 
-    return(
-      <>
-          <FullCalendar
-      plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-      headerToolbar={{
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-      }}
-      initialView='dayGridMonth'
-      editable={false}
-      selectable={false}
-      selectMirror={true}
-      dayMaxEvents={true}
-      weekends={false}
-              select={handleDateSelect}
+    /* calendarApi.addEvent({
+       id: createEventId(),
+       title,
+       start: selectInfo.startStr,
+       end: selectInfo.endStr,
+       allDay: selectInfo.allDay
+     })*/
+    //TODO not sure if we need to add event through calendar api
+  }
+
+  return (
+    <>
+      <FullCalendar
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        }}
+        initialView='dayGridMonth'
+        editable={false}
+        selectable={false}
+        selectMirror={true}
+        dayMaxEvents={true}
+        weekends={false}
+        select={handleDateSelect}
         eventClick={handleEventClick}
-      initialEvents={INITIAL_EVENTS}
-    />
-          <Modal
+        initialEvents={INITIAL_EVENTS}
+      />
+      <Modal
         show={show}
         onHide={handleClose}
         backdrop="static"
         keyboard={false}
         size="lg"
         centered
-        >
-          <Modal.Header closeButton>
-            <Modal.Title id="modal-title">Make Appointment</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-        <Form.Group controlId="date">
-          <Form.Label>Date</Form.Label>
-          <Form.Control type="date" value={date}
-            onChange={e => {
-              setapptDate(e.target.value);
-              }}
-          />
-        </Form.Group>
+      >
+        <Modal.Header closeButton>
+          <Modal.Title id="modal-title">Make Appointment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="date">
+              <Form.Label>Date</Form.Label>
+              <Form.Control type="date" value={date}
+                onChange={e => {
+                  setapptDate(e.target.value);
+                }}
+              />
+            </Form.Group>
 
-        <Form.Group controlId="teacher">
-          <Form.Label>Teacher</Form.Label>
-          <Form.Control as="select"
-            onChange={e => {
-              setTeacher(e.target.value);
-            }} >
-            <option>Ms. Ng</option>
-            <option>Ms. Cornejo</option>
-            <option>Ms. Dimas</option>
+            <Form.Group controlId="teacher">
+              <Form.Label>Teacher</Form.Label>
+              <Form.Control as="select"
+                onChange={e => {
+                  setTeacher(e.target.value);
+                }} >
+                <option>Ms. Ng</option>
+                <option>Ms. Cornejo</option>
+                <option>Ms. Dimas</option>
 
-          </Form.Control>
-        </Form.Group>
+              </Form.Control>
+            </Form.Group>
 
-        <Form.Group controlId="message">
-          <Form.Label>Message</Form.Label>
-          <Form.Control as="textarea" rows={3} 
-onChange={e => {
-              setMessage(e.target.value);
-         }} />
-        </Form.Group>
+            <Form.Group controlId="message">
+              <Form.Label>Message</Form.Label>
+              <Form.Control as="textarea" rows={3}
+                onChange={e => {
+                  setMessage(e.target.value);
+                }} />
+            </Form.Group>
 
-        <Button variant="primary" type="submit">Submit</Button>
-      </Form>
-          </Modal.Body>
+            <Button variant="primary" type="submit">Submit</Button>
+          </Form>
+        </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
         </Modal.Footer>
       </Modal>
-  </>
+    </>
   );
- } 
+}
 
 function StudentCalendar(props: AuthenticatedComponentProps) {
-  const loadData = async (apiKey: ApiKey):Promise<ApptProps> => {
+  const loadData = async (apiKey: ApiKey): Promise<ApptProps> => {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
       ['count', '0xFFFFFFFF'],
@@ -171,21 +169,26 @@ function StudentCalendar(props: AuthenticatedComponentProps) {
       apiKey
     }
   };
-  
+
   const informationTooltip = <Popover id="information-tooltip">
     This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.
   </Popover>;
 
   return (
-  <DashboardLayout name={props.apiKey.user.name} logoutCallback={()=>props.setApiKey(null)} >
-    <Container fluid className="py-3 px-3">
-    <CardDeck>
-            <Utility<ApptProps> title="Pending Appointments" overlay={informationTooltip} promise={loadData(props.apiKey)} handler={(error:Error) => <h1>Something went wrong: {error.message}</h1>}>
-            {data => <LoadEvents {...data } />}
-        </Utility>
-    </CardDeck>
-    </Container>
-  </DashboardLayout>
-)};
+    <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
+      <Container fluid className="py-3 px-3">
+        <CardDeck>
+          <Utility<ApptProps>
+            title="Pending Appointments"
+            overlay={informationTooltip}
+            promise={loadData(props.apiKey)}
+            handler={(error: Error) => <h1>Something went wrong: {error.message}</h1>}>
+            {data => <LoadEvents {...data} />}
+          </Utility>
+        </CardDeck>
+      </Container>
+    </DashboardLayout>
+  )
+};
 
 export default StudentCalendar;

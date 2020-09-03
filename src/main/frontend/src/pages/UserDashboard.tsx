@@ -172,7 +172,7 @@ async function createAppt(){
 }
 
 
-function TeacherCalendar(props: AuthenticatedComponentProps) {
+function UserDashboard(props: AuthenticatedComponentProps) {
   const loadData = async (apiKey: ApiKey): Promise<ApptProps> => {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
@@ -185,10 +185,6 @@ function TeacherCalendar(props: AuthenticatedComponentProps) {
       apiKey
     }
   };
-
-
-
-  
 
   const informationTooltip = <Popover id="information-tooltip">
     This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.
@@ -210,4 +206,4 @@ function TeacherCalendar(props: AuthenticatedComponentProps) {
   )
 };
 
-export default TeacherCalendar;
+export default UserDashboard;

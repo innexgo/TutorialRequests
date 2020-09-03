@@ -11,7 +11,7 @@ interface UtilityProps<DataType> {
   overlay: React.ReactElement
   promise: Promise<DataType>
   handler: (error: Error) => React.ReactElement,
-  children:FulfilledChildren<DataType>
+  children: FulfilledChildren<DataType>
 }
 
 // function is generic over dataType
@@ -29,15 +29,15 @@ function Utility<DataType>(props: React.PropsWithChildren<UtilityProps<DataType>
           </button>
         </OverlayTrigger>
       </div>
-      <Async promise={props.promise}>
-        <Async.Pending><Loader /></Async.Pending>
-        <Async.Rejected>handler</Async.Rejected>
-        <Async.Fulfilled<DataType>>
-          <ErrorBoundary handler={props.handler}>
+      <ErrorBoundary handler={props.handler}>
+        <Async promise={props.promise}>
+          <Async.Pending><Loader /></Async.Pending>
+          <Async.Rejected>handler</Async.Rejected>
+          <Async.Fulfilled<DataType>>
             {props.children}
-          </ErrorBoundary>
-        </Async.Fulfilled>
-      </Async>
+          </Async.Fulfilled>
+        </Async>
+      </ErrorBoundary>
     </Card.Body>
   </Card>
 }
