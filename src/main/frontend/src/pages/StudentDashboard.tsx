@@ -170,19 +170,15 @@ function StudentCalendar(props: AuthenticatedComponentProps) {
     }
   };
 
-  const informationTooltip = <Popover id="information-tooltip">
-    This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.
-  </Popover>;
-
   return (
     <StudentDashboardLayout {...props} >
       <Container fluid className="py-3 px-3">
         <CardDeck>
-          <Utility<ApptProps>
-            title="Pending Appointments"
-            overlay={informationTooltip}
-            promise={loadData(props.apiKey)}
-            handler={(error: Error) => <h1>Something went wrong: {error.message}</h1>}>
+          <Utility<ApptProps> title="Pending Appointments" promise={loadData(props.apiKey)} >
+            <Popover id="information-tooltip">
+              This screen shows all future appointments. You can click any date to add an
+              appointment on that date, or click an existing appointment to delete it.
+            </Popover>
             {data => <LoadEvents {...data} />}
           </Utility>
         </CardDeck>

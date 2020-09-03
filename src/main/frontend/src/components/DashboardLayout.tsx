@@ -79,9 +79,9 @@ const DashboardLayout: React.FunctionComponent<React.PropsWithChildren<Dashboard
 
     React.Children.forEach(props.children, child => {
       if (React.isValidElement(child)) {
-        if (child.type == SidebarEntry) {
+        if (child.type === SidebarEntry) {
           sidebarChildren.push(child);
-        } else if (child.type == Body) {
+        } else if (child.type === Body) {
           nonSidebarChildren.push(child);
         }
       }
