@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { SvgIconComponent, Settings, Home, ExitToApp, BarChart, Search, People, Menu } from '@material-ui/icons';
+import { SvgIconComponent, Settings, Home, ExitToApp, BarChart, Search, Menu } from '@material-ui/icons';
 
 // Bootstrap CSS & Js
 import '../style/dashboard.scss';
@@ -41,8 +41,12 @@ interface DashboardLayoutState {
 }
 
 interface DashboardLayoutProps {
-	name:string
-	logoutCallback:()=>void
+  name: string
+  homeUrl: string,
+  settingsUrl: string,
+  statisticsUrl: string,
+  searchUrl: string,
+  logoutCallback: () => void
 }
 
 class DashboardLayout extends React.Component<DashboardLayoutProps, DashboardLayoutState> {
@@ -98,12 +102,14 @@ class DashboardLayout extends React.Component<DashboardLayoutProps, DashboardLay
             collapsed
               ? ""
               : <div className="nav-item nav-link mx-auto my-3">
-                	<h6>{this.props.name}</h6>
-              	</div>
+                <h6>{this.props.name}</h6>
+              </div>
           }
-          <SidebarEntry label="Home" href="/teachers" collapsed={collapsed} icon={Home} />
+          <SidebarEntry label="Home" href={this.props.homeUrl} collapsed={collapsed} icon={Home} />
           <div style={sidebarBottom}>
-            <SidebarEntry label="Settings" href="/settings" collapsed={collapsed} icon={Settings} />
+            <SidebarEntry label="Settings" href={this.props.settingsUrl} collapsed={collapsed} icon={Settings} />
+            <SidebarEntry label="Statistics" href={this.props.statisticsUrl} collapsed={collapsed} icon={BarChart} />
+            <SidebarEntry label="Search" href={this.props.searchUrl} collapsed={collapsed} icon={Search} />
             <button
               style={{ color: "#fff" }}
               type="button"
