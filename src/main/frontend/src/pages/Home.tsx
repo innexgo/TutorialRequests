@@ -1,8 +1,6 @@
 import React from 'react';
 import {Jumbotron, Container, Row, Card, CardDeck } from 'react-bootstrap';
 import { VerifiedUser, BarChart, ThumbUp} from '@material-ui/icons'
-import AOS from 'aos';
-import 'aos/dist/aos.css';
 
 import ExternalLayout from "../components/ExternalLayout";
 
@@ -14,7 +12,6 @@ interface State{};
 class Home extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    AOS.init();
   }
 
   render() {

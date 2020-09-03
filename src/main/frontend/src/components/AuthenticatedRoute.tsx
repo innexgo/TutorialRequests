@@ -17,7 +17,18 @@ function AuthenticatedRoute({
   ...rest
 }: AuthenticatedRouteProps) {
 
-  const isAuthenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now();
+  const isAuthenticated = apiKey != null &&
+    apiKey.creationTime + apiKey.duration > Date.now() &&
+    apiKey.canLogIn &&
+    apiKey.canReadUser &&
+    apiKey.canWriteUser &&
+    apiKey.canChangePassword &&
+    apiKey.canReadApptRequest &&
+    apiKey.canWriteApptRequest &&
+    apiKey.canReadAppt &&
+    apiKey.canWriteAppt &&
+    apiKey.canReadAttendance &&
+    apiKey.canWriteAttendance;
 
   return (
     <Route {...rest} >

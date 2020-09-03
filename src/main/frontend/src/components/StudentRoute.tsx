@@ -17,7 +17,14 @@ function StudentRoute({
   ...rest
 }: StudentRouteProps) {
 
-  const isAuthenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now();
+  const isAuthenticated = apiKey != null &&
+    apiKey.creationTime + apiKey.duration > Date.now() &&
+    apiKey.canLogIn &&
+    apiKey.canReadUser &&
+    apiKey.canReadApptRequest &&
+    apiKey.canWriteApptRequest &&
+    apiKey.canReadAppt &&
+    apiKey.canReadAttendance;
 
   return (
     <Route {...rest} >

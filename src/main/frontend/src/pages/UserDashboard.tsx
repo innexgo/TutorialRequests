@@ -7,7 +7,6 @@ import DashboardLayout from '../components/DashboardLayout';
 
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
-import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
