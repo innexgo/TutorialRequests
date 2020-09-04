@@ -1,7 +1,6 @@
 import React from 'react'
 import { Form, Button } from 'react-bootstrap';
 import DashboardLayout from '../components/DashboardLayout';
-import { Async } from 'react-async';
 import { fetchApi } from '../utils/utils';
 import moment from 'moment';
 
@@ -50,15 +49,15 @@ export default function StudentApptCreator(props: AuthenticatedComponentProps) {
           <Form.Control type="date"
             onChange={e => {
               setDate(e.target.value);
-              }} />
+            }} />
         </Form.Group>
 
         <Form.Group controlId="teacher">
           <Form.Label>Teacher</Form.Label>
           <Form.Control as="select"
-onChange={e => {
+            onChange={e => {
               setTeacher(e.target.value);
-            }} 
+            }}
           >
             <option>Ms. Ng</option>
             <option>Ms. Cornejo</option>
@@ -68,10 +67,10 @@ onChange={e => {
 
         <Form.Group controlId="message">
           <Form.Label>Message</Form.Label>
-          <Form.Control as="textarea" rows={3} 
+          <Form.Control as="textarea" rows={3}
             onChange={e => {
               setMessage(e.target.value);
-         }} 
+            }}
           />
         </Form.Group>
 

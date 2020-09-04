@@ -321,6 +321,7 @@ public class ApiController {
         Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("hostId")), // Long hostId,
         Utils.parseLong(allRequestParam.get("attendeeId")), // Long attendeeId,
+        Utils.parseLong(allRequestParam.get("apptRequestId")), // Long apptRequestId,
         allRequestParam.get("message"), // String message,
         Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
         Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,

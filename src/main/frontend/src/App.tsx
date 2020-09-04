@@ -14,7 +14,6 @@ import Attendance from './pages/Attendance';
 import Admin from './pages/Admin';
 import Register from './pages/Register';
 import RegisterConfirm from './pages/RegisterConfirm';
-import moment from 'moment';
 
 import StudentDashboard from './pages/StudentDashboard';
 import StudentApptCreator from './pages/StudentApptCreator';
@@ -38,7 +37,6 @@ function getPreexistingApiKey() {
 }
 
 function App() {
-
   const [apiKey, setApiKeyState] = React.useState(getPreexistingApiKey());
   const apiKeyGetSetter = {
     apiKey: apiKey,
@@ -47,8 +45,6 @@ function App() {
       setApiKeyState(data);
     }
   };
-
-  const date = moment().format('YYYY-MM-DD');
 
   return (
     <BrowserRouter>

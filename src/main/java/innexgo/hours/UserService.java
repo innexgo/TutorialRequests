@@ -129,7 +129,7 @@ public class UserService {
             + (schoolId == null ? "" : " AND u.school_id = " + schoolId)
             + (name == null ? "" : " AND u.name = " + Utils.escape(name))
             + (partialUserName== null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
-            + (kind == null ? "" : " AND u.kind = " + kind.name())
+            + (kind == null ? "" : " AND u.kind = " + Utils.escape(kind.name()))
             + (email == null ? "" : " AND u.email = " + Utils.escape(email))
             + (" ORDER BY u.id")
             + (" LIMIT " + offset + ", " + count)

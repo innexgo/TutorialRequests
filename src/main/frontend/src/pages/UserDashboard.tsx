@@ -4,6 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import UserDashboardLayout from '../components/UserDashboardLayout';
+import SearchUserDropdown from '../components/SearchUserDropdown';
 
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
@@ -24,40 +25,44 @@ function LoadEvents(props: ApptProps) {
   const handleClose = () => setShow(false);
 
 
-  const [apptDate, setApptDate] = React.useState("");
   const [startTime, setStartTime] = React.useState("");
   const [endTime, setEndTime] = React.useState("");
-  const [student, setStudent] = React.useState("");
+  const [studentId, setStudentId] = React.useState<number | null>(null);
   const [message, setMessage] = React.useState("");
 
   async function createAppt() {
     const start = moment(date + " " + startTime, "YYYY-M-D H:mm").valueOf();
     const end = moment(date + " " + endTime, "YYYY-M-D H:mm").valueOf();
     const duration = end - start;
-    const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-      ['userId', `${props.apiKey.user.id}`],
-      ['studentId', `${student}`],
+    const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
+      ['targetId', `${studentId!}`],
       ['message', message],
-      ['requestTime', `${start}`],
-      ['requestDuration', `${duration}`],
-      ['approved', 'true'],
-      ['reviewed', 'true'],
+      ['suggestedTime', `${start}`],
       ['apiKey', `${props.apiKey.key}`],
     ])) as ApptRequest;
+
+    const appt = await fetchApi('appt/new/?' + new URLSearchParams([
+      ["apptRequestId", `${apptRequest.id}`],
+      ["hostId", `${props.apiKey.user.id}`],
+      ["attendeeId", `${studentId}`],
+      ["message", message],
+      ["startTime", `${start}`],
+      ["duration", `${duration}`],
+      ["apiKey", `${props.apiKey.key}`]
+    ])) as Appt;
   }
 
-  const events = props.appointments;
-
   const INITIAL_EVENTS: EventInput[] =
-    events.map((x) =>
-      ({
+    props.appointments.map((x:Appt) => {
+      console.log(x);
+      return {
         id: `${x.id}`,
         title: `${x.attendee.name}`,
         start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
         end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
         allDay: false
-      })
-    );
+      }
+    });
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     if (window.confirm(`Are you sure you want to delete the appointment with'${clickInfo.event.title}'`)) {
@@ -119,13 +124,6 @@ function LoadEvents(props: ApptProps) {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group controlId="date">
-              <Form.Label>Date</Form.Label>
-              <Form.Control type="date" value={date}
-                onChange={e => {
-                  setApptDate(e.target.value);
-                }} />
-            </Form.Group>
             <Form.Group controlId="startTime">
               <Form.Label>Start Time</Form.Label>
               <Form.Control type="time"
@@ -143,10 +141,7 @@ function LoadEvents(props: ApptProps) {
 
             <Form.Group controlId="student">
               <Form.Label>Student ID</Form.Label>
-              <Form.Control as="textarea" rows={1}
-                onChange={e => {
-                  setStudent(e.target.value);
-                }} />
+              <SearchUserDropdown apiKey={props.apiKey} userKind={"ADMIN"} setFn={e => setStudentId(e)} />
             </Form.Group>
 
             <Form.Group controlId="message">
@@ -157,11 +152,12 @@ function LoadEvents(props: ApptProps) {
                 }} />
             </Form.Group>
 
-            <Button variant="primary" type="submit" onClick={async () => createAppt()}>Submit</Button>
+            <Button variant="primary" onClick={async () => createAppt()}>Submit</Button>
           </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
+
             Close
           </Button>
         </Modal.Footer>
@@ -193,7 +189,7 @@ function UserDashboard(props: AuthenticatedComponentProps) {
             <Popover id="information-tooltip">
               This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.
            </Popover>
-           {data => <LoadEvents {...data} />}
+            {data => <LoadEvents {...data} />}
           </Utility>
         </CardDeck>
       </Container>

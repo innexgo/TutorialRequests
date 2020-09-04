@@ -33,7 +33,7 @@ public class ApptRequestService {
 
   public ApptRequest getById(long id) {
     String sql =
-        "SELECT id, creator_id, target_id, message, creation_time, suggested_time WHERE id=? FROM appt_request";
+        "SELECT id, creator_id, target_id, message, creation_time, suggested_time FROM appt_request WHERE id=?";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apptRequest;
@@ -62,7 +62,7 @@ public class ApptRequestService {
   public void add(ApptRequest apptRequest) {
     // Add apptRequest
     String sql =
-        "INSERT INTO apptRequest(id, creator_id, target_id, message, creation_time, suggested_time ) values (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO appt_request(id, creator_id, target_id, message, creation_time, suggested_time ) values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         apptRequest.id,
@@ -76,7 +76,7 @@ public class ApptRequestService {
 
   public void update(ApptRequest apptRequest) {
     String sql =
-        "UPDATE apptRequest SET id=?, creator_id=?, target_id=?, message=?, creation_time=?, suggested_time=? WHERE id=?";
+        "UPDATE appt_request SET id=?, creator_id=?, target_id=?, message=?, creation_time=?, suggested_time=? WHERE id=?";
     jdbcTemplate.update(
         sql,
         apptRequest.id,
@@ -89,13 +89,13 @@ public class ApptRequestService {
 
   public ApptRequest deleteById(long id) {
     ApptRequest apptRequest = getById(id);
-    String sql = "DELETE FROM apptRequest WHERE id=?";
+    String sql = "DELETE FROM appt_request WHERE id=?";
     jdbcTemplate.update(sql, id);
     return apptRequest;
   }
 
   public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM apptRequest WHERE id=?";
+    String sql = "SELECT count(*) FROM appt_request WHERE id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
     return count != 0;
   }

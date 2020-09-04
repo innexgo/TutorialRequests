@@ -27,7 +27,7 @@ public class ApptRequest {
   public long suggestedTime;
 
   // for jackson
-  User creator;
-  User target;
+  public User creator;
+  public User target;
 }
 

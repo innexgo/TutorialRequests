@@ -29,7 +29,7 @@ public class Appt {
   public long duration;
 
   // for jackson
-  User host;
-  User attendee;
-  ApptRequest apptRequest;
+  public User host;
+  public User attendee;
+  public ApptRequest apptRequest;
 }

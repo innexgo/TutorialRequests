@@ -69,6 +69,7 @@ public class InnexgoService {
   Appt fillAppt(Appt appt) {
     appt.host = userService.getById(appt.hostId);
     appt.attendee = userService.getById(appt.attendeeId);
+    appt.apptRequest = apptRequestService.getById(appt.apptRequestId);
     return appt;
   }
 
