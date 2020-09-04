@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package hours;
+package innexgo.hours;
 
 import java.util.List;
 import java.util.Map;
@@ -265,6 +265,7 @@ public class ApiController {
             Utils.parseLong(allRequestParam.get("userSecondaryId")),
             userService.getById(key.userId).schoolId,
             allRequestParam.get("userName"),
+            allRequestParam.get("partialUserName"),
             allRequestParam.get("userEmail"),
             kind,
             offset,

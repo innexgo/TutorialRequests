@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package hours;
+package innexgo.hours;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

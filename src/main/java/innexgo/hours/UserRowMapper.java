@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package hours;
+package innexgo.hours;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

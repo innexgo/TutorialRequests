@@ -1,4 +1,4 @@
-package hours;
+package innexgo.hours;
 
 import com.sendgrid.*;
 import com.sendgrid.helpers.mail.*;

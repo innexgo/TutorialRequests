@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package hours;
+package innexgo.hours;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,6 +116,7 @@ public class UserService {
       Long secondaryId,
       Long schoolId,
       String name,
+      String partialUserName,
       String email,
       UserKind kind,
       long offset,
@@ -127,6 +128,7 @@ public class UserService {
             + (secondaryId == null ? "" : " AND u.secondary_id = " + secondaryId)
             + (schoolId == null ? "" : " AND u.school_id = " + schoolId)
             + (name == null ? "" : " AND u.name = " + Utils.escape(name))
+            + (partialUserName== null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
             + (kind == null ? "" : " AND u.kind = " + kind.name())
             + (email == null ? "" : " AND u.email = " + Utils.escape(email))
             + (" ORDER BY u.id")
