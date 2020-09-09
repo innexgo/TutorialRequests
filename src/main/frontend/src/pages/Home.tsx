@@ -1,17 +1,31 @@
 import React from 'react';
 import {Jumbotron, Container, Row, Card, CardDeck } from 'react-bootstrap';
-import { VerifiedUser, BarChart, ThumbUp} from '@material-ui/icons'
+import {Event, DirectionsRunOutlined, Schedule} from '@material-ui/icons';
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 import ExternalLayout from "../components/ExternalLayout";
 
 import heroBg from "../img/homepage-bg.png"
+import kids_and_books from "../img/kids_and_books.png"
 
 interface Props{};
-interface State{};
+interface State{
+  one: boolean,
+};
 
 class Home extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
+    this.state = {
+      one: false
+    }
+  }
+
+  componentDidMount() {
+    AOS.init({
+      duration : 2000
+    });
   }
 
   render() {
@@ -61,10 +75,25 @@ class Home extends React.Component<Props, State> {
       marginTop: "20px",
     };
 
+    const secondColumn = {
+      float: 'left',
+      width: '50%',
+      margin: '10px auto'
+    } as React.CSSProperties;
+
     const thirdColumn = { 
       float: 'left',
       width: '33%',
       textAlign: 'center',
+    } as React.CSSProperties;
+
+    const buttonStyle = {
+      float: 'right',
+      border: 'none',
+    } as React.CSSProperties;
+
+    const answerStyle1 = {
+      display: this.state.one ? 'initial' : 'none',
     } as React.CSSProperties;
 
 
@@ -75,59 +104,56 @@ class Home extends React.Component<Props, State> {
             <h1> Academics, Achievement, Attendance first. </h1>
           </Container>
         </Jumbotron>
-        <section>
+        <section style={{boxSizing: 'border-box'}}>
+          <Container>
+            <Row>
+              <div>
+                <h2 style={{textAlign:'center', margin: '25px auto',}}>What is Innexgo Hours?</h2>
+                
+                <div style={secondColumn} data-aos="fade-down" data-aos-duration="2000" data-aos-once="true">
+                  <p>Innexgo Hours is a service that helps teachers and students create and organize office hour appointments for all of their classes. 
+                    Using a simple portal and calendar system, students can easily seek help from their teachers, while teachers and adminstrators can track the time students are spending in office hours.</p>
+                
+                  <p>Offering teachers and students the oppurtunity to participate in office hours allows students to ensure success with individualized help,
+                    teachers to focus on one student instead of an entire class, and schools to provide a better support system for its members.
+                    Innexgo Hours helps schools with this, taking out the work of organizing office hours.
+                  </p>
+                </div>
+
+                <div style={secondColumn} data-aos="fade-down" data-aos-duration="2000" data-aos-once="true">
+                  <img src={kids_and_books}/>
+                </div>
+              </div>
+            </Row>
+          </Container>
           <Container>
             <Row>
               <div style={thirdColumn} data-aos="fade-up" data-aos-duration="2000" data-aos-once="true">
-                <ThumbUp style={iconStyle}/>
-                <h5>Easy to Use</h5>
-                <p>Increases teaching time by automating attendance in every classroom and decreasing teacher responsibilities. </p>
+                <Event style={iconStyle}/>
+                <h5>Calendar</h5>
+                <p>Innexgo Hours provides a calenadr for teachers to easily view and organize office hour appointments with students.</p>
               </div>
               <div style={thirdColumn} data-aos="fade-up" data-aos-duration="2300" data-aos-once="true">
-                <VerifiedUser style={iconStyle} />
-                <h5>Secure Campus</h5>
-                <p>Ensures schoolwide safety by recording student entrances and exits and preventing chronic absenteeism in integrated classrooms. </p>
+                <DirectionsRunOutlined style={iconStyle} />
+                <h5>Student Logins</h5>
+                <p>Innexgo Hours also gives students logins to easily organize their tutorial appointments with their teachers, without collecting too much data. </p>
               </div>
               <div style={thirdColumn} data-aos="fade-up" data-aos-duration="2500" data-aos-once="true">
-                <BarChart style={iconStyle}/>
-                <h5>Detailed Reporting</h5>
-                <p> Analyzes attendance data to provide extensive administrator reports on in-session campus safety and attendance. </p>
+                <Schedule style={iconStyle}/>
+                <h5>Time Reports</h5>
+                <p>Time that students spend in office hours is tracked to provide teachers and school administrators another perspective on students' performance.</p>
               </div>
             </Row>
             <hr />
             <Row>
-              <h2>Our Strategy</h2>
-              <CardDeck>
-                <Card>
-                  <Card.Body data-aos="fade-left" data-aos-duration="2200" data-aos-once="true">
-                    <Card.Title> Data Collection  </Card.Title>
-                    <Card.Text>
-                      The process begins with our RFID technology. All classrooms will have a scanner that captures scan-in/out data
-                      from students whenever an ID card is detected.
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-                <Card>
-                  <Card.Body data-aos="fade-left" data-aos-duration="2400" data-aos-once="true">
-                    <Card.Title> Data Processing </Card.Title>
-                    <Card.Text>
-                      Data from the RFID-driven scanners are transmitted to the Innexgo database
-                      where this data is sorted into categorizations such as class periods, classrooms, and teachers.
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-                <Card>
-                  <Card.Body data-aos="fade-left" data-aos-duration="2600" data-aos-once="true">
-                    <Card.Title>Data Analysis</Card.Title>
-                    <Card.Text>
-                      Innexgo displays the attendance data through our analytics dashboard where
-                      teachers and administrators can monitor student attendance records and access numerous charts and reports.
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              </CardDeck>
+              <div>
+                <button style={buttonStyle} onClick={() => this.setState({one: !this.state.one})} value='+'/>
+                <p style={{float: 'left'}}>question text</p>
+              </div>
+              <p style={answerStyle1}>Answer</p>
+            
             </Row>
-            <hr />
+            <hr/>
             <Row>
               <h2>What people say about us</h2>
               <div style={{marginLeft: "1%"}}>
