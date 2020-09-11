@@ -1,5 +1,5 @@
 import React from 'react';
-import {Jumbotron, Container, Row, Button} from 'react-bootstrap';
+import {Jumbotron, Container, Row, Button, Form, Col} from 'react-bootstrap';
 /*import {Event, DirectionsRunOutlined, Schedule} from '@material-ui/icons';*/
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -9,6 +9,7 @@ import ExternalLayout from "../components/ExternalLayout";
 import heroBg from "../img/homepage-bg.png";
 import kids_and_books from "../img/kids_and_books.png";
 import deal from "../img/deal.png";
+import contact from "../img/contact.png"
 
 interface Props{};
 interface State{
@@ -67,10 +68,6 @@ class Home extends React.Component<Props, State> {
       float: tablet ? 'initial' : 'left',
       width: tablet ? '100%' : '50%',
       margin: tablet ? 'auto' : '10px auto',
-    } as React.CSSProperties;
-
-    const boxStyle = {
-      margin: '5px',
     } as React.CSSProperties;
 
     return (
@@ -188,7 +185,7 @@ class Home extends React.Component<Props, State> {
                 Why shoud I use Innexgo Hours over other services?
                 </p>
               <p>Innexgo Hours was designed specifically for schools in mind. Unlike other websites, which
-                can really only handle one class at a time, or calendars that give all students editing privileges,
+                are only designed for a small group of people, or calendars that give all users editing privileges,
                 Innexgo Hours is secure and does the organizing work teachers would usually have to do.
                 Pricing for Innexgo Hours is also significantly lower than other services with less features.
               </p>
@@ -196,25 +193,55 @@ class Home extends React.Component<Props, State> {
               <hr/>
             <Row>
               <div id="contact">
-                <h2 style={{textAlign: 'center', margin: '15px 0'}}>Contact Us</h2>
-                <div style={secondColumn}>
-                  <p>Words</p>
-
+                <div style={secondColumn} data-aos="fade-down" data-aos-duration="2400" data-aos-once="true"> 
+                  <div style={{padding: '2px 15px'}}>
+                    <img src={contact} style={{width: '100%', height: '100%'}}/>
+                  </div>
                 </div>
-                <div style={secondColumn}>
-                  <form>
-                    <label id="name">Name</label>
-                    <input type="text" id="name" style={boxStyle}/><br/>
 
-                    <label id="school">School</label>
-                    <input type="text" id="school" style={boxStyle}/><br/>
+                {/*!!!!!!CONTACT FORM NOT FUNCTIONAL---------------------*/}
+                <div style={secondColumn} data-aos="fade-down" data-aos-duration="2400" data-aos-once="true">
+                <h2 style={{marginBottom: '15px', marginTop: '-3px', marginLeft: "-2px"}}>Contact Us</h2>
+                <p>Interested in Innexgo Hours, or have a question?
+                  Send us a message and we'll get back to you as soon as possible!</p>
+                <Form style={{padding: '2px 10px'}}>
+                  <Form.Group as={Row} controlId="name">
+                    <Form.Label column sm={2}>Name</Form.Label>
+                    <Col sm={10}>
+                      <Form.Control type="text" placeholder="Name"/>
+                    </Col>
+                  </Form.Group> <br/>
 
-                    <label id="position">Position</label>
-                    <input type="position" id="position" style={boxStyle}/><br/>
+                  <Form.Group as={Row} controlId="email">
+                    <Form.Label column sm={2}>Email</Form.Label>
+                    <Col sm={10}>
+                      <Form.Control type="email" placeholder="Enter email" />
+                    </Col>
+                  </Form.Group> <br/>
 
-                    <label id="email">Email</label>
-                    <input type="email" id="email" style={boxStyle}/><br/>
-                  </form>
+                  <Form.Group as={Row} controlId="position">
+                    <Form.Label column sm={2}>Position</Form.Label>
+                    <Col sm={10}>
+                      <Form.Control as="select" placeholder="" custom style={{
+                      padding:'3px', height: '40px'}}>
+                        <option value="district">District Administration</option>
+                        <option value="school">School Administration</option>
+                        <option value="other">Other</option>
+                      </Form.Control>
+                    </Col>
+                  </Form.Group> <br/>
+
+                  <Form.Group as={Row} controlId="message">
+                    <Form.Label column sm={2}>Message</Form.Label>
+                    <Col sm={10}>
+                      <Form.Control type="text" placeholder="Type your message here"/>
+                    </Col>
+                  </Form.Group> <br/>
+
+                  <Button variant="light" type="submit">
+                    Submit
+                  </Button>
+                </Form>
                 </div>
               </div>
             </Row>
