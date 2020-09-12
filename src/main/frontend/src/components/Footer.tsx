@@ -21,6 +21,8 @@ function Footer() {
         <Nav.Link>&copy; Innexgo LLC, 2020</Nav.Link>
         <Nav.Link href="/terms_of_service">Terms of Service</Nav.Link>
         <Nav.Link href="/terms_of_service#cookie_policy">Cookie Policy</Nav.Link>
+
+        <Nav.Link href="https://www.freepik.com/vectors/business">Vectors created by pch.vector, unitonevector, &amp; freepik</Nav.Link>
       </Nav>
     </Navbar>
   );
