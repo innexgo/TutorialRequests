@@ -69,15 +69,7 @@ public class ApiController {
    */
   @RequestMapping("/apiKey/new/")
   public ResponseEntity<?> newApiKey(@RequestParam("userEmail") String userEmail,
-      @RequestParam("userPassword") String password, @RequestParam("duration") Long duration,
-      @RequestParam("canLogIn") Boolean canLogIn, @RequestParam("canChangePassword") Boolean canChangePassword,
-      @RequestParam("canReadUser") Boolean canReadUser, @RequestParam("canWriteUser") Boolean canWriteUser,
-      @RequestParam("canReadApptRequest") Boolean canReadApptRequest,
-      @RequestParam("canWriteApptRequest") Boolean canWriteApptRequest,
-      @RequestParam("canReadAppt") Boolean canReadAppt, @RequestParam("canWriteAppt") Boolean canWriteAppt,
-
-@RequestParam("canReadAttendance") Boolean canReadAttendance, @RequestParam("canWriteAttendance") Boolean canWriteAttendance
-  ) {
+      @RequestParam("userPassword") String password, @RequestParam("duration") Long duration) {
     // Ensure user exists
     if (!userService.existsByEmail(userEmail)) {
       return Errors.USER_NONEXISTENT.getResponse();
@@ -88,37 +80,6 @@ public class ApiController {
       return Errors.PASSWORD_INCORRECT.getResponse();
     }
 
-    switch (u.kind) {
-      case STUDENT: {
-        // students can't
-        // write users
-        // write apptrequest
-        // write appt
-        if (canWriteUser) {
-          return Errors.NO_CAPABILITY.getResponse();
-        }
-        if (canWriteApptRequest) {
-          return Errors.NO_CAPABILITY.getResponse();
-        }
-        if (canWriteAppt) {
-          return Errors.NO_CAPABILITY.getResponse();
-        }
-        break;
-      }
-      case USER: {
-        // users can't
-        // write users
-        if (canWriteUser) {
-          return Errors.NO_CAPABILITY.getResponse();
-        }
-        break;
-      }
-      case ADMIN: {
-        // admins have full access
-        break;
-      }
-    }
-
     // now actually make apiKey
     ApiKey apiKey = new ApiKey();
     apiKey.userId = u.id;
@@ -126,16 +87,6 @@ public class ApiController {
     apiKey.duration = duration;
     apiKey.key = Utils.generateKey();
     apiKey.keyHash = Utils.encodeApiKey(apiKey.key);
-    apiKey.canLogIn = canLogIn;
-    apiKey.canReadUser = canReadUser;
-    apiKey.canWriteUser = canWriteUser;
-    apiKey.canChangePassword = canChangePassword;
-    apiKey.canReadApptRequest = canReadApptRequest;
-    apiKey.canWriteApptRequest = canWriteApptRequest;
-    apiKey.canReadAppt = canReadAppt;
-    apiKey.canWriteAppt = canWriteAppt;
-    apiKey.canReadAttendance = canReadAttendance;
-    apiKey.canWriteAttendance = canWriteAttendance;
     apiKeyService.add(apiKey);
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
   }
@@ -144,10 +95,10 @@ public class ApiController {
   public ResponseEntity<?> newUser(@RequestParam("userName") String name, @RequestParam("userEmail") String email,
       @RequestParam("userPassword") String password, @RequestParam("userKind") UserKind kind,
       @RequestParam("apiKey") String apiKey) {
-          ApiKey key =innexgoService.getApiKeyIfValid(apiKey); 
-    if (key == null || !key.canWriteUser) {
+    if (!innexgoService.isAdministrator(apiKey)) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
+
     if (Utils.isEmpty(email)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
@@ -167,12 +118,14 @@ public class ApiController {
   }
 
   @RequestMapping("/apptRequest/new/")
-  public ResponseEntity<?> newApptRequest(@RequestParam("targetId") Long targetId, @RequestParam("message") String message,
-      @RequestParam("suggestedTime") Long suggestedTime, @RequestParam("apiKey") String apiKey) {
+  public ResponseEntity<?> newApptRequest(@RequestParam("targetId") Long targetId,
+      @RequestParam("message") String message, @RequestParam("suggestedTime") Long suggestedTime,
+      @RequestParam("apiKey") String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || !key.canWriteApptRequest) {
+    if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
+
     if (!userService.existsById(targetId)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
@@ -188,16 +141,13 @@ public class ApiController {
   }
 
   @RequestMapping("/appt/new/")
-  public ResponseEntity<?> newAppt(
-      @RequestParam("apptRequestId") Long apptRequestId,
-      @RequestParam("hostId") Long hostId,
-      @RequestParam("attendeeId") Long attendeeId,
-      @RequestParam("message") String message,
-      @RequestParam("startTime") Long startTime,
-      @RequestParam("duration") Long duration,
-      @RequestParam("apiKey") String apiKey) {
+  public ResponseEntity<?> newAppt(@RequestParam("apptRequestId") Long apptRequestId,
+      @RequestParam("hostId") Long hostId, @RequestParam("attendeeId") Long attendeeId,
+      @RequestParam("message") String message, @RequestParam("startTime") Long startTime,
+      @RequestParam("duration") Long duration, @RequestParam("apiKey") String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || !key.canWriteAppt) {
+
+    if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
     if (!userService.existsById(hostId)) {
@@ -220,12 +170,10 @@ public class ApiController {
   }
 
   @RequestMapping("/attendance/new/")
-  public ResponseEntity<?> newAttendance(
-      @RequestParam("apptId") Long apptId,
-      @RequestParam("kind") AttendanceKind attendanceKind,
-      @RequestParam("apiKey") String apiKey) {
+  public ResponseEntity<?> newAttendance(@RequestParam("apptId") Long apptId,
+      @RequestParam("kind") AttendanceKind attendanceKind, @RequestParam("apiKey") String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || !key.canWriteAttendance) {
+    if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
@@ -238,14 +186,11 @@ public class ApiController {
   }
 
   @RequestMapping("/user/")
-  public ResponseEntity<?> viewUser(
-                                    @RequestParam("offset") Long offset,
-                                    @RequestParam("count") Long count,
-                                    @RequestParam("apiKey") String apiKey,
-                                    @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewUser(@RequestParam("offset") Long offset, @RequestParam("count") Long count,
+      @RequestParam("apiKey") String apiKey, @RequestParam Map<String, String> allRequestParam) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || !key.canReadUser) {
+    if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
@@ -260,36 +205,22 @@ public class ApiController {
     }
 
     List<User> list = userService
-        .query(
-            Utils.parseLong(allRequestParam.get("userId")),
-            Utils.parseLong(allRequestParam.get("userSecondaryId")),
-            userService.getById(key.userId).schoolId,
-            allRequestParam.get("userName"),
-            allRequestParam.get("partialUserName"),
-            allRequestParam.get("userEmail"),
-            kind,
-            offset,
-            count
-        )
-        .stream()
-        .map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
+        .query(Utils.parseLong(allRequestParam.get("userId")), allRequestParam.get("userName"),
+            allRequestParam.get("partialUserName"), allRequestParam.get("userEmail"), kind, offset, count)
+        .stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
   @RequestMapping("/apptRequest/")
-  public ResponseEntity<?> viewApptRequest(
-                                    @RequestParam("offset") Long offset,
-                                    @RequestParam("count") Long count,
-                                    @RequestParam("apiKey") String apiKey,
-                                    @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewApptRequest(@RequestParam("offset") Long offset, @RequestParam("count") Long count,
+      @RequestParam("apiKey") String apiKey, @RequestParam Map<String, String> allRequestParam) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
 
-    if (key == null || !key.canReadApptRequest) {
+    if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    List<ApptRequest> list = apptRequestService.query(
-        Utils.parseLong(allRequestParam.get("id")), // Long id,
+    List<ApptRequest> list = apptRequestService.query(Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("creatorId")), // Long creatorId,
         Utils.parseLong(allRequestParam.get("targetId")), // Long targetId,
         allRequestParam.get("message"), // String message,
@@ -306,19 +237,15 @@ public class ApiController {
   }
 
   @RequestMapping("/appt/")
-  public ResponseEntity<?> viewAppt(
-                                    @RequestParam("offset") Long offset,
-                                    @RequestParam("count") Long count,
-                                    @RequestParam("apiKey") String apiKey,
-                                    @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewAppt(@RequestParam("offset") Long offset, @RequestParam("count") Long count,
+      @RequestParam("apiKey") String apiKey, @RequestParam Map<String, String> allRequestParam) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || !key.canReadAppt) {
+    if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Appt> list = apptService.query(
-        Utils.parseLong(allRequestParam.get("id")), // Long id,
+    List<Appt> list = apptService.query(Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("hostId")), // Long hostId,
         Utils.parseLong(allRequestParam.get("attendeeId")), // Long attendeeId,
         Utils.parseLong(allRequestParam.get("apptRequestId")), // Long apptRequestId,
@@ -339,14 +266,11 @@ public class ApiController {
   }
 
   @RequestMapping("/attendance/")
-  public ResponseEntity<?> viewAttendance(
-                                    @RequestParam("offset") Long offset,
-                                    @RequestParam("count") Long count,
-                                    @RequestParam("apiKey") String apiKey,
-                                    @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewAttendance(@RequestParam("offset") Long offset, @RequestParam("count") Long count,
+      @RequestParam("apiKey") String apiKey, @RequestParam Map<String, String> allRequestParam) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null || !key.canReadAttendance) {
+    if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
@@ -360,8 +284,7 @@ public class ApiController {
       }
     }
 
-    List<Attendance> list = attendanceService.query(
-        Utils.parseLong(allRequestParam.get("id")), // Long id,
+    List<Attendance> list = attendanceService.query(Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("apptId")), // Long apptId,
         Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
         Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,

@@ -28,17 +28,6 @@ public class ApiKey {
   // not public
   String keyHash;
 
-  public boolean canLogIn;
-  public boolean canReadUser;
-  public boolean canWriteUser;
-  public boolean canChangePassword;
-  public boolean canReadApptRequest;
-  public boolean canWriteApptRequest;
-  public boolean canReadAppt;
-  public boolean canWriteAppt;
-  public boolean canReadAttendance;
-  public boolean canWriteAttendance;
-
   // Initialized by jackson during serialization, but not persisted
   public String key;
   public User user;

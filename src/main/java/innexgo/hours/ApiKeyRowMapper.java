@@ -31,17 +31,6 @@ public class ApiKeyRowMapper implements RowMapper<ApiKey> {
     apiKey.creationTime = row.getLong("creation_time");
     apiKey.duration= row.getLong("duration");
 
-    apiKey.canLogIn = row.getBoolean("can_log_in");
-    apiKey.canChangePassword = row.getBoolean("can_change_password");
-    apiKey.canReadUser = row.getBoolean("can_read_user");
-    apiKey.canWriteUser = row.getBoolean("can_write_user");
-    apiKey.canReadApptRequest = row.getBoolean("can_read_appt_request");
-    apiKey.canWriteApptRequest = row.getBoolean("can_write_appt_request");
-    apiKey.canReadAppt = row.getBoolean("can_read_appt");
-    apiKey.canWriteAppt = row.getBoolean("can_write_appt");
-    apiKey.canReadAttendance = row.getBoolean("can_read_attendance");
-    apiKey.canWriteAttendance = row.getBoolean("can_write_attendance");
-
     apiKey.keyHash = row.getString("key_hash");
     return apiKey;
   }

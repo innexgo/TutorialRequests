@@ -33,7 +33,7 @@ public class UserService {
 
   public User getById(long id) {
     String sql =
-        "SELECT id, secondary_id, school_id, kind, name, email, password_hash FROM user WHERE id=?";
+        "SELECT id, kind, name, email, password_hash FROM user WHERE id=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return user;
@@ -41,14 +41,14 @@ public class UserService {
 
   public User getByEmail(String email) {
     String sql =
-        "SELECT id, secondary_id, school_id, name, kind, email, password_hash FROM user WHERE email=?";
+        "SELECT id, name, kind, email, password_hash FROM user WHERE email=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, email);
     return user;
   }
 
   public List<User> getAll() {
-    String sql = "SELECT  id, secondary_id, school_id, name, kind, email, password_hash FROM user";
+    String sql = "SELECT  id, name, kind, email, password_hash FROM user";
     RowMapper<User> rowMapper = new UserRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
@@ -56,12 +56,10 @@ public class UserService {
   public void add(User user) {
     // Add user
     String sql =
-        "INSERT INTO user (id, secondary_id, school_id, name, kind, email, password_hash) values (?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO user (id, name, kind, email, password_hash) values (?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         user.id,
-        user.secondaryId,
-        user.schoolId,
         user.name,
         user.kind.name(),
         user.email,
@@ -69,13 +67,11 @@ public class UserService {
 
     // Fetch user id
     sql =
-        "SELECT id FROM user WHERE secondary_id=? AND school_id=? AND name=? AND kind=? AND email=? AND password_hash=?";
+        "SELECT id FROM user WHERE name=? AND kind=? AND email=? AND password_hash=?";
     long id =
         jdbcTemplate.queryForObject(
             sql,
             Long.class,
-            user.secondaryId,
-            user.schoolId,
             user.name,
             user.kind.name(),
             user.email,
@@ -87,12 +83,10 @@ public class UserService {
 
   public void update(User user) {
     String sql =
-        "UPDATE user SET id=?, secondary_id=?, school_id=?, name=?, kind=?, email=?, password_hash=? WHERE id=?";
+        "UPDATE user SET id=?, name=?, kind=?, email=?, password_hash=? WHERE id=?";
     jdbcTemplate.update(
         sql,
         user.id,
-        user.secondaryId,
-        user.schoolId,
         user.name,
         user.kind.name(),
         user.email,
@@ -113,8 +107,6 @@ public class UserService {
 
   public List<User> query(
       Long id,
-      Long secondaryId,
-      Long schoolId,
       String name,
       String partialUserName,
       String email,
@@ -122,11 +114,9 @@ public class UserService {
       long offset,
       long count) {
     String sql =
-        "SELECT u.id, u.secondary_id, u.school_id, u.name, u.kind, u.password_hash, u.email FROM user u"
+        "SELECT u.id, u.name, u.kind, u.password_hash, u.email FROM user u"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND u.id = " + id)
-            + (secondaryId == null ? "" : " AND u.secondary_id = " + secondaryId)
-            + (schoolId == null ? "" : " AND u.school_id = " + schoolId)
             + (name == null ? "" : " AND u.name = " + Utils.escape(name))
             + (partialUserName== null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
             + (kind == null ? "" : " AND u.kind = " + Utils.escape(kind.name()))

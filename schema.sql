@@ -1,15 +1,6 @@
-drop table if exists school;
-create table school(
-id bigint(20) not null auto_increment,
-name varchar(100) not null unique,
-primary key(id)
-);
-
 drop table if exists user;
 create table user(
 id bigint(20) not null auto_increment,
-secondary_id bigint(20) not null,
-school_id bigint(20) not null,
 kind enum('STUDENT', 'USER', 'ADMIN') not null,
 name varchar(100) not null,
 email varchar(100) not null unique,
@@ -23,16 +14,6 @@ id bigint(20) not null auto_increment,
 user_id bigint(20) not null,
 creation_time bigint(20) not null,
 duration bigint(20) not null,
-can_log_in boolean not null,
-can_change_password boolean not null,
-can_read_user boolean not null,
-can_write_user boolean not null,
-can_read_appt_request boolean not null,
-can_write_appt_request boolean not null,
-can_read_appt boolean not null,
-can_write_appt boolean not null,
-can_read_attendance boolean not null,
-can_write_attendance boolean not null,
 key_hash char(64) not null,
 primary key (id)
 );
