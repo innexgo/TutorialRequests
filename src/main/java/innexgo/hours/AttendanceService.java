@@ -54,7 +54,7 @@ public class AttendanceService {
         attendance.id,
         attendance.apptId,
         attendance.creationTime,
-        attendance.kind.name());
+        attendance.kind.value);
 
     // Fetch attendance id
     sql =
@@ -65,7 +65,7 @@ public class AttendanceService {
             Long.class,
             attendance.apptId,
             attendance.creationTime,
-            attendance.kind.name());
+            attendance.kind.value);
 
     // Set attendance id
     attendance.id = id;
@@ -91,7 +91,7 @@ public class AttendanceService {
             + " WHERE 1=1 "
             + (id == null ? "" : " AND at.id = " + id)
             + (apptId == null ? "" : " AND at.appt_id = " + apptId)
-            + (kind == null ? "" : " AND at.kind = " + kind.name())
+            + (kind == null ? "" : " AND at.kind = " + kind.value)
             + (creationTime == null ? "" : " AND at.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND at.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND at.creation_time < " + maxCreationTime)

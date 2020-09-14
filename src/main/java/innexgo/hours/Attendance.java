@@ -20,9 +20,9 @@ package innexgo.hours;
 
 public class Attendance {
   public long id;
+  long apptId;
   public long creationTime;
   public AttendanceKind kind;
-  long apptId;
 
   // for jackson
   Appt appt;
@@ -30,15 +30,30 @@ public class Attendance {
 
 
 enum AttendanceKind {
-  ABSENT,
-  TARDY,
-  PRESENT;
+  PRESENT(0), TARDY(1), ABSENT(2);
+
+  final int value;
+
+  private AttendanceKind(int value) {
+    this.value = value;
+  }
+
+  public static AttendanceKind from(int i) {
+    for (AttendanceKind attendanceKind : AttendanceKind.values()) {
+      if (attendanceKind.value == i) {
+        return attendanceKind;
+      }
+    }
+    return null;
+  }
+
   public static boolean contains(String str) {
-    for (AttendanceKind a: AttendanceKind.values()) {
-      if (a.name().equals(str)) {
+    for (AttendanceKind attendanceKind : AttendanceKind.values()) {
+      if (attendanceKind.name().equals(str)) {
         return true;
       }
     }
     return false;
   }
 }
+

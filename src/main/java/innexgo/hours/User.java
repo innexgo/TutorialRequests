@@ -28,9 +28,22 @@ public class User {
 }
 
 enum UserKind {
-  STUDENT,
-  USER,
-  ADMIN;
+  STUDENT(0), USER(1), ADMIN(2);
+
+  final int value;
+
+  private UserKind(int value) {
+    this.value = value;
+  }
+
+  public static UserKind from(int i) {
+    for (UserKind userKind : UserKind.values()) {
+      if (userKind.value == i) {
+        return userKind;
+      }
+    }
+    return null;
+  }
 
   public static boolean contains(String str) {
     for (UserKind userKind : UserKind.values()) {

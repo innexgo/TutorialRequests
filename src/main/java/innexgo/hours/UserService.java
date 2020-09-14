@@ -61,7 +61,7 @@ public class UserService {
         sql,
         user.id,
         user.name,
-        user.kind.name(),
+        user.kind.value,
         user.email,
         user.passwordHash);
 
@@ -73,7 +73,7 @@ public class UserService {
             sql,
             Long.class,
             user.name,
-            user.kind.name(),
+            user.kind.value,
             user.email,
             user.passwordHash);
 
@@ -88,7 +88,7 @@ public class UserService {
         sql,
         user.id,
         user.name,
-        user.kind.name(),
+        user.kind.value,
         user.email,
         user.passwordHash,
         user.id);
@@ -119,7 +119,7 @@ public class UserService {
             + (id == null ? "" : " AND u.id = " + id)
             + (name == null ? "" : " AND u.name = " + Utils.escape(name))
             + (partialUserName== null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
-            + (kind == null ? "" : " AND u.kind = " + Utils.escape(kind.name()))
+            + (kind == null ? "" : " AND u.kind = " + kind.value)
             + (email == null ? "" : " AND u.email = " + Utils.escape(email))
             + (" ORDER BY u.id")
             + (" LIMIT " + offset + ", " + count)

@@ -30,7 +30,7 @@ public class AttendanceRowMapper implements RowMapper<Attendance> {
     attendance.id = row.getLong("id");
     attendance.apptId = row.getLong("appt_id");
     attendance.creationTime = row.getLong("creation_time");
-    attendance.kind = AttendanceKind.valueOf(row.getString("kind"));
+    attendance.kind = AttendanceKind.from(row.getInt("kind"));
     return attendance;
   }
 }

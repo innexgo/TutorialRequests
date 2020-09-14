@@ -29,7 +29,7 @@ public class UserRowMapper implements RowMapper<User> {
     User u = new User();
     u.id = row.getLong("id");
     u.name = row.getString("name");
-    u.kind = UserKind.valueOf(row.getString("kind"));
+    u.kind = UserKind.from(row.getInt("kind"));
     u.email = row.getString("email");
     u.passwordHash = row.getString("password_hash");
     return u;
