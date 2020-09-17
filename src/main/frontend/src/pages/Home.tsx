@@ -158,7 +158,7 @@ class Home extends React.Component<Props, State> {
                 width: tablet ? '100%' : '35%',
                 margin: tablet ? 'auto' : '10px auto',
               }}>
-                <img src={deal} style={{width: '100%', height: '100%'}}/>
+                <img src={deal} style={{width: '100%', height: '100%'}} data-aos="fade-down" data-aos-duration="2400" data-aos-once="true"/>
               </div>
             </Row>
             <hr/>

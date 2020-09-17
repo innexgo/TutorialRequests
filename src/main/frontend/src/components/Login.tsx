@@ -25,17 +25,34 @@ interface LoginProps {
 function Login(props: LoginProps) {
   const bgStyle = {
     backgroundImage: `radial-gradient(rgba(0, 0, 0, 0.9),rgba(0, 0, 0, 0.1)), url(${blurred_bg})`,
+    textColor: 'black',
     height: "100vh",
     alignItems: "center",
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
     backgroundSize: "cover",
     display: "flex",
-    justifyContent: "center"
+    justifyContent: "center",
   };
 
   const errorStyle = {
     color: "#DC143C"
+  }
+
+  const formStyle={
+    width: '50%',
+    border: '1px solid white',
+    boxShadow: '5px',
+    backgroundColor: 'white',
+    padding: '25px'
+  }
+
+  const formBoxStyle={
+    borderLeft:'0',
+    borderTop:'0',
+    borderRight:'0',
+    borderRadius: '0',
+    borderBottom: '1px solid grey',
   }
 
   const [errorText, setErrorText] = React.useState("");
@@ -62,16 +79,14 @@ function Login(props: LoginProps) {
       props.setApiKey(apiKey);
     } catch (e) {
       console.log(e);
-      setErrorText("Your Username or Password did not match our records");
+      setErrorText("Your username or password did not match our records");
     }
   }
 
   return (
-    <ExternalLayout fixed={false} transparentTop={true}>
+    <ExternalLayout fixed={true} transparentTop={true}>
       <div style={bgStyle}>
-        <Card>
-          <Card.Body>
-            <Card.Title>
+        <div style={formStyle}>
               <h4><img
                 alt="Innexgo Logo"
                 src={innexgo_logo}
@@ -80,27 +95,24 @@ function Login(props: LoginProps) {
                 className="d-inline-block align-top"
               />{' '}
                 Innexgo</h4>
-            </Card.Title>
-            <p>Login to Dashboard</p>
             <Form>
               <Form.Group>
-                <Form.Control id="username" type="email" placeholder="Email"
+                <Form.Control style={formBoxStyle} id="username" type="email" placeholder="Email"
                   onChange={e => {
                     setUserName(e.target.value);
                   }} />
                 <br />
-                <Form.Control id="password" type="password" placeholder="Password"
+                <Form.Control style={formBoxStyle} id="password" type="password" placeholder="Password"
                   onChange={e => {
                     setPassword(e.target.value);
                   }} />
                 <p className="form-text text-danger" id="error"></p>
               </Form.Group>
-              <Button variant="primary" onClick={async () => postLogin()}>Login</Button>
+              <Button variant="dark" onClick={async () => postLogin()}>Login</Button>
               <p style={errorStyle}>{errorText}</p>
             </Form>
             <br />
-          </Card.Body>
-        </Card>
+        </div>
       </div>
     </ExternalLayout>
   )
