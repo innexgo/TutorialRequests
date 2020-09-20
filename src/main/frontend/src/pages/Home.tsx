@@ -9,7 +9,8 @@ import ExternalLayout from "../components/ExternalLayout";
 import heroBg from "../img/homepage-bg.png";
 import kids_and_books from "../img/kids_and_books.png";
 import deal from "../img/deal.png";
-import contact from "../img/contact.png"
+import contact from "../img/contact.png";
+import transparent from "../img/innexgo_transparent_icon.png"
 
 interface Props{};
 interface State{
@@ -51,6 +52,10 @@ class Home extends React.Component<Props, State> {
     const windowWidth = this.state.windowWidth;
     const tablet = windowWidth < 934;
 
+    const firstStyle = {
+      textAlign: 'center',
+    } as React.CSSProperties;
+
     const jumboStyle = {
       backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5),rgba(0, 0, 0, 0.3)), url(${heroBg})`,
       height: "100vh",
@@ -74,7 +79,12 @@ class Home extends React.Component<Props, State> {
       <ExternalLayout fixed={true} transparentTop={true}>
         <Jumbotron fluid style={jumboStyle}>
           <Container>
-            <h1> Academics, Achievement, Attendance first. </h1>
+            <div style={firstStyle}>
+              <img src={transparent} style={{marginBottom: '10px'}}/>
+              <h1 style={{marginBottom: '20px'}}>Attendance simplified.</h1>
+              <h6 style={{marginBottom: '15px'}}>Let Innexgo Hours do the work of attendance so you can spend more time teaching.</h6>
+              <a href="#contact"><Button variant='light'>Try Innexgo Hours</Button></a>
+            </div>
           </Container>
         </Jumbotron>
         <section style={{boxSizing: 'border-box'}}>
@@ -151,7 +161,7 @@ class Home extends React.Component<Props, State> {
                   as well as our promise to always improve Hours for you. Contracts with individual schools 
                   may vary; please contact us for more detail.
                   </p>
-                  <a href="#contact"><Button variant="light">Contact us</Button></a>
+                  <a href="#contact"><Button variant="dark">Contact us</Button></a>
               </div>
               <div style={{
                 float: tablet ? 'initial' : 'left',
@@ -187,12 +197,12 @@ class Home extends React.Component<Props, State> {
               <p>Innexgo Hours was designed specifically for schools in mind. Unlike other websites, which
                 are only designed for a small group of people, or calendars that give all users editing privileges,
                 Innexgo Hours is secure and does the organizing work teachers would usually have to do.
-                Pricing for Innexgo Hours is also significantly lower than other services with less features.
+                Pricing for Innexgo Hours is also significantly lower than other services with less features than our service.
               </p>
             </Row>
-              <hr/>
+              <hr id="contact"/>
             <Row>
-              <div id="contact">
+              <div>
                 <div style={secondColumn} data-aos="fade-down" data-aos-duration="2400" data-aos-once="true"> 
                   <div style={{padding: '2px 15px'}}>
                     <img src={contact} style={{width: '100%', height: '100%'}}/>
@@ -238,7 +248,7 @@ class Home extends React.Component<Props, State> {
                     </Col>
                   </Form.Group> <br/>
 
-                  <Button variant="light" type="submit">
+                  <Button variant="dark" type="submit">
                     Submit
                   </Button>
                 </Form>

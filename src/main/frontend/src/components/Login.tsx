@@ -79,7 +79,7 @@ function Login(props: LoginProps) {
       props.setApiKey(apiKey);
     } catch (e) {
       console.log(e);
-      setErrorText("Your username or password did not match our records");
+      setErrorText("Your username or password is incorrect");
     }
   }
 
@@ -111,7 +111,7 @@ function Login(props: LoginProps) {
               <Button variant="dark" onClick={async () => postLogin()}>Login</Button>
               <p style={errorStyle}>{errorText}</p>
             </Form>
-            <br />
+            <p style={{fontSize: '15px', marginTop: '12px'}}>Forgot password? <a href="">Click here</a></p>
         </div>
       </div>
     </ExternalLayout>

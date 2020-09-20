@@ -69,6 +69,7 @@ class ExternalHeader extends React.Component<ExternalHeaderProps, ExternalHeader
             <div className="collapse navbar-collapse"
               id="navbarSupportedContent">
               <div className="navbar-nav ml-auto">
+                <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="">Home</Link>
                 <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/about">About</Link>
                 <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/user">Teacher Login</Link>
                 <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/student">Student Login</Link>
