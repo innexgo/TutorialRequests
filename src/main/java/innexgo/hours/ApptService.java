@@ -46,23 +46,15 @@ public class ApptService {
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
-  private void syncId(Appt appt) {
-    String sql =
-        "SELECT id FROM appt WHERE host_id=? AND attendee_id=? AND appt_request_id=? AND creation_time=? AND start_time=? AND duration=?";
-    appt.id =
-        jdbcTemplate.queryForObject(
-            sql,
-            Long.class,
-            appt.hostId,
-            appt.attendeeId,
-            appt.apptRequestId,
-            appt.creationTime,
-            appt.startTime,
-            appt.duration);
+  public long nextId() {
+    String sql = "SELECT max(id) FROM appt";
+    long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    return maxId + 1;
   }
 
   public void add(Appt appt) {
     // Add appt
+    appt.id = nextId();
     String sql =
         "INSERT INTO appt(id, host_id, attendee_id, appt_request_id, message, creation_time, start_time, duration) values (?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
@@ -75,7 +67,6 @@ public class ApptService {
         appt.creationTime,
         appt.startTime,
         appt.duration);
-    syncId(appt);
   }
 
   public boolean existsById(long id) {

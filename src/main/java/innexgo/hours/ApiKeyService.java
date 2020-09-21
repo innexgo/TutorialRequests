@@ -54,26 +54,16 @@ public class ApiKeyService {
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
-  private void syncId(ApiKey apiKey) {
-    String sql =
-        "SELECT id FROM api_key WHERE user_id=? AND creation_time=? AND duration=? AND key_hash=?";
-    long id =
-        jdbcTemplate.queryForObject(
-            sql,
-            Long.class,
-            apiKey.userId,
-            apiKey.creationTime,
-            apiKey.duration,
-            apiKey.keyHash
-
-        );
-
-    // Set apiKey id
-    apiKey.id = id;
+  public long nextId() {
+    String sql = "SELECT max(id) FROM api_key";
+    long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    return maxId + 1;
   }
 
+
   public void add(ApiKey apiKey) {
-    // Add API key
+    apiKey.id = nextId();
+
     String sql =
         "INSERT INTO api_key (id, user_id, creation_time, duration, key_hash) values (?,?,?,?,?)";
     jdbcTemplate.update(
@@ -83,7 +73,6 @@ public class ApiKeyService {
         apiKey.creationTime,
         apiKey.duration,
         apiKey.keyHash);
-    syncId(apiKey);
   }
 
   public boolean existsById(long id) {

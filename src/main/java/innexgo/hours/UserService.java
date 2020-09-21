@@ -53,7 +53,16 @@ public class UserService {
     return jdbcTemplate.query(sql, rowMapper);
   }
 
+  public long nextId() {
+    String sql = "SELECT max(id) FROM user";
+    long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    return maxId + 1;
+  }
+
+
   public void add(User user) {
+    // Set user id
+    user.id = nextId();
     // Add user
     String sql =
         "INSERT INTO user (id, name, kind, email, password_hash) values (?, ?, ?, ?, ?)";
@@ -65,20 +74,6 @@ public class UserService {
         user.email,
         user.passwordHash);
 
-    // Fetch user id
-    sql =
-        "SELECT id FROM user WHERE name=? AND kind=? AND email=? AND password_hash=?";
-    long id =
-        jdbcTemplate.queryForObject(
-            sql,
-            Long.class,
-            user.name,
-            user.kind.value,
-            user.email,
-            user.passwordHash);
-
-    // Set user id
-    user.id = id;
   }
 
   public void update(User user) {

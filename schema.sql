@@ -1,6 +1,6 @@
 drop table if exists user;
 create table user(
-  id integer not null primary key autoincrement,
+  id integer not null primary key,
   kind bigint(20) not null,
   name varchar(100) not null,
   email varchar(100) not null unique,
@@ -9,7 +9,7 @@ create table user(
 
 drop table if exists api_key;
 create table api_key(
-  id integer not null primary key autoincrement,
+  id integer not null primary key,
   user_id bigint(20) not null,
   creation_time bigint(20) not null,
   duration bigint(20) not null,
@@ -18,7 +18,7 @@ create table api_key(
 
 drop table if exists appt_request;
 create table appt_request(
-  id integer not null primary key autoincrement,
+  id integer not null primary key,
   creator_id bigint(20) not null,
   target_id bigint(20) not null,
   message varchar(100) not null,
@@ -28,7 +28,7 @@ create table appt_request(
 
 drop table if exists appt; 
 create table appt(
-  id integer not null primary key autoincrement,
+  id integer not null primary key,
   host_id bigint(20) not null,
   attendee_id bigint(20) not null,
   appt_request_id bigint(20) not null,
@@ -40,7 +40,7 @@ create table appt(
 
 drop table if exists attendance;
 create table attendance(
-  id integer not null primary key autoincrement,
+  id integer not null primary key,
   appt_id bigint(20) not null,
   creation_time bigint(20) not null,
   attendance bigint(20) not null

@@ -46,20 +46,14 @@ public class ApptRequestService {
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
-  private void syncId(ApptRequest apptRequest) {
-    String sql =
-        "SELECT id FROM appt_request WHERE creator_id=? AND target_id=? AND creation_time=? AND suggested_time=?";
-    apptRequest.id =
-        jdbcTemplate.queryForObject(
-            sql,
-            Long.class,
-            apptRequest.creatorId,
-            apptRequest.targetId,
-            apptRequest.creationTime,
-            apptRequest.suggestedTime);
+  public long nextId() {
+    String sql = "SELECT max(id) FROM appt_request";
+    long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    return maxId + 1;
   }
 
   public void add(ApptRequest apptRequest) {
+    apptRequest.id = nextId();
     // Add apptRequest
     String sql =
         "INSERT INTO appt_request(id, creator_id, target_id, message, creation_time, suggested_time ) values (?, ?, ?, ?, ?, ?)";
@@ -71,7 +65,6 @@ public class ApptRequestService {
         apptRequest.message,
         apptRequest.creationTime,
         apptRequest.suggestedTime );
-    syncId(apptRequest);
   }
 
   public void update(ApptRequest apptRequest) {

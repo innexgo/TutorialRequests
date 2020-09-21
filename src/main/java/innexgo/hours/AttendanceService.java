@@ -45,7 +45,14 @@ public class AttendanceService {
     return jdbcTemplate.query(sql, rowMapper);
   }
 
+  public long nextId() {
+    String sql = "SELECT max(id) FROM attendance";
+    long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    return maxId + 1;
+  }
+
   public void add(Attendance attendance) {
+    attendance.id = nextId();
     // Add attendance
     String sql =
         "INSERT INTO attendance (id, appt_id, creation_time, kind) values (?, ?, ?, ?)";
@@ -55,20 +62,6 @@ public class AttendanceService {
         attendance.apptId,
         attendance.creationTime,
         attendance.kind.value);
-
-    // Fetch attendance id
-    sql =
-        "SELECT id FROM attendance WHERE appt_id=? AND creation_time=? AND kind=?";
-    long id =
-        jdbcTemplate.queryForObject(
-            sql,
-            Long.class,
-            attendance.apptId,
-            attendance.creationTime,
-            attendance.kind.value);
-
-    // Set attendance id
-    attendance.id = id;
   }
 
   public boolean existsById(long id) {
