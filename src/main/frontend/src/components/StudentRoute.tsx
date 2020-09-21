@@ -18,30 +18,13 @@ function StudentRoute({
 }: StudentRouteProps) {
 
   const isAuthenticated = apiKey != null &&
-    apiKey.creationTime + apiKey.duration > Date.now() &&
-    apiKey.canLogIn &&
-    apiKey.canReadUser &&
-    apiKey.canReadApptRequest &&
-    apiKey.canWriteApptRequest &&
-    apiKey.canReadAppt &&
-    apiKey.canReadAttendance;
+    apiKey.creationTime + apiKey.duration > Date.now();
 
   return (
     <Route {...rest} >
       {isAuthenticated
         ? <AuthenticatedComponent apiKey={apiKey!} setApiKey={setApiKey} />
-        : <Login setApiKey={setApiKey}
-          canLogIn={true}
-          canReadUser={true}
-          canWriteUser={false}
-          canChangePassword={true}
-          canReadApptRequest={true}
-          canWriteApptRequest={true}
-          canReadAppt={true}
-          canWriteAppt={false}
-          canReadAttendance={true}
-          canWriteAttendance={false}
-        />}
+        : <Login setApiKey={setApiKey} />}
     </Route>
   );
 }

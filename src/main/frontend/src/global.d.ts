@@ -4,17 +4,11 @@ declare global {
     name: string
   }
 
-  enum UserKind {
-    STUDENT,
-    USER,
-    ADMIN,
-  }
-
   type User = {
     id: number,
     secondaryId: number,
     school: School,
-    kind: UserKind,
+    kind: "STUDENT" | "USER" | "ADMIN",
     name: string,
     email: string,
   }
@@ -23,16 +17,6 @@ declare global {
     id: number,
     creationTime: number,
     duration: number,
-    canLogIn: boolean,
-    canChangePassword: boolean,
-    canReadUser: boolean,
-    canWriteUser: boolean,
-    canReadApptRequest: boolean,
-    canWriteApptRequest: boolean,
-    canReadAppt: boolean,
-    canWriteAppt: boolean,
-    canReadAttendance: boolean,
-    canWriteAttendance: boolean,
     key: string,
     user: User,
   }
@@ -60,7 +44,8 @@ declare global {
   type Attendance = {
     id: number,
     appt: Appt,
-    creationTime: number
+    creationTime: number,
+    kind: "PRESENT" | "TARDY" | "ABSENT",
   }
 
   interface AuthenticatedComponentProps {

@@ -9,16 +9,6 @@ import innexgo_logo from '../img/innexgo_logo_dark.png';
 import blurred_bg from '../img/homepage-bg.png';
 
 interface LoginProps {
-  canLogIn: boolean,
-  canReadUser: boolean,
-  canWriteUser: boolean,
-  canChangePassword: boolean,
-  canReadApptRequest: boolean,
-  canWriteApptRequest: boolean,
-  canReadAppt: boolean,
-  canWriteAppt: boolean,
-  canReadAttendance: boolean,
-  canWriteAttendance: boolean,
   setApiKey: (data: ApiKey | null) => void
 }
 
@@ -65,16 +55,6 @@ function Login(props: LoginProps) {
         ['userEmail', userName],
         ['userPassword', password],
         ['duration', `${5*60*60*1000}`], // 5 hours
-        ['canLogIn',  `${props.canLogIn}`],
-        ['canReadUser',  `${props.canReadUser}`],
-        ['canWriteUser',  `${props.canWriteUser}`],
-        ['canChangePassword',  `${props.canChangePassword}`],
-        ['canReadApptRequest',  `${props.canReadApptRequest}`],
-        ['canWriteApptRequest',  `${props.canWriteApptRequest}`],
-        ['canReadAppt',  `${props.canReadAppt}`],
-        ['canWriteAppt',  `${props.canWriteAppt}`],
-        ['canReadAttendance',  `${props.canReadAttendance}`],
-        ['canWriteAttendance',  `${props.canWriteAttendance}`],
       ])) as ApiKey;
       props.setApiKey(apiKey);
     } catch (e) {
