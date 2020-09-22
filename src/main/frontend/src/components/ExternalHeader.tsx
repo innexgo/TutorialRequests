@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { Menu } from '@material-ui/icons'
 
 interface ExternalHeaderProps {
-    fixed: boolean;
-    transparentTop: boolean;
+  fixed: boolean;
+  transparentTop: boolean;
+  title: string;
 }
 
 interface ExternalHeaderState {
@@ -62,15 +63,14 @@ class ExternalHeader extends React.Component<ExternalHeaderProps, ExternalHeader
       <header>
         <nav style={navStyle} className={"navbar navbar-expand-lg py-3" + (this.props.fixed ? " fixed-top" : "")}>
           <div className="container">
-            <Link style={linkStyle} className="navbar-brand font-weight-bold" to="/">Innexgo</Link>
+            <Link style={linkStyle} className="navbar-brand font-weight-bold" to="/">{this.props.title}</Link>
             <button className="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
-              <Menu style={linkStyle}/>
+              <Menu style={linkStyle} />
             </button>
             <div className="collapse navbar-collapse"
               id="navbarSupportedContent">
               <div className="navbar-nav ml-auto">
                 <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="">Home</Link>
-                <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/about">About</Link>
                 <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/user">Teacher Login</Link>
                 <Link style={linkStyle} className="nav-item nav-link font-weight-bold" to="/student">Student Login</Link>
               </div>

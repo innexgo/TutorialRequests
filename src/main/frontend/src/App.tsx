@@ -5,7 +5,6 @@ import AuthenticatedRoute from './components/AuthenticatedRoute';
 import StudentRoute from './components/StudentRoute';
 
 import Home from './pages/Home';
-import About from './pages/About';
 import TermsOfService from './pages/TermsOfService';
 import UserDashboard from './pages/UserDashboard';
 import UserApptCreator from './pages/UserApptCreator';
@@ -50,21 +49,19 @@ function App() {
     <BrowserRouter>
       <Switch>
         <Route path="/" exact component={Home} />
-        <Route path="/about" component={About} />
         <Route path="/terms_of_service" component={TermsOfService} />
+        <Route path="/register" component={Register} />
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
           component={UserDashboard} />
         <AuthenticatedRoute path="/userapptcreator" {...apiKeyGetSetter}
-          component={UserApptCreator}/>
+          component={UserApptCreator} />
         <AuthenticatedRoute path="/pending" {...apiKeyGetSetter}
           component={Pending} />
         <AuthenticatedRoute path="/attendance" {...apiKeyGetSetter}
-          component={Attendance} /> 
+          component={Attendance} />
         <AuthenticatedRoute path="/admin" {...apiKeyGetSetter}
           component={Admin} />
-          <AuthenticatedRoute path="/register" {...apiKeyGetSetter}
-          component={Register} />
-          <AuthenticatedRoute path="/registerconfirm" {...apiKeyGetSetter}
+        <AuthenticatedRoute path="/registerconfirm" {...apiKeyGetSetter}
           component={RegisterConfirm} />
         <StudentRoute path="/student" {...apiKeyGetSetter}
           component={StudentDashboard} />

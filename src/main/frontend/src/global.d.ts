@@ -1,6 +1,5 @@
 declare global {
-  type School = {
-    id: number,
+  type SchoolInfo = {
     name: string
   }
 

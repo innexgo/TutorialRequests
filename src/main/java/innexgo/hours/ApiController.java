@@ -319,4 +319,12 @@ public class ApiController {
     userService.update(user);
     return new ResponseEntity<>(innexgoService.fillUser(user), HttpStatus.OK);
   }
+
+  @RequestMapping("/misc/info/school/")
+  public ResponseEntity<?> viewSchool() {
+    // TODO set up a table of information
+    return new ResponseEntity<>(new Object() {
+      public final String name = "Squidward Community College";
+    }, HttpStatus.OK);
+  }
 }
