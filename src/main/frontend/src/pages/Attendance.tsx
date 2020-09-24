@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Button, Popover, Container, CardDeck } from 'react-bootstrap';
-import DashboardLayout from '../components/DashboardLayout';
+import UserDashboardLayout from '../components/UserDashboardLayout';
 import AttendCard from '../components/AttendCard';
 import Utility from '../components/Utility';
 import { fetchApi } from '../utils/utils';
@@ -52,7 +52,7 @@ export default function Attendance(props: AuthenticatedComponentProps) {
   };
 
   return (
-    <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
+    <UserDashboardLayout {...props} >
       <Container fluid className="py-3 px-3">
         <CardDeck>
           <Utility<AttendanceProps> title="Attendance" promise={loadData(props.apiKey)}>
@@ -63,6 +63,6 @@ export default function Attendance(props: AuthenticatedComponentProps) {
           </Utility>
         </CardDeck>
       </Container>
-    </DashboardLayout>
+    </UserDashboardLayout>
   );
 }
