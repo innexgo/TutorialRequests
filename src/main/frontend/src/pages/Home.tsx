@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Jumbotron, Container, Row, Button, Form, Col } from 'react-bootstrap';
 import ExternalLayout from "../components/ExternalLayout";
 
-import transparent from "../img/innexgo_transparent_icon.png"
+import transparent from "../img/innexgo_logo_dark.png"
 
 interface Props { };
 interface State {
@@ -39,35 +39,78 @@ class Home extends React.Component<Props, State> {
   };
 
   render() {
-    const firstStyle = {
-      textAlign: 'center' as const,
+    const jumbotronStyle = {
+      marginTop: '15px'
+    } as React.CSSProperties;
+
+    const halfColumnOne = {
+      float: 'left',
+      width: '50%',
+      alignItems: 'left'
+    } as React.CSSProperties;
+
+    const halfColumnTwo = {
+      float: 'left',
+      width: '50%',
+      textAlign: 'left'
+    } as React.CSSProperties;
+
+    const formStyle = {
+      width: '95%',
+    } as React.CSSProperties;
+
+    const formBoxStyle={
+      borderLeft:'0',
+      borderTop:'0',
+      borderRight:'0',
+      borderRadius: '0',
+      borderBottom: '1px solid grey',
     };
 
-    const jumboStyle = {
-      backgroundImage: "linear-gradient(0deg, rgba(119,120,161,1) 0%, rgba(42,68,140,1) 100%)",
-      height: "50vh",
-      alignItems: "center",
-      backgroundAttachment: "fixed",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-      backgroundSize: "cover",
-      display: "flex",
-      color: "#fff",
-      justifyContent: "center"
-    };
+    /*in login form these are things it lacks:
+    -in Form.Control, onchange functions
+    -in login Button, onClick postlogin function
+    -in error text, removed errorStyle and errorText
+
+    -apikey
+    -errorText, username, password set__ functions with React.useState("")
+    -async function
+    */
 
     return (
-      <ExternalLayout fixed={true} transparentTop={true}>
-        <Jumbotron fluid style={jumboStyle}>
-          <Container>
-            <div style={firstStyle}>
-              <img src={transparent} />
+      <ExternalLayout fixed={false} transparentTop={true}>
+        <Container style={jumbotronStyle}>
+          <div style={halfColumnOne}>
+            <div style={{marginLeft: '5px'}}>
+              <img src={transparent} style={{marginBottom: '7px'}}/>
               <h4>Attendance simplified.</h4>
-              <Button href="/user" variant="light" className="mx-3">Teacher Login</Button>
-              <Button href="/student" variant="light" className="mx-3">Student Login</Button>
             </div>
-          </Container>
-        </Jumbotron>
+            <Form style={formStyle}>
+              <Form.Group>
+                <Form.Control style={formBoxStyle} id="username" type="email" placeholder="Email"/>
+                <br />
+                <Form.Control style={formBoxStyle} id="password" type="password" placeholder="Password"/>
+                <p className="form-text text-danger" id="error"></p>
+              </Form.Group>
+              <Button variant="dark">Login</Button>
+              <p></p> {/*error text*/}
+            </Form>
+
+            {/*<p style={{fontSize: '15px', marginTop: '12px'}}>Forgot password? <a href="">Click here</a></p>
+            <p style={{fontSize: '15px', marginTop: '5px'}}>Or, <a href="">create an account</a></p>
+            */}
+            </div>
+
+          <div style={halfColumnTwo}>
+
+          </div>
+        </Container>
+        <div style={{ /*clears rows after, similar to row:after css*/
+          content: "",
+          display: 'table',
+          clear: 'both'
+        }}/>
+
       </ExternalLayout>
     )
   }

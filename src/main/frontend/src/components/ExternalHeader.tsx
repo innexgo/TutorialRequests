@@ -54,7 +54,7 @@ class ExternalHeader extends React.Component<ExternalHeaderProps, ExternalHeader
         backgroundColor: "#fff"
       };
     const linkStyle = topTransparent ? {
-      color: "#fff",
+      color: "black",
     } : {
         color: "#000"
       }

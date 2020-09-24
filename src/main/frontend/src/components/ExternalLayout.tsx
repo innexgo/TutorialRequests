@@ -24,13 +24,13 @@ class ExternalLayout extends React.Component<ExternalLayoutProps> {
       <>
         <Async promise={fetchApi('misc/info/school/')}>
           <Async.Pending>
-            <ExternalHeader title="Innexgo Hours" fixed={this.props.fixed} transparentTop={this.props.transparentTop} />
+            <ExternalHeader title="Innexgo Hours" fixed={this.props.fixed} transparentTop={this.props.transparentTop}/>
           </Async.Pending>
           <Async.Rejected>
-            <ExternalHeader title="Innexgo Hours" fixed={this.props.fixed} transparentTop={this.props.transparentTop} />
+            <ExternalHeader title="Innexgo Hours" fixed={this.props.fixed} transparentTop={this.props.transparentTop}/>
           </Async.Rejected>
           <Async.Fulfilled<SchoolInfo>>
-            {schoolInfo => <ExternalHeader title={`Innexgo Hours: ${schoolInfo.name}`} fixed={this.props.fixed} transparentTop={this.props.transparentTop} />}
+            {schoolInfo => <ExternalHeader title={`Innexgo Hours: ${schoolInfo.name}`} fixed={this.props.fixed} transparentTop={this.props.transparentTop}/>}
           </Async.Fulfilled>
         </Async>
         {this.props.children}
