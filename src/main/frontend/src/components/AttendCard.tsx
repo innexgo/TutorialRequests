@@ -55,7 +55,7 @@ async function absent() {
 
 
 return(
-<Card style={cardStyle}>
+  <Card style={cardStyle}>
     <Card.Body style={bodyStyle}>
       {student} - {time}
       <Button style={acceptStyle} variant="success" onClick={async () => present()}>Present</Button>
@@ -65,8 +65,3 @@ return(
   </Card>
 );
 }
-
-
-
-
-

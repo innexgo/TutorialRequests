@@ -7,7 +7,6 @@ import StudentRoute from './components/StudentRoute';
 import Home from './pages/Home';
 import TermsOfService from './pages/TermsOfService';
 import UserDashboard from './pages/UserDashboard';
-import UserApptCreator from './pages/UserApptCreator';
 import Pending from './pages/Pending';
 import Attendance from './pages/Attendance';
 import Admin from './pages/Admin';
@@ -15,7 +14,6 @@ import Register from './pages/Register';
 import RegisterConfirm from './pages/RegisterConfirm';
 
 import StudentDashboard from './pages/StudentDashboard';
-import StudentApptCreator from './pages/StudentApptCreator';
 
 import Error404 from './pages/Error404';
 
@@ -53,8 +51,6 @@ function App() {
         <Route path="/register" component={Register} />
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
           component={UserDashboard} />
-        <AuthenticatedRoute path="/userapptcreator" {...apiKeyGetSetter}
-          component={UserApptCreator} />
         <AuthenticatedRoute path="/pending" {...apiKeyGetSetter}
           component={Pending} />
         <AuthenticatedRoute path="/attendance" {...apiKeyGetSetter}
@@ -65,8 +61,6 @@ function App() {
           component={RegisterConfirm} />
         <StudentRoute path="/student" {...apiKeyGetSetter}
           component={StudentDashboard} />
-        <StudentRoute path="/studentapptcreator" {...apiKeyGetSetter}
-          component={StudentApptCreator} />
         <Route path="/" component={Error404} />
       </Switch>
     </BrowserRouter>
