@@ -48,6 +48,8 @@ public class ApiController {
   ApptService apptService;
   @Autowired
   AttendanceService attendanceService;
+  @Autowired
+  SchoolInfoService schoolInfoService;
 
   @Autowired
   InnexgoService innexgoService;
@@ -322,9 +324,9 @@ public class ApiController {
 
   @RequestMapping("/misc/info/school/")
   public ResponseEntity<?> viewSchool() {
-    // TODO set up a table of information
-    return new ResponseEntity<>(new Object() {
-      public final String name = "Squidward Community College";
-    }, HttpStatus.OK);
+    return new ResponseEntity<>(schoolInfoService.get(), HttpStatus.OK);
   }
+
+
+
 }

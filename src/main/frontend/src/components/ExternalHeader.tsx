@@ -48,13 +48,12 @@ class ExternalHeader extends React.Component<ExternalHeaderProps, ExternalHeader
 
     const navStyle = topTransparent ? {
       transitionDuration: "0.4s"
-    } :
-      {
-        transitionDuration: "0.4s",
-        backgroundColor: "#fff"
-      };
+    } : {
+      transitionDuration: "0.4s",
+      backgroundColor: "#fff"
+    };
     const linkStyle = topTransparent ? {
-      color: "black",
+      color: "white",
     } : {
         color: "#000"
       }

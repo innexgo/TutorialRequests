@@ -6,15 +6,13 @@ import { fetchApi } from '../utils/utils';
 
 import innexgo_logo from '../img/innexgo_logo_dark.png';
 
-import blurred_bg from '../img/homepage-bg.png';
-
 interface LoginProps {
   setApiKey: (data: ApiKey | null) => void
 }
 
 function Login(props: LoginProps) {
   const bgStyle = {
-    backgroundImage: `radial-gradient(rgba(0, 0, 0, 0.9),rgba(0, 0, 0, 0.1)), url(${blurred_bg})`,
+    backgroundImage: `radial-gradient(rgba(0, 0, 0, 0.9),rgba(0, 0, 0, 0.1))`,
     textColor: 'black',
     height: "100vh",
     alignItems: "center",

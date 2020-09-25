@@ -78,7 +78,7 @@ class Home extends React.Component<Props, State> {
     */
 
     return (
-      <ExternalLayout fixed={false} transparentTop={true}>
+      <ExternalLayout fixed={false} transparentTop={false}>
         <Container style={jumbotronStyle}>
           <div style={halfColumnOne}>
             <div style={{marginLeft: '5px'}}>

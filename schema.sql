@@ -1,3 +1,9 @@
+drop table if exists school_info;
+create table school_info(
+  name varchar(100) not null, 
+  domain varchar(100) not null, 
+);
+
 drop table if exists user;
 create table user(
   id integer not null primary key,
@@ -45,3 +51,4 @@ create table attendance(
   creation_time bigint(20) not null,
   attendance bigint(20) not null
 );
+
