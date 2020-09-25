@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Jumbotron, Container, Row, Button, Form, Col } from 'react-bootstrap';
+import {Container, Row, Button, Form, Col } from 'react-bootstrap';
 import ExternalLayout from "../components/ExternalLayout";
 
-import transparent from "../img/innexgo_logo_dark.png"
+import transparent from "../img/innexgo_onyx_transparent.png"
 
 interface Props { };
 interface State {
@@ -40,19 +40,22 @@ class Home extends React.Component<Props, State> {
 
   render() {
     const jumbotronStyle = {
-      marginTop: '15px'
+      marginTop: '15px',
+      height: '50vc',
     } as React.CSSProperties;
 
     const halfColumnOne = {
       float: 'left',
       width: '50%',
-      alignItems: 'left'
+      alignItems: 'left',
+      marginTop: '30px'
     } as React.CSSProperties;
 
     const halfColumnTwo = {
       float: 'left',
       width: '50%',
-      textAlign: 'left'
+      textAlign: 'left',
+      marginTop: '24px'
     } as React.CSSProperties;
 
     const formStyle = {
@@ -80,12 +83,16 @@ class Home extends React.Component<Props, State> {
     return (
       <ExternalLayout fixed={false} transparentTop={true}>
         <Container style={jumbotronStyle}>
-          <div style={halfColumnOne}>
-            <div style={{marginLeft: '5px'}}>
+        <div style={halfColumnTwo}>
+          <div style={{marginLeft: '5px'}}>
               <img src={transparent} style={{marginBottom: '7px'}}/>
               <h4>Attendance simplified.</h4>
-            </div>
+          </div>
+        </div>
+
+          <div style={halfColumnOne}>
             <Form style={formStyle}>
+              <h3 style={{marginBottom: '16px'}}>Sign In</h3>
               <Form.Group>
                 <Form.Control style={formBoxStyle} id="username" type="email" placeholder="Email"/>
                 <br />
@@ -96,14 +103,9 @@ class Home extends React.Component<Props, State> {
               <p></p> {/*error text*/}
             </Form>
 
-            {/*<p style={{fontSize: '15px', marginTop: '12px'}}>Forgot password? <a href="">Click here</a></p>
+            <p style={{fontSize: '15px', marginTop: '11px', marginBottom: '0px'}}>Forgot password? <a href="">Click here</a></p>
             <p style={{fontSize: '15px', marginTop: '5px'}}>Or, <a href="">create an account</a></p>
-            */}
             </div>
-
-          <div style={halfColumnTwo}>
-
-          </div>
         </Container>
         <div style={{ /*clears rows after, similar to row:after css*/
           content: "",
