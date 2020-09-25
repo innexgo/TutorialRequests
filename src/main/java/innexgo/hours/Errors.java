@@ -25,7 +25,7 @@ public enum Errors {
   OK("operation completed successfully", HttpStatus.OK),
   NO_CAPABILITY("user is not authorized to create api key with these capabilities", HttpStatus.UNAUTHORIZED),
   APIKEY_UNAUTHORIZED("this api key does not have the capability to access this task", HttpStatus.UNAUTHORIZED),
-  DATABASE_INITIALIZED("the database already contains some users", HttpStatus.UNAUTHORIZED),
+  DATABASE_INITIALIZED("the database is already initialized", HttpStatus.UNAUTHORIZED),
   PASSWORD_INCORRECT("this password is not valid for this user", HttpStatus.UNAUTHORIZED),
   PASSWORD_INSECURE("this password does not meet security requirements", HttpStatus.UNAUTHORIZED),
   USER_NONEXISTENT("the user you are trying to perform this operation on does not exist", HttpStatus.BAD_REQUEST),

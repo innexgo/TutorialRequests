@@ -1,7 +1,8 @@
 drop table if exists school_info;
 create table school_info(
-  name varchar(100) not null, 
-  domain varchar(100) not null, 
+  id integer not null primary key,
+  name varchar(100) not null,
+  domain varchar(100) not null
 );
 
 drop table if exists user;

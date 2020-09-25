@@ -59,6 +59,12 @@ public class SchoolInfoService {
     return school_info;
   }
 
+  public boolean initialized() {
+    String sql = "SELECT count(*) FROM school_info";
+    long count = jdbcTemplate.queryForObject(sql, Long.class);
+    return count != 0;
+  }
+
   public void inintialize(String name, String domain) {
     // Add schoolInfo
     String sql =

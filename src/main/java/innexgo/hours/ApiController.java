@@ -327,6 +327,4 @@ public class ApiController {
     return new ResponseEntity<>(schoolInfoService.get(), HttpStatus.OK);
   }
 
-
-
 }

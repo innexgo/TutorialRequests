@@ -55,8 +55,12 @@ public class UserService {
 
   public long nextId() {
     String sql = "SELECT max(id) FROM user";
-    long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-    return maxId + 1;
+    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    if(maxId == null) {
+      return 0;
+    } else {
+      return maxId + 1;
+    }
   }
 
 
@@ -90,7 +94,7 @@ public class UserService {
   }
   public boolean existsById(long id) {
     String sql = "SELECT count(*) FROM user WHERE id=?";
-    int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+    long count = jdbcTemplate.queryForObject(sql, Long.class, id);
     return count != 0;
   }
 

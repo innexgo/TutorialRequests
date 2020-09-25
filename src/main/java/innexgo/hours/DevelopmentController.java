@@ -43,7 +43,7 @@ public class DevelopmentController {
       @RequestParam("adminName") String adminName,
       @RequestParam("adminPassword") String adminPassword
   ) {
-    if (userService.getAll().size() != 0) {
+    if (schoolInfoService.initialized()) {
       return Errors.DATABASE_INITIALIZED.getResponse();
     }
 
