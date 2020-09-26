@@ -11,6 +11,7 @@ create table user(
   kind bigint(20) not null,
   name varchar(100) not null,
   email varchar(100) not null unique,
+  validated bigint(20) not null,
   password_hash char(64) not null
 );
 
