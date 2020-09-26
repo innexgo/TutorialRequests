@@ -327,4 +327,13 @@ public class ApiController {
     return new ResponseEntity<>(schoolInfoService.get(), HttpStatus.OK);
   }
 
+  @RequestMapping("/misc/register/")
+  public ResponseEntity<?> registerStep1(
+    @RequestParam("userId") Long userId,
+    @RequestParam("userPassword") String password,
+    @RequestParam("userKind") UserKind kind
+  ) {
+      // TODO need to do this also need to write api
+    return new ResponseEntity<>(schoolInfoService.get(), HttpStatus.OK);
+  }
 }
