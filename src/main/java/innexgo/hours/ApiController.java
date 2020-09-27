@@ -94,13 +94,11 @@ public class ApiController {
   }
 
   @RequestMapping("/user/new/")
-  public ResponseEntity<?> newUser(@RequestParam("userName") String name, @RequestParam("userEmail") String email,
-      @RequestParam("userPassword") String password, @RequestParam("userKind") UserKind kind,
-      @RequestParam("apiKey") String apiKey) {
-    if (!innexgoService.isAdministrator(apiKey)) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
-    }
-
+  public ResponseEntity<?> newUser(
+      @RequestParam("userName") String name,
+      @RequestParam("userEmail") String email,
+      @RequestParam("userPassword") String password,
+      @RequestParam("userKind") UserKind kind) {
     if (Utils.isEmpty(email)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
@@ -207,8 +205,16 @@ public class ApiController {
     }
 
     List<User> list = userService
-        .query(Utils.parseLong(allRequestParam.get("userId")), allRequestParam.get("userName"),
-            allRequestParam.get("partialUserName"), allRequestParam.get("userEmail"), kind, offset, count)
+        .query(
+            Utils.parseLong(allRequestParam.get("userId")),
+            allRequestParam.get("userName"),
+            allRequestParam.get("partialUserName"),
+            allRequestParam.get("userEmail"),
+            Utils.parseBoolean(allRequestParam.get("validated")),
+            kind,
+            offset,
+            count
+        )
         .stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
@@ -268,8 +274,11 @@ public class ApiController {
   }
 
   @RequestMapping("/attendance/")
-  public ResponseEntity<?> viewAttendance(@RequestParam("offset") Long offset, @RequestParam("count") Long count,
-      @RequestParam("apiKey") String apiKey, @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewAttendance(
+      @RequestParam("offset") Long offset,
+      @RequestParam("count") Long count,
+      @RequestParam("apiKey") String apiKey,
+      @RequestParam Map<String, String> allRequestParam) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
@@ -286,7 +295,8 @@ public class ApiController {
       }
     }
 
-    List<Attendance> list = attendanceService.query(Utils.parseLong(allRequestParam.get("id")), // Long id,
+    List<Attendance> list = attendanceService.query(
+        Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("apptId")), // Long apptId,
         Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
         Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,
@@ -324,16 +334,6 @@ public class ApiController {
 
   @RequestMapping("/misc/info/school/")
   public ResponseEntity<?> viewSchool() {
-    return new ResponseEntity<>(schoolInfoService.get(), HttpStatus.OK);
-  }
-
-  @RequestMapping("/misc/register/")
-  public ResponseEntity<?> registerStep1(
-    @RequestParam("userId") Long userId,
-    @RequestParam("userPassword") String password,
-    @RequestParam("userKind") UserKind kind
-  ) {
-      // TODO need to do this also need to write api
     return new ResponseEntity<>(schoolInfoService.get(), HttpStatus.OK);
   }
 }

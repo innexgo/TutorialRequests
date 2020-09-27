@@ -46,11 +46,10 @@ create table appt(
   duration bigint(20) not null
 );
 
-drop table if exists attendance;
-create table attendance(
+drop table if exists appt_attendance;
+create table appt_attendance(
   id integer not null primary key,
   appt_id bigint(20) not null,
   creation_time bigint(20) not null,
   attendance bigint(20) not null
 );
-
