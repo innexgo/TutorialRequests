@@ -1,27 +1,26 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import {Container, Row, Button, Form, Col } from 'react-bootstrap';
-import ExternalLayout from "../components/ExternalLayout";
-
-import transparent from "../img/innexgo_onyx_transparent.png"
+/*import { Link } from 'react-router-dom';*/
+import transparent from "../img/innexgo_transparent_icon.png"
+import innexgo_logo from '../img/innexgo_transparent_icon.png';
+import { Nav, Navbar, Button, Form, } from 'react-bootstrap'
 
 interface Props { };
 interface State {
-  windowWidth: number;
-  windowHeight: number;
+  /*windowWidth: number;
+  windowHeight: number;*/
 };
 
 class Home extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = {
+    /*this.state = {
       windowWidth: 0,
       windowHeight: 0,
-    }
-    this.updateDimensions = this.updateDimensions.bind(this);
+    }*/
+    /*this.updateDimensions = this.updateDimensions.bind(this);*/
   }
 
-  componentDidMount() {
+  /*componentDidMount() {
     this.updateDimensions();
     window.addEventListener("resize", this.updateDimensions);
 
@@ -36,26 +35,40 @@ class Home extends React.Component<Props, State> {
     let windowHeight = typeof window !== "undefined" ? window.innerHeight : 0;
 
     this.setState({ windowWidth, windowHeight });
-  };
+  };*/
+
+  mouseOver(e: any) {
+    e.target.style.textDecoration = 'underline';
+    e.target.style.color = '#fffff2';
+  }
+
+  mouseLeave(e: any) {
+    e.target.style.textDecoration = 'none';
+    e.target.style.color = 'white';
+  }
+
 
   render() {
-    const jumbotronStyle = {
-      marginTop: '15px',
-      height: '50vc',
-    } as React.CSSProperties;
 
-    const halfColumnOne = {
+    const columnOne = {
       float: 'left',
-      width: '50%',
+      width: '30%',
       alignItems: 'left',
-      marginTop: '30px'
+      backgroundColor: '#990000ff',
+      margin: '0',
+      padding: '3%',
+      color: 'white',
+      height: '100%'
     } as React.CSSProperties;
 
-    const halfColumnTwo = {
+    const columnTwo = {
       float: 'left',
-      width: '50%',
+      width: '70%',
       textAlign: 'left',
-      marginTop: '24px'
+      margin: '0',
+      padding: '6%',
+      position: 'relative',
+      height: '100%',
     } as React.CSSProperties;
 
     const formStyle = {
@@ -70,6 +83,13 @@ class Home extends React.Component<Props, State> {
       borderBottom: '1px solid grey',
     };
 
+    const linkStyle = {
+      marginBottom: '3px', 
+      fontSize: '14px',
+      textDecoration: 'none',
+      color: 'white',
+    } as React.CSSProperties;
+
     /*in login form these are things it lacks:
     -in Form.Control, onchange functions
     -in login Button, onClick postlogin function
@@ -81,18 +101,24 @@ class Home extends React.Component<Props, State> {
     */
 
     return (
-      <ExternalLayout fixed={false} transparentTop={true}>
-        <Container style={jumbotronStyle}>
-        <div style={halfColumnTwo}>
-          <div style={{marginLeft: '5px'}}>
-              <img src={transparent} style={{marginBottom: '7px'}}/>
-              <h4>Attendance simplified.</h4>
-          </div>
-        </div>
+      <div>
 
-          <div style={halfColumnOne}>
+        <div style={{height: '97vh'}}>
+          <div style={columnOne}>
+            <img src={transparent} style={{height: 'auto', width: 'auto'}}/>
+            <h4 style={{marginTop: '10px', marginBottom: '69px'}}>Attendance simplified.</h4>
+            <a href="" style={linkStyle} onMouseOver={this.mouseOver} onMouseLeave={this.mouseLeave}>
+              New? Create an account &#8594;</a> <br/>
+            <a href="" style={linkStyle} onMouseOver={this.mouseOver} onMouseLeave={this.mouseLeave}>
+              Forgot password? &#8594;</a> <br/>
+            <a href="" style={linkStyle} onMouseOver={this.mouseOver} onMouseLeave={this.mouseLeave}>
+              Not your school? &#8594;</a> <br/>
+            
+          </div>
+
+          <div style={columnTwo}>
+            <h4>Squidward Community College</h4> <br/>
             <Form style={formStyle}>
-              <h3 style={{marginBottom: '16px'}}>Sign In</h3>
               <Form.Group>
                 <Form.Control style={formBoxStyle} id="username" type="email" placeholder="Email"/>
                 <br />
@@ -102,18 +128,32 @@ class Home extends React.Component<Props, State> {
               <Button variant="dark">Login</Button>
               <p></p> {/*error text*/}
             </Form>
+          </div>
+        </div>
 
-            <p style={{fontSize: '15px', marginTop: '11px', marginBottom: '0px'}}>Forgot password? <a href="">Click here</a></p>
-            <p style={{fontSize: '15px', marginTop: '5px'}}>Or, <a href="">create an account</a></p>
-            </div>
-        </Container>
-        <div style={{ /*clears rows after, similar to row:after css*/
-          content: "",
+        <div style={{content: "",
           display: 'table',
-          clear: 'both'
-        }}/>
+          clear: 'both'}}></div>
 
-      </ExternalLayout>
+          <Navbar bg="dark" variant="dark">
+            <Navbar.Brand href="#home">
+              <img
+                alt="Innexgo Logo"
+                src={innexgo_logo}
+                width="30"
+                height="30"
+                className="d-inline-block align-top"
+              />{' '}
+              Innexgo
+          </Navbar.Brand>
+            <Nav>
+              <Nav.Link>&copy; Innexgo LLC, 2020</Nav.Link>
+              <Nav.Link href="/terms_of_service">Terms of Service</Nav.Link>
+              <Nav.Link href="/terms_of_service#cookie_policy">Cookie Policy</Nav.Link>
+            </Nav>
+          </Navbar>
+        </div>
+
     )
   }
 }
