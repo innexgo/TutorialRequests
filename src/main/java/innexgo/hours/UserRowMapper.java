@@ -31,6 +31,7 @@ public class UserRowMapper implements RowMapper<User> {
     u.name = row.getString("name");
     u.kind = UserKind.from(row.getInt("kind"));
     u.email = row.getString("email");
+    u.validated = row.getBoolean("validated");
     u.passwordHash = row.getString("password_hash");
     return u;
   }

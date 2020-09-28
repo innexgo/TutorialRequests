@@ -47,9 +47,15 @@ public class AttendanceService {
 
   public long nextId() {
     String sql = "SELECT max(id) FROM attendance";
-    long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-    return maxId + 1;
+    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    if(maxId == null) {
+      return 0;
+    } else {
+      return maxId + 1;
+    }
   }
+
+
 
   public void add(Attendance attendance) {
     attendance.id = nextId();

@@ -35,3 +35,4 @@ build/
 # Do not include node_modules
 node_modules/
 
+hours.db

@@ -1,9 +1,17 @@
+drop table if exists school_info;
+create table school_info(
+  id integer not null primary key,
+  name varchar(100) not null,
+  domain varchar(100) not null
+);
+
 drop table if exists user;
 create table user(
   id integer not null primary key,
   kind bigint(20) not null,
   name varchar(100) not null,
   email varchar(100) not null unique,
+  validated bigint(20) not null,
   password_hash char(64) not null
 );
 
@@ -38,8 +46,8 @@ create table appt(
   duration bigint(20) not null
 );
 
-drop table if exists attendance;
-create table attendance(
+drop table if exists appt_attendance;
+create table appt_attendance(
   id integer not null primary key,
   appt_id bigint(20) not null,
   creation_time bigint(20) not null,

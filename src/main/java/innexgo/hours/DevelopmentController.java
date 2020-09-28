@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -30,33 +31,32 @@ public class DevelopmentController {
 
   @Autowired ApiKeyService apiKeyService;
   @Autowired UserService userService;
+  @Autowired SchoolInfoService schoolInfoService;
   @Autowired InnexgoService innexgoService;
 
-  static final String ROOT_EMAIL = "root@example.com";
 
   @RequestMapping("/initializeRoot/")
-  public ResponseEntity<?> populateUsers() {
-    if (userService.getAll().size() != 0) {
+  public ResponseEntity<?> populateUsers(
+      @RequestParam("name") String name,
+      @RequestParam("domain") String domain,
+      @RequestParam("adminEmail") String adminEmail,
+      @RequestParam("adminName") String adminName,
+      @RequestParam("adminPassword") String adminPassword
+  ) {
+    if (schoolInfoService.initialized()) {
       return Errors.DATABASE_INITIALIZED.getResponse();
     }
 
+    schoolInfoService.inintialize(name, domain); 
+
     // create user
     User user = new User();
-    user.name = "root";
-    user.email = ROOT_EMAIL;
+    user.name = adminName;
+    user.email = adminEmail;
     user.kind = UserKind.ADMIN;
-    user.passwordHash = Utils.encodePassword("1234");
+    user.passwordHash = Utils.encodePassword(adminPassword);
     userService.add(user);
 
-    // Create apiKey
-    ApiKey apiKey = new ApiKey();
-    apiKey.userId = user.id;
-    apiKey.creationTime = System.currentTimeMillis();
-    apiKey.duration = Long.MAX_VALUE;
-    apiKey.key = "testlmao";
-    apiKey.keyHash = Utils.encodeApiKey(apiKey.key);
-
-    apiKeyService.add(apiKey);
-    return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
+    return new ResponseEntity<>(user, HttpStatus.OK);
   }
 }
