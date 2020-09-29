@@ -6,6 +6,7 @@ import StudentRoute from './components/StudentRoute';
 
 import Home from './pages/Home';
 import TermsOfService from './pages/TermsOfService';
+import Instructions from './pages/Instructions';
 import UserDashboard from './pages/UserDashboard';
 import Pending from './pages/Pending';
 import Attendance from './pages/Attendance';
@@ -47,6 +48,7 @@ function App() {
     <BrowserRouter>
       <Switch>
         <Route path="/" exact component={Home} />
+        <Route path="/instructions" component={Instructions} />
         <Route path="/terms_of_service" component={TermsOfService} />
         <Route path="/register" component={Register} />
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
