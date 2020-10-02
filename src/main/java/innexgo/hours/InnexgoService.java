@@ -8,10 +8,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class InnexgoService {
 
-  @Autowired ApiKeyService apiKeyService;
-  @Autowired UserService userService;
-  @Autowired ApptService apptService;
-  @Autowired ApptRequestService apptRequestService;
+  @Autowired
+  ApiKeyService apiKeyService;
+  @Autowired
+  UserService userService;
+  @Autowired
+  ApptService apptService;
+  @Autowired
+  ApptRequestService apptRequestService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
 
@@ -22,10 +26,9 @@ public class InnexgoService {
    * @return apiKey with filled jackson objects
    */
   ApiKey fillApiKey(ApiKey apiKey) {
-    apiKey.user = fillUser(userService.getById(apiKey.userId));
+    apiKey.creator = fillUser(userService.getById(apiKey.creatorId));
     return apiKey;
   }
-
 
   /**
    * Fills in jackson objects for User
@@ -56,8 +59,6 @@ public class InnexgoService {
    * @return Appt object with recursively filled jackson objects
    */
   Appt fillAppt(Appt appt) {
-    appt.host = userService.getById(appt.hostId);
-    appt.attendee = userService.getById(appt.attendeeId);
     appt.apptRequest = apptRequestService.getById(appt.apptRequestId);
     return appt;
   }
@@ -69,10 +70,9 @@ public class InnexgoService {
    * @return Attendance object with recursively filled jackson objects
    */
   Attendance fillAttendance(Attendance attendance) {
-    attendance.appt= apptService.getById(attendance.apptId);
+    attendance.appt = apptService.getById(attendance.apptId);
     return attendance;
   }
-
 
   /**
    * Returns an apiKey if valid
@@ -102,27 +102,26 @@ public class InnexgoService {
     if (apiKeyService.existsByKeyHash(hash)) {
       ApiKey apiKey = apiKeyService.getByKeyHash(hash);
       if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
-        if (userService.existsById(apiKey.userId)) {
-          return userService.getById(apiKey.userId);
+        if (userService.existsById(apiKey.creatorId)) {
+          return userService.getById(apiKey.creatorId);
         }
       }
     }
     return null;
   }
 
-
   boolean isAdministrator(String key) {
-    User u = getUserIfValid(key) ;
+    User u = getUserIfValid(key);
     return u != null && u.kind == UserKind.ADMIN;
   }
 
   boolean isUser(String key) {
-    User u = getUserIfValid(key) ;
+    User u = getUserIfValid(key);
     return u != null && (u.kind == UserKind.USER || u.kind == UserKind.ADMIN);
   }
 
   boolean isStudent(String key) {
-    User u = getUserIfValid(key) ;
+    User u = getUserIfValid(key);
     return u != null && u.kind == UserKind.STUDENT;
-  } 
+  }
 }
