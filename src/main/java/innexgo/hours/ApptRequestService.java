@@ -33,21 +33,14 @@ public class ApptRequestService {
 
   public ApptRequest getById(long id) {
     String sql =
-        "SELECT id, creator_id, target_id, message, creation_time, suggested_time FROM appt_request WHERE id=?";
+        "SELECT apr.appt_request_id, apr.creator_id, apr.target_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr WHERE apr.appt_request_id=?";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apptRequest;
   }
 
-  public List<ApptRequest> getAll() {
-    String sql =
-        "SELECT id, creator_id, target_id, message, creation_time, suggested_time FROM appt_request";
-    RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
-  }
-
   public long nextId() {
-    String sql = "SELECT max(id) FROM appt_request";
+    String sql = "SELECT max(apr.appt_request_id) FROM appt_request apr";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
     if(maxId == null) {
       return 0;
@@ -59,13 +52,13 @@ public class ApptRequestService {
 
 
   public void add(ApptRequest apptRequest) {
-    apptRequest.id = nextId();
+    apptRequest.apptRequestId = nextId();
     // Add apptRequest
     String sql =
-        "INSERT INTO appt_request(id, creator_id, target_id, message, creation_time, suggested_time ) values (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO appt_request values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
-        apptRequest.id,
+        apptRequest.apptRequestId,
         apptRequest.creatorId,
         apptRequest.targetId,
         apptRequest.message,
@@ -75,10 +68,10 @@ public class ApptRequestService {
 
   public void update(ApptRequest apptRequest) {
     String sql =
-        "UPDATE appt_request SET id=?, creator_id=?, target_id=?, message=?, creation_time=?, suggested_time=? WHERE id=?";
+        "UPDATE appt_request apr SET apr.appt_request_id=?, apr.creator_id=?, apr.target_id=?, apr.message=?, apr.creation_time=?, apr.suggested_time=? WHERE apr.appt_request_id=?";
     jdbcTemplate.update(
         sql,
-        apptRequest.id,
+        apptRequest.apptRequestId,
         apptRequest.creatorId,
         apptRequest.targetId,
         apptRequest.message,
@@ -88,20 +81,20 @@ public class ApptRequestService {
 
   public ApptRequest deleteById(long id) {
     ApptRequest apptRequest = getById(id);
-    String sql = "DELETE FROM appt_request WHERE id=?";
+    String sql = "DELETE FROM appt_request apr WHERE apr.appt_request_id=?";
     jdbcTemplate.update(sql, id);
     return apptRequest;
   }
 
   public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM appt_request WHERE id=?";
+    String sql = "SELECT count(*) FROM appt_request apr WHERE apr.appt_request_id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
     return count != 0;
   }
 
   // Restrict apptRequests by
   public List<ApptRequest> query(
-      Long id,
+      Long apptRequestId,
       Long creatorId,
       Long targetId,
       String message,
@@ -114,19 +107,19 @@ public class ApptRequestService {
       long offset,
       long count) {
     String sql =
-        "SELECT ar.id, ar.creator_id, ar.target_id, ar.message, ar.creation_time, ar.suggested_time FROM appt_request ar"
+        "SELECT apr.appt_request_id, apr.creator_id, apr.target_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr"
             + " WHERE 1=1 "
-            + (id == null ? "" : " AND ar.id = " + id)
-            + (creatorId == null ? "" : " AND ar.creator_id = " + creatorId)
-            + (targetId == null ? "" : " AND ar.target_id = " + targetId)
-            + (message == null ? "" : " AND ar.message = " + Utils.escape(message))
-            + (creationTime == null ? "" : " AND ar.creation_time = " + creationTime)
-            + (minCreationTime == null ? "" : " AND ar.creation_time > " + minCreationTime)
-            + (maxCreationTime == null ? "" : " AND ar.creation_time < " + maxCreationTime)
-            + (suggestedTime == null ? "" : " AND ar.suggested_time = " + suggestedTime)
-            + (minSuggestedTime == null ? "" : " AND ar.suggested_time > " + minSuggestedTime)
-            + (maxSuggestedTime == null ? "" : " AND ar.suggested_time < " + maxSuggestedTime)
-            + (" ORDER BY ar.id")
+            + (apptRequestId== null ? "" : " AND apr.appt_request_id = " + apptRequestId)
+            + (creatorId == null ? "" : " AND apr.creator_id = " + creatorId)
+            + (targetId == null ? "" : " AND apr.target_id = " + targetId)
+            + (message == null ? "" : " AND apr.message = " + Utils.escape(message))
+            + (creationTime == null ? "" : " AND apr.creation_time = " + creationTime)
+            + (minCreationTime == null ? "" : " AND apr.creation_time > " + minCreationTime)
+            + (maxCreationTime == null ? "" : " AND apr.creation_time < " + maxCreationTime)
+            + (suggestedTime == null ? "" : " AND apr.suggested_time = " + suggestedTime)
+            + (minSuggestedTime == null ? "" : " AND apr.suggested_time > " + minSuggestedTime)
+            + (maxSuggestedTime == null ? "" : " AND apr.suggested_time < " + maxSuggestedTime)
+            + (" ORDER BY apr.appt_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
 

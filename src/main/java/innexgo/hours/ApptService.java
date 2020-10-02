@@ -33,39 +33,17 @@ public class ApptService {
 
   public Appt getById(long id) {
     String sql =
-        "SELECT id, host_id, attendee_id, appt_request_id, message, creation_time, start_time, duration FROM appt WHERE id=?";
+        "SELECT ap.appt_request_id, ap.message, ap.creation_time, ap.start_time, ap.duration FROM appt ap WHERE ap.appt_request_id=?";
     RowMapper<Appt> rowMapper = new ApptRowMapper();
     Appt appt = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return appt;
   }
 
-  public List<Appt> getAll() {
-    String sql =
-        "SELECT id, host_id, attendee_id, appt_request_id, message, creation_time, start_time, duration FROM appt";
-    RowMapper<Appt> rowMapper = new ApptRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
-  }
-
- public long nextId() {
-    String sql = "SELECT max(id) FROM appt";
-    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-    if(maxId == null) {
-      return 0;
-    } else {
-      return maxId + 1;
-    }
-  }
-
   public void add(Appt appt) {
-    // Add appt
-    appt.id = nextId();
     String sql =
-        "INSERT INTO appt(id, host_id, attendee_id, appt_request_id, message, creation_time, start_time, duration) values (?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO appt values (?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
-        appt.id,
-        appt.hostId,
-        appt.attendeeId,
         appt.apptRequestId,
         appt.message,
         appt.creationTime,
@@ -74,16 +52,13 @@ public class ApptService {
   }
 
   public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM appt WHERE id=?";
+    String sql = "SELECT count(*) FROM appt ap WHERE ap.appt_request_id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
     return count != 0;
   }
 
   // Restrict appts by
   public List<Appt> query(
-      Long id,
-      Long hostId,
-      Long attendeeId,
       Long apptRequestId,
       String message,
       Long creationTime,
@@ -98,23 +73,20 @@ public class ApptService {
       long offset,
       long count) {
     String sql =
-        "SELECT a.id, a.host_id, a.attendee_id, a.appt_request_id, a.message, a.creation_time, a.start_time, a.duration FROM appt a"
+        "SELECT ap.appt_request_id, ap.message, ap.creation_time, ap.start_time, ap.duration FROM appt ap"
             + " WHERE 1=1 "
-            + (id == null ? "" : " AND a.id = " + id)
-            + (hostId == null ? "" : " AND a.host_id = " + hostId)
-            + (attendeeId == null ? "" : " AND a.attendee_id = " + attendeeId)
-            + (apptRequestId == null ? "" : " AND a.appt_request_id = " + apptRequestId)
-            + (message == null ? "" : " AND a.message = " + Utils.escape(message))
-            + (creationTime == null ? "" : " AND a.creation_time = " + creationTime)
-            + (minCreationTime == null ? "" : " AND a.creation_time > " + minCreationTime)
-            + (maxCreationTime == null ? "" : " AND a.creation_time < " + maxCreationTime)
-            + (time == null ? "" : " AND a.start_time = " + time)
-            + (minStartTime == null ? "" : " AND a.start_time > " + minStartTime)
-            + (maxStartTime == null ? "" : " AND a.start_time < " + maxStartTime)
-            + (duration == null ? "" : " AND a.duration = " + duration)
-            + (minDuration == null ? "" : " AND a.duration > " + minDuration)
-            + (maxDuration == null ? "" : " AND a.duration < " + maxDuration)
-            + (" ORDER BY a.id")
+            + (apptRequestId == null ? "" : " AND ap.appt_request_id = " + apptRequestId)
+            + (message == null ? "" : " AND ap.message = " + Utils.escape(message))
+            + (creationTime == null ? "" : " AND ap.creation_time = " + creationTime)
+            + (minCreationTime == null ? "" : " AND ap.creation_time > " + minCreationTime)
+            + (maxCreationTime == null ? "" : " AND ap.creation_time < " + maxCreationTime)
+            + (time == null ? "" : " AND ap.start_time = " + time)
+            + (minStartTime == null ? "" : " AND ap.start_time > " + minStartTime)
+            + (maxStartTime == null ? "" : " AND ap.start_time < " + maxStartTime)
+            + (duration == null ? "" : " AND ap.duration = " + duration)
+            + (minDuration == null ? "" : " AND ap.duration > " + minDuration)
+            + (maxDuration == null ? "" : " AND ap.duration < " + maxDuration)
+            + (" ORDER BY ap.appt_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
 

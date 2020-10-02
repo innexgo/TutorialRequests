@@ -19,7 +19,7 @@
 package innexgo.hours;
 
 public class ApptRequest {
-  public long id;
+  public long apptRequestId;
   long creatorId;
   long targetId;
   public String message;

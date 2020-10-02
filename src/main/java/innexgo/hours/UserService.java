@@ -41,14 +41,15 @@ public class UserService {
 
   public User getByEmail(String email) {
     String sql =
-        "SELECT id, name, kind, email, validated, password_hash FROM user WHERE email=?";
+        "SELECT id, kind, name, email, validated, password_hash FROM user WHERE email=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, email);
     return user;
   }
 
   public List<User> getAll() {
-    String sql = "SELECT  id, name, kind, email, validated, password_hash FROM user";
+    String sql =
+        "SELECT id, kind, name, email, validated, password_hash FROM user";
     RowMapper<User> rowMapper = new UserRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
@@ -69,12 +70,12 @@ public class UserService {
     user.id = nextId();
     // Add user
     String sql =
-        "INSERT INTO user (id, name, kind, email, validated, password_hash) values (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO user (id, kind, name, email, validated, password_hash) values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         user.id,
-        user.name,
         user.kind.value,
+        user.name,
         user.email,
         user.validated,
         user.passwordHash);
@@ -108,15 +109,15 @@ public class UserService {
 
   public List<User> query(
       Long id,
+      UserKind kind,
       String name,
       String partialUserName,
       String email,
       Boolean validated,
-      UserKind kind,
       long offset,
       long count) {
     String sql =
-        "SELECT u.id, u.name, u.kind, u.email, u.validated, u.password_hash FROM user u"
+        "SELECT u.id, u.kind, u.name, u.email, u.validated, u.password_hash FROM user u"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND u.id = " + id)
             + (name == null ? "" : " AND u.name = " + Utils.escape(name))

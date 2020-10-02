@@ -33,51 +33,30 @@ public class AttendanceService {
 
   public Attendance getById(long id) {
     String sql =
-        "SELECT id, appt_id, creation_time, kind FROM attendance WHERE id=?";
+        "SELECT at.appt_id, at.creation_time, at.kind FROM attendance at WHERE appt_id=?";
     RowMapper<Attendance> rowMapper = new AttendanceRowMapper();
     Attendance attendance = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return attendance;
   }
 
-  public List<Attendance> getAll() {
-    String sql = "SELECT id, appt_id, creation_time, kind FROM attendance";
-    RowMapper<Attendance> rowMapper = new AttendanceRowMapper();
-    return jdbcTemplate.query(sql, rowMapper);
-  }
-
-  public long nextId() {
-    String sql = "SELECT max(id) FROM attendance";
-    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-    if(maxId == null) {
-      return 0;
-    } else {
-      return maxId + 1;
-    }
-  }
-
-
-
   public void add(Attendance attendance) {
-    attendance.id = nextId();
     // Add attendance
     String sql =
-        "INSERT INTO attendance (id, appt_id, creation_time, kind) values (?, ?, ?, ?)";
+        "INSERT INTO attendance  values (?, ?, ?)";
     jdbcTemplate.update(
         sql,
-        attendance.id,
         attendance.apptId,
         attendance.creationTime,
         attendance.kind.value);
   }
 
   public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM attendance WHERE id=?";
+    String sql = "SELECT count(*) FROM attendance at WHERE at.appt_id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
     return count != 0;
   }
 
   public List<Attendance> query(
-      Long id,
       Long apptId,
       Long creationTime,
       Long minCreationTime,
@@ -86,15 +65,14 @@ public class AttendanceService {
       long offset,
       long count) {
     String sql =
-        "SELECT at.id, at.appt_id, at.creation_time, at.kind FROM attendance at"
+        "SELECT at.appt_id, at.creation_time, at.kind FROM attendance at"
             + " WHERE 1=1 "
-            + (id == null ? "" : " AND at.id = " + id)
             + (apptId == null ? "" : " AND at.appt_id = " + apptId)
             + (kind == null ? "" : " AND at.kind = " + kind.value)
             + (creationTime == null ? "" : " AND at.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND at.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND at.creation_time < " + maxCreationTime)
-            + (" ORDER BY at.id")
+            + (" ORDER BY at.appt_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
 

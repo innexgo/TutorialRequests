@@ -27,7 +27,7 @@ public class ApiKeyRowMapper implements RowMapper<ApiKey> {
   public ApiKey mapRow(ResultSet row, int rowNum) throws SQLException {
     ApiKey apiKey = new ApiKey();
     apiKey.id = row.getLong("id");
-    apiKey.userId = row.getLong("user_id");
+    apiKey.creatorId = row.getLong("creator_id");
     apiKey.creationTime = row.getLong("creation_time");
     apiKey.duration= row.getLong("duration");
 

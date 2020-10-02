@@ -19,9 +19,6 @@
 package innexgo.hours;
 
 public class Appt {
-  public long id;
-  long hostId;
-  long attendeeId;
   long apptRequestId;
   public String message;
   public long creationTime;
@@ -29,7 +26,5 @@ public class Appt {
   public long duration;
 
   // for jackson
-  public User host;
-  public User attendee;
   public ApptRequest apptRequest;
 }

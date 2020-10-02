@@ -19,7 +19,6 @@
 package innexgo.hours;
 
 public class Attendance {
-  public long id;
   long apptId;
   public long creationTime;
   public AttendanceKind kind;

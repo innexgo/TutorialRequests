@@ -32,7 +32,7 @@ public class ApiKeyService {
 
   public ApiKey getById(long id) {
     String sql =
-        "SELECT id, user_id, creation_time, duration, key_hash FROM api_key WHERE id=?";
+        "SELECT id, creator_id, creation_time, duration, key_hash FROM api_key WHERE id=?";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     ApiKey apiKey = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apiKey;
@@ -41,7 +41,7 @@ public class ApiKeyService {
   // Gets the last created key with the keyhash
   public ApiKey getByKeyHash(String keyHash) {
     String sql =
-        "SELECT id, user_id, creation_time, duration, key_hash FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
+        "SELECT id, creator_id, creation_time, duration, key_hash FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     List<ApiKey> apiKeys = jdbcTemplate.query(sql, rowMapper, keyHash);
     return apiKeys.size() > 0 ? apiKeys.get(0) : null;
@@ -49,7 +49,7 @@ public class ApiKeyService {
 
   public List<ApiKey> getAll() {
     String sql =
-        "SELECT id, user_id, creation_time, duration, key_hash  FROM api_key";
+        "SELECT id, creator_id, creation_time, duration, key_hash  FROM api_key";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
@@ -69,11 +69,11 @@ public class ApiKeyService {
     apiKey.id = nextId();
 
     String sql =
-        "INSERT INTO api_key (id, user_id, creation_time, duration, key_hash) values (?,?,?,?,?)";
+        "INSERT INTO api_key (id, creator_id, creation_time, duration, key_hash) values (?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
         apiKey.id,
-        apiKey.userId,
+        apiKey.creatorId,
         apiKey.creationTime,
         apiKey.duration,
         apiKey.keyHash);
@@ -93,16 +93,16 @@ public class ApiKeyService {
 
   public List<ApiKey> query(
       Long id,
-      Long userId,
+      Long creatorId,
       Long minCreationTime,
       Long maxCreationTime,
       String keyHash,
       long offset,
       long count) {
     String sql =
-        "SELECT a.id, a.user_id, a.creation_time, a.duration, a.key_hash FROM api_key a WHERE 1=1"
+        "SELECT a.id, a.creator_id, a.creation_time, a.duration, a.key_hash FROM api_key a WHERE 1=1"
             + (id == null ? "" : " AND a.id=" + id)
-            + (userId == null ? "" : " AND a.user_id =" + userId)
+            + (creatorId == null ? "" : " AND a.creator_id =" + creatorId)
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND a.creation_time <= " + maxCreationTime)
             + (keyHash == null ? "" : " AND a.key_hash = " + Utils.escape(keyHash))

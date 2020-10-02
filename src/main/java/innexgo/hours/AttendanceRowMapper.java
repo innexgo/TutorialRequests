@@ -27,7 +27,6 @@ public class AttendanceRowMapper implements RowMapper<Attendance> {
   @Override
   public Attendance mapRow(ResultSet row, int rowNum) throws SQLException {
     Attendance attendance = new Attendance();
-    attendance.id = row.getLong("id");
     attendance.apptId = row.getLong("appt_id");
     attendance.creationTime = row.getLong("creation_time");
     attendance.kind = AttendanceKind.from(row.getInt("kind"));

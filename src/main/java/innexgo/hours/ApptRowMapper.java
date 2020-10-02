@@ -27,9 +27,6 @@ public class ApptRowMapper implements RowMapper<Appt> {
   @Override
   public Appt mapRow(ResultSet row, int rowNum) throws SQLException {
     Appt appt = new Appt();
-    appt.id = row.getLong("id");
-    appt.hostId = row.getLong("host_id");
-    appt.attendeeId = row.getLong("attendee_id");
     appt.apptRequestId = row.getLong("appt_request_id");
     appt.message = row.getString("message");
     appt.creationTime = row.getLong("creation_time");
