@@ -3,8 +3,8 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import AuthenticatedRoute from './components/AuthenticatedRoute';
 import StudentRoute from './components/StudentRoute';
+import HomeRoute from './components/HomeRoute';
 
-import Home from './pages/Home';
 import TermsOfService from './pages/TermsOfService';
 import Instructions from './pages/Instructions';
 import UserDashboard from './pages/UserDashboard';
@@ -47,7 +47,7 @@ function App() {
   return (
     <BrowserRouter>
       <Switch>
-        <Route path="/" exact component={Home} />
+        <HomeRoute path="/" exact {...apiKeyGetSetter} />
         <Route path="/instructions" component={Instructions} />
         <Route path="/terms_of_service" component={TermsOfService} />
         <Route path="/register" component={Register} />

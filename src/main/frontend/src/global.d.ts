@@ -1,6 +1,8 @@
 declare global {
   type SchoolInfo = {
-    name: string
+    id: number,
+    name: string,
+    domain: string,
   }
 
   type User = {
@@ -17,11 +19,11 @@ declare global {
     creationTime: number,
     duration: number,
     key: string,
-    user: User,
+    creator: User,
   }
 
   type ApptRequest = {
-    id: number,
+    apptRequestId: number,
     creator: User
     target: User
     message: string,
@@ -30,9 +32,6 @@ declare global {
   }
 
   type Appt = {
-    id: number,
-    host: User,
-    attendee: User,
     apptRequest: ApptRequest,
     message: string,
     creationTime: number,
@@ -41,13 +40,17 @@ declare global {
   }
 
   type Attendance = {
-    id: number,
     appt: Appt,
     creationTime: number,
     kind: "PRESENT" | "TARDY" | "ABSENT",
   }
 
   interface AuthenticatedComponentProps {
+    apiKey: ApiKey
+    setApiKey: (data: ApiKey | null) => void
+  }
+
+  interface StudentComponentProps {
     apiKey: ApiKey
     setApiKey: (data: ApiKey | null) => void
   }

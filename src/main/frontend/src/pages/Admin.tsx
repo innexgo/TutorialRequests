@@ -15,7 +15,7 @@ function Admin(props: AuthenticatedComponentProps) {
   };
 
   return (
-    <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)} >
+    <DashboardLayout name={props.apiKey.creator.name} logoutCallback={() => props.setApiKey(null)} >
       <h1 style={headerStyle}>Upload data </h1>
       <Form style={formStyle}>
 

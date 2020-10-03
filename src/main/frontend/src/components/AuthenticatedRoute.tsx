@@ -1,5 +1,6 @@
 import React from "react";
-import { RouteProps, Redirect } from "react-router";
+import Login from "./Login";
+import { RouteProps } from "react-router";
 import { Route } from "react-router-dom";
 
 
@@ -16,13 +17,13 @@ function AuthenticatedRoute({
   ...rest
 }: AuthenticatedRouteProps) {
 
-  const isAuthenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now() && apiKey.user.kind != "STUDENT";
+  const isAuthenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now() && apiKey.creator.kind != "STUDENT";
 
   return (
     <Route {...rest} >
       {isAuthenticated
         ? <AuthenticatedComponent apiKey={apiKey!} setApiKey={setApiKey} />
-        : <Redirect to="/" />}
+        : <Login setApiKey={setApiKey} />}
     </Route>
   );
 }

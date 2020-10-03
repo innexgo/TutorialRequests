@@ -4,6 +4,7 @@ import transparent from "../img/innexgo_transparent_icon.png"
 import innexgo_logo from '../img/innexgo_transparent_icon.png';
 import { Nav, Navbar, Button, Form, } from 'react-bootstrap'
 
+import SchoolName from './SchoolName';
 import { fetchApi } from '../utils/utils';
 
 interface LoginProps {
@@ -11,7 +12,7 @@ interface LoginProps {
 }
 
 
-function Home(props: LoginProps) {
+function Login(props: LoginProps) {
 
   const formStyle = {
     width: '95%',
@@ -29,16 +30,16 @@ function Home(props: LoginProps) {
     borderBottom: '1px solid grey',
   };
 
-   const [errorText, setErrorText] = React.useState("");
+  const [errorText, setErrorText] = React.useState("");
   const [userName, setUserName] = React.useState("");
   const [password, setPassword] = React.useState("");
 
-    async function postLogin() {
+  async function postLogin() {
     try {
       const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
         ['userEmail', userName],
         ['userPassword', password],
-        ['duration', `${5*60*60*1000}`], // 5 hours
+        ['duration', `${5 * 60 * 60 * 1000}`], // 5 hours
       ])) as ApiKey;
       props.setApiKey(apiKey);
     } catch (e) {
@@ -79,18 +80,19 @@ function Home(props: LoginProps) {
           </ul>
         </div>
         <div className="h-100 px-5 py-5 w-75" >
-          <h4>Squidward Community College REMINDER TO DYNAMICALLY GENERATE</h4> <br />
+          <h4><SchoolName /></h4>
+          <br />
           <Form style={formStyle}>
             <Form.Group>
-              <Form.Control style={formBoxStyle} id="username" type="email" placeholder="Email" 
-              onChange={e => {
-                    setUserName(e.target.value);
-                  }} />
+              <Form.Control style={formBoxStyle} id="username" type="email" placeholder="Email"
+                onChange={e => {
+                  setUserName(e.target.value);
+                }} />
               <br />
               <Form.Control style={formBoxStyle} id="password" type="password" placeholder="Password"
-               onChange={e => {
-                    setPassword(e.target.value);
-                  }} />
+                onChange={e => {
+                  setPassword(e.target.value);
+                }} />
               <p className="form-text text-danger" id="error"></p>
             </Form.Group>
             <Button variant="dark" onClick={async () => postLogin()}>Login</Button>
@@ -120,4 +122,4 @@ function Home(props: LoginProps) {
   )
 }
 
-export default Home;
+export default Login;

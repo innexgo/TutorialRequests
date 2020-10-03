@@ -5,7 +5,6 @@ import { Menu } from '@material-ui/icons'
 interface ExternalHeaderProps {
   fixed: boolean;
   transparentTop: boolean;
-  title: string;
 }
 
 interface ExternalHeaderState {
@@ -62,7 +61,7 @@ class ExternalHeader extends React.Component<ExternalHeaderProps, ExternalHeader
       <header>
         <nav style={navStyle} className={"navbar navbar-expand-lg py-3" + (this.props.fixed ? " fixed-top" : "")}>
           <div className="container">
-            <Link style={linkStyle} className="navbar-brand font-weight-bold" to="/">{this.props.title}</Link>
+            <Link style={linkStyle} className="navbar-brand font-weight-bold" to="/">{this.props.children}</Link>
             <button className="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
               <Menu style={linkStyle} />
             </button>

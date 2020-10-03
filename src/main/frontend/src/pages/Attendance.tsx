@@ -40,7 +40,7 @@ export default function Attendance(props: AuthenticatedComponentProps) {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
       ['count', '0xFFFFFFFF'],
-      ['hostId', `${apiKey.user.id}`],
+      ['hostId', `${apiKey.creator.id}`],
       ['minTime', `${moment().startOf('day')}`],
       ['maxTime', `${moment().endOf('day')}`],
       ['apiKey', apiKey.key]

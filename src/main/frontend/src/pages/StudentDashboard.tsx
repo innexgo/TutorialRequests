@@ -43,10 +43,9 @@ function LoadEvents(props: ApptProps) {
   const events = props.appointments;
 
   const INITIAL_EVENTS: EventInput[] =
-    events.map((x) =>
-      ({
-        id: `${x.id}`,
-        title: `${x.host.name}`,
+    events.map((x) => ({
+        id: `${x.apptRequest.apptRequestId}`,
+        title: `${x.apptRequest.target.name}`,
         start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
         end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
         allDay: false
@@ -155,12 +154,12 @@ function LoadEvents(props: ApptProps) {
   );
 }
 
-function StudentCalendar(props: AuthenticatedComponentProps) {
+function StudentCalendar(props: StudentComponentProps) {
   const loadData = async (apiKey: ApiKey): Promise<ApptProps> => {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
       ['count', '0xFFFFFFFF'],
-      ['user_id', `${apiKey.user.id}`],
+      ['user_id', `${apiKey.creator.id}`],
       ['approved', 'true'],
       ['apiKey', apiKey.key]
     ])) as Appt[];
