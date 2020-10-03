@@ -5,8 +5,8 @@ import { fetchApi } from '../utils/utils';
 
 interface SearchUserDropdownProps {
   apiKey: ApiKey,
-  userKind: string,
-  setFn: (id: number) => void
+  userKind: "STUDENT" | "USER" | "ADMIN",
+  setFn: (id: number | null) => void
 }
 
 type UserOption = {
@@ -18,23 +18,24 @@ export default function SearchUserDropdown(props: SearchUserDropdownProps) {
   const promiseOptions = async function(input: string): Promise<UserOption[]> {
     const results = await fetchApi('user/?' + new URLSearchParams([
       ['partialUserName', `${input.toUpperCase()}`],
-      ['userKind', props.userKind!],
-      ['offset', '0'],
-      ['count', '20'],
+      ['userKind', props.userKind],
       ['apiKey', `${props.apiKey.key}`],
     ])) as User[];
-    return results.map(x => {
+    return results.map((x:User) => {
       return {
-        label: `${x.name} -- ${x.secondaryId}`,
+        label: `${x.name} -- ${x.email}`,
         value: x.id
       } as UserOption
     });
   };
 
   const onChange = (opt:any) => {
-    props.setFn((opt as UserOption).value)
+    if(opt == null) {
+      props.setFn(null);
+    } else {
+      props.setFn((opt as UserOption).value)
+    }
   }
-
 
   return <AsyncSelect isClearable={true} onChange={onChange} loadOptions={promiseOptions} />
 }

@@ -142,7 +142,7 @@ function LoadEvents(props: ApptProps) {
 
             <Form.Group controlId="student">
               <Form.Label>Student ID</Form.Label>
-              <SearchUserDropdown apiKey={props.apiKey} userKind={"ADMIN"} setFn={e => setStudentId(e)} />
+              <SearchUserDropdown apiKey={props.apiKey} userKind={"STUDENT"} setFn={e => setStudentId(e)} />
             </Form.Group>
 
             <Form.Group controlId="message">

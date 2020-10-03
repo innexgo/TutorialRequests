@@ -7,11 +7,10 @@ declare global {
 
   type User = {
     id: number,
-    secondaryId: number,
-    school: School,
     kind: "STUDENT" | "USER" | "ADMIN",
     name: string,
     email: string,
+    validated: boolean,
   }
 
   type ApiKey = {
