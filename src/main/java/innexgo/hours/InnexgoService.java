@@ -47,9 +47,9 @@ public class InnexgoService {
    * @return ApptRequest object with recursively filled jackson objects
    */
   ApptRequest fillApptRequest(ApptRequest apptRequest) {
-    apptRequest.creator = userService.getById(apptRequest.creatorId);
-    apptRequest.attendee = userService.getById(apptRequest.attendeeId);
-    apptRequest.host = userService.getById(apptRequest.hostId);
+    apptRequest.creator = fillUser(userService.getById(apptRequest.creatorId));
+    apptRequest.attendee = fillUser(userService.getById(apptRequest.attendeeId));
+    apptRequest.host = fillUser(userService.getById(apptRequest.hostId));
     return apptRequest;
   }
 
@@ -60,7 +60,7 @@ public class InnexgoService {
    * @return Appt object with recursively filled jackson objects
    */
   Appt fillAppt(Appt appt) {
-    appt.apptRequest = apptRequestService.getById(appt.apptRequestId);
+    appt.apptRequest = fillApptRequest(apptRequestService.getById(appt.apptRequestId));
     return appt;
   }
 
@@ -71,7 +71,7 @@ public class InnexgoService {
    * @return Attendance object with recursively filled jackson objects
    */
   Attendance fillAttendance(Attendance attendance) {
-    attendance.appt = apptService.getById(attendance.apptId);
+    attendance.appt = fillAppt(apptService.getById(attendance.apptId));
     return attendance;
   }
 

@@ -28,7 +28,8 @@ drop table if exists appt_request;
 create table appt_request(
   appt_request_id integer not null primary key,
   creator_id integer not null,
-  target_id integer not null,
+  attendee_id integer not null,
+  host_id integer not null,
   message varchar(100) not null,
   creation_time integer not null,
   suggested_time integer not null
