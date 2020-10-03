@@ -26,7 +26,7 @@ function PendingAppointments(props: ApptProps) {
             student={x.creator.name}
             date={moment(x.suggestedTime).format("MMM Do")}
             studentMessage={x.message}
-            apptId={x.id}
+            apptId={x.apptRequestId}
             apiKey={props.apiKey}
           />
         )
@@ -47,7 +47,7 @@ export default function Pending(props: AuthenticatedComponentProps) {
       ['offset', '0'],
       //TODO make variable count and allow user to move back and forth with arrows
       ['count', '10'],
-      ['user_id', `${apiKey.user.id}`],
+      ['user_id', `${apiKey.creator.id}`],
       ['reviewed', "false"],
       ['minRequestTime', `${Date.now()}`],
       ['apiKey', apiKey.key]

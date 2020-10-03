@@ -21,13 +21,15 @@ package innexgo.hours;
 public class ApptRequest {
   public long apptRequestId;
   long creatorId;
-  long targetId;
+  long attendeeId;
+  long hostId;
   public String message;
   public long creationTime;
   public long suggestedTime;
 
   // for jackson
   public User creator;
-  public User target;
+  public User attendee;
+  public User host;
 }
 

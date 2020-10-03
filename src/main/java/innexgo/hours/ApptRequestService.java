@@ -33,7 +33,7 @@ public class ApptRequestService {
 
   public ApptRequest getById(long id) {
     String sql =
-        "SELECT apr.appt_request_id, apr.creator_id, apr.target_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr WHERE apr.appt_request_id=?";
+        "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr WHERE apr.appt_request_id=?";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apptRequest;
@@ -55,12 +55,13 @@ public class ApptRequestService {
     apptRequest.apptRequestId = nextId();
     // Add apptRequest
     String sql =
-        "INSERT INTO appt_request values (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO appt_request values (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         apptRequest.apptRequestId,
         apptRequest.creatorId,
-        apptRequest.targetId,
+        apptRequest.attendeeId,
+        apptRequest.hostId,
         apptRequest.message,
         apptRequest.creationTime,
         apptRequest.suggestedTime );
@@ -68,12 +69,13 @@ public class ApptRequestService {
 
   public void update(ApptRequest apptRequest) {
     String sql =
-        "UPDATE appt_request apr SET apr.appt_request_id=?, apr.creator_id=?, apr.target_id=?, apr.message=?, apr.creation_time=?, apr.suggested_time=? WHERE apr.appt_request_id=?";
+        "UPDATE appt_request apr SET apr.appt_request_id=?, apr.creator_id=?, apr.attendee_id=?, apr.host_id=?, apr.message=?, apr.creation_time=?, apr.suggested_time=? WHERE apr.appt_request_id=?";
     jdbcTemplate.update(
         sql,
         apptRequest.apptRequestId,
         apptRequest.creatorId,
-        apptRequest.targetId,
+        apptRequest.attendeeId,
+        apptRequest.hostId,
         apptRequest.message,
         apptRequest.creationTime,
         apptRequest.suggestedTime);
@@ -96,7 +98,8 @@ public class ApptRequestService {
   public List<ApptRequest> query(
       Long apptRequestId,
       Long creatorId,
-      Long targetId,
+      Long attendeeId,
+      Long hostId,
       String message,
       Long creationTime,
       Long minCreationTime,
@@ -107,11 +110,12 @@ public class ApptRequestService {
       long offset,
       long count) {
     String sql =
-        "SELECT apr.appt_request_id, apr.creator_id, apr.target_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr"
+        "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr"
             + " WHERE 1=1 "
             + (apptRequestId== null ? "" : " AND apr.appt_request_id = " + apptRequestId)
             + (creatorId == null ? "" : " AND apr.creator_id = " + creatorId)
-            + (targetId == null ? "" : " AND apr.target_id = " + targetId)
+            + (attendeeId == null ? "" : " AND apr.attendee_id = " + attendeeId)
+            + (hostId == null ? "" : " AND apr.host_id = " + hostId)
             + (message == null ? "" : " AND apr.message = " + Utils.escape(message))
             + (creationTime == null ? "" : " AND apr.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND apr.creation_time > " + minCreationTime)

@@ -16,15 +16,15 @@ function Attendees(props: AttendanceProps) {
   const now = Date.now();
   const todayAppts = props.appointments
     //sort alphabetically by student name
-    .sort((a, b) => a.attendee.name.localeCompare(b.attendee.name));
+    .sort((a, b) => a.apptRequest.attendee.name.localeCompare(b.apptRequest.attendee.name));
 
   return (
     <>
       {
         todayAppts.map((x) =>
           <AttendCard
-            student={x.attendee.name}
-            apptId={x.id}
+            student={x.apptRequest.attendee.name}
+            apptId={x.apptRequest.apptRequestId}
             time={moment(x.startTime).format("h mm a")}
             apiKey={props.apiKey}
           />

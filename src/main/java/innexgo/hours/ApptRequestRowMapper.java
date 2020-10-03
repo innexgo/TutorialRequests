@@ -29,7 +29,8 @@ public class ApptRequestRowMapper implements RowMapper<ApptRequest> {
     ApptRequest apptRequest = new ApptRequest();
     apptRequest.apptRequestId = row.getLong("appt_request_id");
     apptRequest.creatorId = row.getLong("creator_id");
-    apptRequest.targetId = row.getLong("target_id");
+    apptRequest.attendeeId = row.getLong("attendee_id");
+    apptRequest.hostId = row.getLong("host_id");
     apptRequest.message = row.getString("message");
     apptRequest.creationTime = row.getLong("creation_time");
     apptRequest.suggestedTime = row.getLong("suggested_time");

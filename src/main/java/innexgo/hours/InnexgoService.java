@@ -48,7 +48,8 @@ public class InnexgoService {
    */
   ApptRequest fillApptRequest(ApptRequest apptRequest) {
     apptRequest.creator = userService.getById(apptRequest.creatorId);
-    apptRequest.target = userService.getById(apptRequest.targetId);
+    apptRequest.attendee = userService.getById(apptRequest.attendeeId);
+    apptRequest.host = userService.getById(apptRequest.hostId);
     return apptRequest;
   }
 

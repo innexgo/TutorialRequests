@@ -116,8 +116,8 @@ public class ApiController {
 
   @RequestMapping("/apptRequest/new/")
   public ResponseEntity<?> newApptRequest(@RequestParam("targetId") Long targetId,
-      @RequestParam("message") String message, @RequestParam("suggestedTime") Long suggestedTime,
-      @RequestParam("apiKey") String apiKey) {
+      @RequestParam("attending") Boolean attending, @RequestParam("message") String message,
+      @RequestParam("suggestedTime") Long suggestedTime, @RequestParam("apiKey") String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
@@ -127,9 +127,20 @@ public class ApiController {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
+    long hostId;
+    long attendeeId;
+    if (attending) {
+      hostId = targetId;
+      attendeeId = key.creatorId;
+    } else {
+      hostId = key.creatorId;
+      attendeeId = targetId;
+    }
+
     ApptRequest ar = new ApptRequest();
     ar.creatorId = key.creatorId;
-    ar.targetId = targetId;
+    ar.hostId = hostId;
+    ar.attendeeId = attendeeId;
     ar.message = message;
     ar.creationTime = System.currentTimeMillis();
     ar.suggestedTime = suggestedTime;
@@ -213,7 +224,8 @@ public class ApiController {
 
     List<ApptRequest> list = apptRequestService.query(Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("creatorId")), // Long creatorId,
-        Utils.parseLong(allRequestParam.get("targetId")), // Long targetId,
+        Utils.parseLong(allRequestParam.get("attendeeId")), // Long attendeeId,
+        Utils.parseLong(allRequestParam.get("hostId")), // Long attendeeId,
         allRequestParam.get("message"), // String message,
         Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
         Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,

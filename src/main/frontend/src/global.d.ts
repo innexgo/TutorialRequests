@@ -20,12 +20,15 @@ declare global {
     duration: number,
     key: string,
     creator: User,
+    attendee: User,
+    host: User,
   }
 
   type ApptRequest = {
     apptRequestId: number,
     creator: User
-    target: User
+    attendee: User
+    host: User
     message: string,
     creationTime: number,
     suggestedTime: number

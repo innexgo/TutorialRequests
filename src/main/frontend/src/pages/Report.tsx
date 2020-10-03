@@ -7,7 +7,7 @@ import {Container, Col, Row} from 'react-bootstrap';
 function Report(props: AuthenticatedComponentProps) {
 
     return(
-        <DashboardLayout name={props.apiKey.user.name} logoutCallback={() => props.setApiKey(null)}>
+        <DashboardLayout name={props.apiKey.creator.name} logoutCallback={() => props.setApiKey(null)}>
             <Container fluid>
                 <Row>
                     <Col sm={8} style={{marginTop: "-1.5rem"}}> /**/ </Col>

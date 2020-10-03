@@ -35,6 +35,7 @@ function LoadEvents(props: ApptProps) {
     const end = moment(date + " " + endTime, "YYYY-M-D H:mm").valueOf();
     const duration = end - start;
     const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
+      ['attending', 'false'],
       ['targetId', `${studentId!}`],
       ['message', message],
       ['suggestedTime', `${start}`],
@@ -42,8 +43,8 @@ function LoadEvents(props: ApptProps) {
     ])) as ApptRequest;
 
     const appt = await fetchApi('appt/new/?' + new URLSearchParams([
-      ["apptRequestId", `${apptRequest.id}`],
-      ["hostId", `${props.apiKey.user.id}`],
+      ["apptRequestId", `${apptRequest.apptRequestId}`],
+      ["hostId", `${props.apiKey.creator.id}`],
       ["attendeeId", `${studentId}`],
       ["message", message],
       ["startTime", `${start}`],
@@ -56,8 +57,8 @@ function LoadEvents(props: ApptProps) {
     props.appointments.map((x:Appt) => {
       console.log(x);
       return {
-        id: `${x.id}`,
-        title: `${x.attendee.name}`,
+        id: `${x.apptRequest.apptRequestId}`,
+        title: `${x.apptRequest.attendee.name}`,
         start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
         end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
         allDay: false
@@ -172,7 +173,7 @@ function UserDashboard(props: AuthenticatedComponentProps) {
     const appointments = await fetchApi('appt/?' + new URLSearchParams([
       ['offset', '0'],
       ['count', `${0xFFFFFFFF}`],
-      ['hostId', `${apiKey.user.id}`],
+      ['hostId', `${apiKey.creator.id}`],
       ['apiKey', apiKey.key]
     ])) as Appt[];
     return {
