@@ -1,8 +1,6 @@
 import React from 'react';
-import {Card, Button } from 'react-bootstrap';
-import { Async } from 'react-async';
+import { Card, Button } from 'react-bootstrap';
 import { fetchApi } from '../utils/utils';
-import moment from 'moment';
 
 type AttendCardProps = {
   student: string,
@@ -11,57 +9,23 @@ type AttendCardProps = {
   apiKey: ApiKey,
 }
 
-export default function AttendCard({ student, apptId, time, apiKey}: AttendCardProps){
-const cardStyle = {
-  backgroundColor: '#4472C4',
-  margin: '0 2%',
-  borderRadius: '10px',
-}
-const bodyStyle = {
-  color: 'white',
-  display: 'flex',
-}
-const acceptStyle = {
-  marginLeft: 'auto',
-}
-const rejectStyle = {
-  marginLeft: '1%',
-}
-
-async function present() {
-  const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
-    ['apptRequestId', `${apptId}`],
-    ['attendanceStatus', "present"],
-    ['apiKey', apiKey.key],
-    ]
-    )) as ApptRequest;
-  }
-async function tardy() {
-  const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
-    ['apptRequestId', `${apptId}`],
-    ['attendanceStatus', "tardy"],
-    ['apiKey', apiKey.key],
-    ]
-    )) as ApptRequest;
-  }
-async function absent() {
-  const appt = await fetchApi(`apptRequest/setAttendance/?` + new URLSearchParams([
-    ['apptRequestId', `${apptId}`],
-    ['attendanceStatus', "absent"],
-    ['apiKey', apiKey.key],
-  ]
-  )) as ApptRequest;
+export default function AttendCard({ student, apptId, time, apiKey }: AttendCardProps) {
+  async function submitAttendance(kind:AttendanceKind) {
+    const attendance = await fetchApi(`attendance/new/?` + new URLSearchParams([
+      ['apptId', `${apptId}`],
+      ['kind', kind],
+      ['apiKey', apiKey.key],
+    ])) as Attendance;
   }
 
-
-return(
-  <Card style={cardStyle}>
-    <Card.Body style={bodyStyle}>
-      {student} - {time}
-      <Button style={acceptStyle} variant="success" onClick={async () => present()}>Present</Button>
-      <Button style={rejectStyle} variant="warning" onClick={async () => tardy()}>Tardy</Button>
-      <Button style={rejectStyle} variant="danger"  onClick={async () => absent()}>Absent</Button>
-    </Card.Body>
-  </Card>
-);
+  return (
+    <Card >
+      <Card.Body >
+        {student} - {time}
+        <Button variant="success" onClick={async () => submitAttendance("PRESENT")}>Present</Button>
+        <Button variant="warning" onClick={async () => submitAttendance("TARDY")}>Tardy</Button>
+        <Button variant="danger" onClick={async () => submitAttendance("ABSENT")}>Absent</Button>
+      </Card.Body>
+    </Card>
+  );
 }

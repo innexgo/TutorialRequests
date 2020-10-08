@@ -44,9 +44,9 @@ create table appt(
   duration integer not null
 );
 
-drop table if exists appt_attendance;
-create table appt_attendance(
+drop table if exists attendance;
+create table attendance(
   appt_id integer not null primary key,
   creation_time integer not null,
-  attendance integer not null
+  kind integer not null
 );

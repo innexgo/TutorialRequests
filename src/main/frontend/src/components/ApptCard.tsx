@@ -14,11 +14,6 @@ type ApptCardProps = {
 }
 
 export default function ApptCard({ student, date, studentMessage, apptId, apiKey }: ApptCardProps, props: AuthenticatedComponentProps) {
-  const cardStyle = {
-    backgroundColor: '#4472C4',
-    margin: '0 2%',
-    borderRadius: '10px',
-  }
   const bodyStyle = {
     color: 'white',
     display: 'flex',
@@ -68,7 +63,7 @@ export default function ApptCard({ student, date, studentMessage, apptId, apiKey
   }
 
   return (
-    <Card style={cardStyle}>
+    <Card>
       <Card.Body style={bodyStyle}>
         <Col style={{ margin: '1rem' }}>
           <Row style={{ fontSize: '2rem' }}>

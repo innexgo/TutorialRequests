@@ -1,13 +1,16 @@
 declare global {
+
   type SchoolInfo = {
     id: number,
     name: string,
     domain: string,
   }
 
+  type UserKind = "STUDENT" | "USER" | "ADMIN"
+
   type User = {
     id: number,
-    kind: "STUDENT" | "USER" | "ADMIN",
+    kind: UserKind,
     name: string,
     email: string,
     validated: boolean,
@@ -41,10 +44,12 @@ declare global {
     duration: number
   }
 
+  type AttendanceKind = "PRESENT" | "TARDY" | "ABSENT"
+
   type Attendance = {
     appt: Appt,
     creationTime: number,
-    kind: "PRESENT" | "TARDY" | "ABSENT",
+    kind: AttendanceKind,
   }
 
   interface AuthenticatedComponentProps {
