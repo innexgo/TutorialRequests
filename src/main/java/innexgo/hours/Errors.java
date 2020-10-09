@@ -38,6 +38,7 @@ public enum Errors {
   USER_EMAIL_INVALIDATED("this user has not finished account setup", HttpStatus.BAD_REQUEST),
   USERKIND_INVALID("must be one of STUDENT, USER, or ADMIN", HttpStatus.BAD_REQUEST),
   ATTENDANCEKIND_INVALID("must be one of ABSENT, PRESENT, or TARDY", HttpStatus.BAD_REQUEST),
+  ATTENDANCE_EXISTENT("already created attendance for this appointment", HttpStatus.BAD_REQUEST),
   UNKNOWN("an unknown error has occured", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;

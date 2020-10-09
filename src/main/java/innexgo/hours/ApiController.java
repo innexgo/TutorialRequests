@@ -176,6 +176,10 @@ public class ApiController {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
+    if(attendanceService.existsById(apptId) ) {
+      return Errors.ATTENDANCE_EXISTENT.getResponse();
+    }
+
     Attendance a = new Attendance();
     a.apptId = apptId;
     a.creationTime = System.currentTimeMillis();
