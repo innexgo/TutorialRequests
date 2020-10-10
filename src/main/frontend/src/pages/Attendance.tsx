@@ -41,8 +41,7 @@ export default function Attendance(props: AuthenticatedComponentProps) {
       ['offset', '0'],
       ['count', '0xFFFFFFFF'],
       ['hostId', `${apiKey.creator.id}`],
-      ['minTime', `${moment().startOf('day')}`],
-      ['maxTime', `${moment().endOf('day')}`],
+      ['attended', 'false'],
       ['apiKey', apiKey.key]
     ])) as Appt[];
     return {

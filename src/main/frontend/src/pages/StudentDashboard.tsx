@@ -44,10 +44,9 @@ function LoadEvents(props: ApptProps) {
   const INITIAL_EVENTS: EventInput[] =
     events.map((x) => ({
         id: `${x.apptRequest.apptRequestId}`,
-        title: `${x.apptRequest.host.name}`,
-        start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
-        end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
-        allDay: false
+        title: x.apptRequest.host.name,
+        start: x.startTime,
+        end: x.startTime + x.duration,
       })
     );
 

@@ -264,6 +264,7 @@ public class ApiController {
         Utils.parseLong(allRequestParam.get("duration")), // Long duration,
         Utils.parseLong(allRequestParam.get("minDuration")), // Long minDuration,
         Utils.parseLong(allRequestParam.get("maxDuration")), // Long maxDuration,
+        Utils.parseBoolean(allRequestParam.get("attended")), // Boolean maxDuration
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillAppt(x)).collect(Collectors.toList());
