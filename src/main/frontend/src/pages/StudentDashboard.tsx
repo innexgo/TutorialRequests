@@ -8,7 +8,6 @@ import StudentDashboardLayout from '../components/StudentDashboardLayout';
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
 import { fetchApi } from '../utils/utils';
-import moment from 'moment';
 
 interface ApptProps {
   appointments: Appt[],

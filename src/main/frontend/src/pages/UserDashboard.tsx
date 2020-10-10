@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import FullCalendar, { EventInput, EventClickArg, DateSelectArg } from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import UserDashboardLayout from '../components/UserDashboardLayout';
@@ -9,16 +8,12 @@ import SearchUserDropdown from '../components/SearchUserDropdown';
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import Utility from '../components/Utility';
 import { fetchApi } from '../utils/utils';
-import moment from 'moment';
 
 interface ApptProps {
   appointments: Appt[],
   apiKey: ApiKey
 }
-
-
-
-function LoadEvents(props: ApptProps) {
+function EventCalendar(props: ApptProps) {
 
   const [show, setShow] = useState(false);
   const [date, setDate] = useState("");
@@ -31,8 +26,8 @@ function LoadEvents(props: ApptProps) {
   const [message, setMessage] = React.useState("");
 
   async function createAppt() {
-    const start = moment(date + " " + startTime, "YYYY-M-D H:mm").valueOf();
-    const end = moment(date + " " + endTime, "YYYY-M-D H:mm").valueOf();
+    const start = new Date(0).valueOf();
+    const end = new Date(0).valueOf();
     const duration = end - start;
     const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
       ['attending', 'false'],
@@ -51,25 +46,6 @@ function LoadEvents(props: ApptProps) {
       ["duration", `${duration}`],
       ["apiKey", `${props.apiKey.key}`]
     ])) as Appt;
-  }
-
-  const INITIAL_EVENTS: EventInput[] =
-    props.appointments.map((x:Appt) => {
-      console.log(x);
-      return {
-        id: `${x.apptRequest.apptRequestId}`,
-        title: `${x.apptRequest.attendee.name}`,
-        start: `${moment(x.startTime).format("yyyy-mm-dd[T]h:mm:ss")}`,
-        end: `${moment(x.startTime + x.duration).format("yyyy-mm-dd[T]h:mm:ss")}`,
-        allDay: false
-      }
-    });
-
-  const handleEventClick = (clickInfo: EventClickArg) => {
-    if (window.confirm(`Are you sure you want to delete the appointment with'${clickInfo.event.title}'`)) {
-      clickInfo.event.remove()
-      //TODO NEED TO ACTUALLY DELETE EVENT FROm BACKEND
-    }
   }
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
@@ -92,26 +68,44 @@ function LoadEvents(props: ApptProps) {
   }
 
 
+  const loadEvents = () =>
+    props.appointments.map((x: Appt) => {
+      console.log(x);
+      return {
+        id: `${x.apptRequest.apptRequestId}`,
+        title: x.apptRequest.attendee.name,
+        start: new Date(x.startTime),
+        end: new Date(x.startTime + x.duration),
+        allDay: false
+      };
+    });
+
+
+
   return (
-    <>
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        plugins={[timeGridPlugin, interactionPlugin]}
         headerToolbar={{
           left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          center: '',
+          right: 'timeGridDay,timeGridWeek',
         }}
-        initialView='dayGridMonth'
+        initialView='timeGridWeek'
+        allDaySlot={false}
+        nowIndicator={true}
         editable={false}
         selectable={true}
         selectMirror={true}
         dayMaxEvents={true}
-        weekends={false}
+        businessHours={{
+          daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
+          startTime: '08:00', // 8am
+          endTime: '18:00' // 6pm
+        }}
         select={handleDateSelect}
-        eventClick={handleEventClick}
-        initialEvents={INITIAL_EVENTS}
-
-      />
+        events={loadEvents()}
+      />)
+   let foo =
       <Modal
         show={show}
         onHide={handleClose}
@@ -163,8 +157,6 @@ function LoadEvents(props: ApptProps) {
           </Button>
         </Modal.Footer>
       </Modal>
-    </>
-  );
 }
 
 
@@ -190,7 +182,7 @@ function UserDashboard(props: AuthenticatedComponentProps) {
             <Popover id="information-tooltip">
               This screen shows all future appointments. You can click any date to add an appointment on that date, or click an existing appointment to delete it.
            </Popover>
-            {data => <LoadEvents {...data} />}
+            {data => <EventCalendar {...data} />}
           </Utility>
         </CardDeck>
       </Container>

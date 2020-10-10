@@ -1,19 +1,18 @@
 import React from 'react';
 import { Card, Col, Row, Button, Form } from 'react-bootstrap';
-import { Async } from 'react-async';
+import { format } from 'date-fns';
 import { fetchApi } from '../utils/utils';
-import moment from 'moment';
 
 //date pass date as milliseconds
 type ApptCardProps = {
   student: string,
-  date: string,
+  time: number,
   studentMessage: string,
   apptId: number,
   apiKey: ApiKey,
 }
 
-export default function ApptCard({ student, date, studentMessage, apptId, apiKey }: ApptCardProps, props: AuthenticatedComponentProps) {
+export default function ApptCard({ student, time, studentMessage, apptId, apiKey }: ApptCardProps) {
   const bodyStyle = {
     color: 'white',
     display: 'flex',
@@ -30,9 +29,8 @@ export default function ApptCard({ student, date, studentMessage, apptId, apiKey
   const [response, setResponse] = React.useState("");
 
   async function acceptAppt() {
-    const dateFormat = moment(date).format("YYYY-M-D");
-    const start = moment(dateFormat + " " + startTime, "YYYY-M-D H:mm").valueOf();
-    const end = moment(dateFormat + " " + endTime, "YYYY-M-D H:mm").valueOf();
+    const start = Date.parse(startTime);
+    const end = Date.parse(endTime);
 
     const appt = await fetchApi(`apptRequest/review/?` + new URLSearchParams([
       ['apptRequestId', `${apptId}`],
@@ -46,9 +44,8 @@ export default function ApptCard({ student, date, studentMessage, apptId, apiKey
   }
 
   async function rejectAppt() {
-    const dateFormat = moment(date).format("YYYY-M-D");
-    const start = moment(dateFormat + " " + startTime, "YYYY-M-D H:mm").valueOf();
-    const end = moment(dateFormat + " " + endTime, "YYYY-M-D H:mm").valueOf();
+    const start = Date.parse(startTime);
+    const end = Date.parse(endTime);
 
     const appt = await fetchApi('apptRequest/review/?' + new URLSearchParams([
       ['apptRequestId', `${apptId}`],
@@ -67,7 +64,7 @@ export default function ApptCard({ student, date, studentMessage, apptId, apiKey
       <Card.Body style={bodyStyle}>
         <Col style={{ margin: '1rem' }}>
           <Row style={{ fontSize: '2rem' }}>
-            {student} - {date}
+            {student} - {format(new Date(time), 'MM Do')}
           </Row>
           <Row>
             <Form.Group controlId="message">

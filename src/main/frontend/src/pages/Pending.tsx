@@ -4,7 +4,6 @@ import UserDashboardLayout from '../components/UserDashboardLayout';
 import ApptCard from '../components/ApptCard';
 import Utility from '../components/Utility';
 import { fetchApi } from '../utils/utils';
-import moment from 'moment';
 
 interface ApptProps {
   appointments: ApptRequest[],
@@ -12,8 +11,6 @@ interface ApptProps {
 }
 
 function PendingAppointments(props: ApptProps) {
-
-  const now = Date.now();
   const upcomingAppts = props.appointments
     //sort by time
     .sort((a, b) => a.creationTime - b.creationTime);
@@ -24,7 +21,7 @@ function PendingAppointments(props: ApptProps) {
         upcomingAppts.map((x) =>
           <ApptCard
             student={x.creator.name}
-            date={moment(x.suggestedTime).format("MMM Do")}
+            time={x.suggestedTime}
             studentMessage={x.message}
             apptId={x.apptRequestId}
             apiKey={props.apiKey}

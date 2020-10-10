@@ -4,7 +4,7 @@ import UserDashboardLayout from '../components/UserDashboardLayout';
 import AttendCard from '../components/AttendCard';
 import Utility from '../components/Utility';
 import { fetchApi } from '../utils/utils';
-import moment from 'moment';
+import format from 'date-fns/format';
 
 interface AttendanceProps {
   appointments: Appt[],
@@ -25,7 +25,7 @@ function Attendees(props: AttendanceProps) {
           <AttendCard
             student={x.apptRequest.attendee.name}
             apptId={x.apptRequest.apptRequestId}
-            time={moment(x.startTime).format("h mm a")}
+            time={format(new Date(x.startTime), "h mm a")}
             apiKey={props.apiKey}
           />
         )

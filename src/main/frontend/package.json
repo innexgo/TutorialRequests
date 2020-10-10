@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fullcalendar/bootstrap": "^5.3.1",
     "@fullcalendar/core": "^5.3.0",
     "@fullcalendar/daygrid": "^5.3.0",
     "@fullcalendar/interaction": "^5.3.0",
@@ -26,7 +27,7 @@
     "@types/react-select": "^3.0.19",
     "@types/webpack-env": "^1.15.2",
     "bootstrap": "^5.0.0-alpha1",
-    "moment": "^2.27.0",
+    "date-fns": "^2.16.1",
     "node-sass": "^4.14.1",
     "popper.js": "^1.16.1",
     "react": "^16.13.1",
