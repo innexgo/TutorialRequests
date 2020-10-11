@@ -75,9 +75,9 @@ public class ApptService {
       long count) {
     String sql =
         "SELECT ap.appt_request_id, ap.message, ap.creation_time, ap.start_time, ap.duration FROM appt ap"
-            + (attended != null ? "" : " JOIN attendance att ON att.appt_id = ap.appt_request_id")
+            + (attended == null ? "" : " JOIN attendance att ON att.appt_id = ap.appt_request_id")
             + " WHERE 1=1 "
-            + (attended != null ? "" : (attended ? " att.appt_id IS NOT NULL " : " att.appt_id IS NULL "))
+            + (attended == null ? "" : (attended ? "AND att.appt_id IS NOT NULL " : "AND att.appt_id IS NULL "))
             + (apptRequestId == null ? "" : " AND ap.appt_request_id = " + apptRequestId)
             + (message == null ? "" : " AND ap.message = " + Utils.escape(message))
             + (creationTime == null ? "" : " AND ap.creation_time = " + creationTime)
