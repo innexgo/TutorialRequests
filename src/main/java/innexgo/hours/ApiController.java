@@ -237,6 +237,7 @@ public class ApiController {
         Utils.parseLong(allRequestParam.get("suggestedTime")), // Long suggestedTime,
         Utils.parseLong(allRequestParam.get("minSuggestedTime")), // Long minSuggestedTime,
         Utils.parseLong(allRequestParam.get("maxSuggestedTime")), // Long maxSuggestedTime,
+        Utils.parseBoolean(allRequestParam.get("confirmed")), // Boolean confirmed,
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillApptRequest(x)).collect(Collectors.toList());
@@ -264,7 +265,7 @@ public class ApiController {
         Utils.parseLong(allRequestParam.get("duration")), // Long duration,
         Utils.parseLong(allRequestParam.get("minDuration")), // Long minDuration,
         Utils.parseLong(allRequestParam.get("maxDuration")), // Long maxDuration,
-        Utils.parseBoolean(allRequestParam.get("attended")), // Boolean maxDuration
+        Utils.parseBoolean(allRequestParam.get("attended")), // Boolean attended,
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillAppt(x)).collect(Collectors.toList());

@@ -33,7 +33,8 @@ public class ApptRequestRowMapper implements RowMapper<ApptRequest> {
     apptRequest.hostId = row.getLong("host_id");
     apptRequest.message = row.getString("message");
     apptRequest.creationTime = row.getLong("creation_time");
-    apptRequest.suggestedTime = row.getLong("suggested_time");
+    apptRequest.startTime = row.getLong("start_time");
+    apptRequest.duration = row.getLong("duration");
     return apptRequest;
   }
 }

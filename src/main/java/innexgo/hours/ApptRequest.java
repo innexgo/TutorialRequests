@@ -25,7 +25,8 @@ public class ApptRequest {
   long hostId;
   public String message;
   public long creationTime;
-  public long suggestedTime;
+  public long startTime;
+  public long duration;
 
   // for jackson
   public User creator;
