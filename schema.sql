@@ -32,7 +32,8 @@ create table appt_request(
   host_id integer not null,
   message varchar(100) not null,
   creation_time integer not null,
-  suggested_time integer not null
+  start_time integer not null,
+  duration integer not null
 );
 
 drop table if exists appt; 

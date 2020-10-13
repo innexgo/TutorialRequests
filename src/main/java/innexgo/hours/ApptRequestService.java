@@ -33,7 +33,7 @@ public class ApptRequestService {
 
   public ApptRequest getById(long id) {
     String sql =
-        "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr WHERE apr.appt_request_id=?";
+        "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.start_time, apr.duration FROM appt_request apr WHERE apr.appt_request_id=?";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
     ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apptRequest;
@@ -55,7 +55,7 @@ public class ApptRequestService {
     apptRequest.apptRequestId = nextId();
     // Add apptRequest
     String sql =
-        "INSERT INTO appt_request values (?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO appt_request values (?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         apptRequest.apptRequestId,
@@ -64,12 +64,14 @@ public class ApptRequestService {
         apptRequest.hostId,
         apptRequest.message,
         apptRequest.creationTime,
-        apptRequest.suggestedTime );
+        apptRequest.startTime,
+        apptRequest.duration
+    );
   }
 
   public void update(ApptRequest apptRequest) {
     String sql =
-        "UPDATE appt_request apr SET apr.appt_request_id=?, apr.creator_id=?, apr.attendee_id=?, apr.host_id=?, apr.message=?, apr.creation_time=?, apr.suggested_time=? WHERE apr.appt_request_id=?";
+        "UPDATE appt_request apr SET apr.appt_request_id=?, apr.creator_id=?, apr.attendee_id=?, apr.host_id=?, apr.message=?, apr.creation_time=?, apr.start_time=? WHERE apr.appt_request_id=?";
     jdbcTemplate.update(
         sql,
         apptRequest.apptRequestId,
@@ -78,7 +80,9 @@ public class ApptRequestService {
         apptRequest.hostId,
         apptRequest.message,
         apptRequest.creationTime,
-        apptRequest.suggestedTime);
+        apptRequest.startTime,
+        apptRequest.duration
+    );
   }
 
   public ApptRequest deleteById(long id) {
@@ -104,14 +108,20 @@ public class ApptRequestService {
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
-      Long suggestedTime,
-      Long minSuggestedTime,
-      Long maxSuggestedTime,
+      Long startTime,
+      Long minStartTime,
+      Long maxStartTime,
+      Long duration,
+      Long minDuration,
+      Long maxDuration,
+      Boolean confirmed,
       long offset,
       long count) {
     String sql =
-        "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.suggested_time FROM appt_request apr"
+        "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.start_time, apr.duration FROM appt_request apr"
+            + (confirmed == null ? "" : " JOIN appt ap ON ap.appt_request_id = apr.appt_request_id")
             + " WHERE 1=1 "
+            + (confirmed == null ? "" : " AND ap.appt_request_id IS" + (confirmed ? " NOT NULL" : " NULL"))
             + (apptRequestId== null ? "" : " AND apr.appt_request_id = " + apptRequestId)
             + (creatorId == null ? "" : " AND apr.creator_id = " + creatorId)
             + (attendeeId == null ? "" : " AND apr.attendee_id = " + attendeeId)
@@ -120,9 +130,12 @@ public class ApptRequestService {
             + (creationTime == null ? "" : " AND apr.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND apr.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND apr.creation_time < " + maxCreationTime)
-            + (suggestedTime == null ? "" : " AND apr.suggested_time = " + suggestedTime)
-            + (minSuggestedTime == null ? "" : " AND apr.suggested_time > " + minSuggestedTime)
-            + (maxSuggestedTime == null ? "" : " AND apr.suggested_time < " + maxSuggestedTime)
+            + (startTime == null ? "" : " AND apr.start_time = " + startTime)
+            + (minStartTime == null ? "" : " AND apr.start_time > " + minStartTime)
+            + (maxStartTime == null ? "" : " AND apr.start_time < " + maxStartTime)
+            + (duration == null ? "" : " AND apr.duration = " + duration)
+            + (minDuration == null ? "" : " AND apr.duration > " + minDuration)
+            + (maxDuration == null ? "" : " AND apr.duration < " + maxDuration)
             + (" ORDER BY apr.appt_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

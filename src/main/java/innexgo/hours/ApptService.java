@@ -77,7 +77,7 @@ public class ApptService {
         "SELECT ap.appt_request_id, ap.message, ap.creation_time, ap.start_time, ap.duration FROM appt ap"
             + (attended == null ? "" : " JOIN attendance att ON att.appt_id = ap.appt_request_id")
             + " WHERE 1=1 "
-            + (attended == null ? "" : (attended ? "AND att.appt_id IS NOT NULL " : "AND att.appt_id IS NULL "))
+            + (attended == null ? "" : " AND att.appt_id IS" + (attended ? " NOT NULL" : " NULL"))
             + (apptRequestId == null ? "" : " AND ap.appt_request_id = " + apptRequestId)
             + (message == null ? "" : " AND ap.message = " + Utils.escape(message))
             + (creationTime == null ? "" : " AND ap.creation_time = " + creationTime)

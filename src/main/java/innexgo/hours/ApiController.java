@@ -117,7 +117,9 @@ public class ApiController {
   @RequestMapping("/apptRequest/new/")
   public ResponseEntity<?> newApptRequest(@RequestParam("targetId") Long targetId,
       @RequestParam("attending") Boolean attending, @RequestParam("message") String message,
-      @RequestParam("suggestedTime") Long suggestedTime, @RequestParam("apiKey") String apiKey) {
+      @RequestParam("startTime") Long startTime,
+@RequestParam("duration") Long duration, 
+      @RequestParam("apiKey") String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
@@ -126,6 +128,11 @@ public class ApiController {
     if (!userService.existsById(targetId)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
+
+    if(duration < 0) {
+      return Errors.NEGATIVE_DURATION.getResponse();
+    }
+
 
     long hostId;
     long attendeeId;
@@ -143,7 +150,8 @@ public class ApiController {
     ar.attendeeId = attendeeId;
     ar.message = message;
     ar.creationTime = System.currentTimeMillis();
-    ar.suggestedTime = suggestedTime;
+    ar.startTime = startTime;
+    ar.duration = duration;
     apptRequestService.add(ar);
     return new ResponseEntity<>(innexgoService.fillApptRequest(ar), HttpStatus.OK);
   }
@@ -156,6 +164,10 @@ public class ApiController {
 
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    }
+
+    if(duration < 0) {
+      return Errors.NEGATIVE_DURATION.getResponse();
     }
 
     Appt a = new Appt();
@@ -226,7 +238,8 @@ public class ApiController {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    List<ApptRequest> list = apptRequestService.query(Utils.parseLong(allRequestParam.get("id")), // Long id,
+    List<ApptRequest> list = apptRequestService.query(
+        Utils.parseLong(allRequestParam.get("id")), // Long id,
         Utils.parseLong(allRequestParam.get("creatorId")), // Long creatorId,
         Utils.parseLong(allRequestParam.get("attendeeId")), // Long attendeeId,
         Utils.parseLong(allRequestParam.get("hostId")), // Long attendeeId,
@@ -234,9 +247,12 @@ public class ApiController {
         Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
         Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,
         Utils.parseLong(allRequestParam.get("maxCreationTime")), // Long maxCreationTime,
-        Utils.parseLong(allRequestParam.get("suggestedTime")), // Long suggestedTime,
-        Utils.parseLong(allRequestParam.get("minSuggestedTime")), // Long minSuggestedTime,
-        Utils.parseLong(allRequestParam.get("maxSuggestedTime")), // Long maxSuggestedTime,
+        Utils.parseLong(allRequestParam.get("startTime")), // Long startTime,
+        Utils.parseLong(allRequestParam.get("minStartTime")), // Long minStartTime,
+        Utils.parseLong(allRequestParam.get("maxStartTime")), // Long maxStartTime,
+        Utils.parseLong(allRequestParam.get("duration")), // Long duration,
+        Utils.parseLong(allRequestParam.get("minDuration")), // Long minDuration,
+        Utils.parseLong(allRequestParam.get("maxDuration")), // Long maxDuration,
         Utils.parseBoolean(allRequestParam.get("confirmed")), // Boolean confirmed,
         offset, // long offset,
         count // long count)
