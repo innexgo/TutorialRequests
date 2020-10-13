@@ -60,6 +60,8 @@ public class ApptService {
   // Restrict appts by
   public List<Appt> query(
       Long apptRequestId,
+      Long attendeeId,
+      Long hostId,
       String message,
       Long creationTime,
       Long minCreationTime,

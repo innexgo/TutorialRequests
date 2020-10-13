@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import FullCalendar, { DateSelectArg, EventApi } from '@fullcalendar/react'
+import FullCalendar, { DateSelectArg, DateUnselectArg } from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import UserDashboardLayout from '../components/UserDashboardLayout';
@@ -22,7 +22,14 @@ type CreateApptModalProps = {
 function CreateApptModal(props: CreateApptModalProps) {
   const [studentId, setStudentId] = React.useState<number | null>(null);
   const [message, setMessage] = React.useState("");
+
+  const submit = async () => {
+      props.createAppt(studentId!, message)
+      props.setShow(false);
+  }
+
   return <Modal
+    className="CreateApptModal"
     show={props.show}
     onHide={() => props.setShow(false)}
     keyboard={false}
@@ -36,15 +43,11 @@ function CreateApptModal(props: CreateApptModalProps) {
       <Form>
         <Form.Group controlId="startTime">
           <Form.Label>Start Time</Form.Label>
-          <Form.Control disabled>
-            {format(props.start, "MMM Do, hh:mm a")}
-          </Form.Control>
+          <Form.Control disabled placeholder={format(props.start, "MMM do, hh:mm a")} />
         </Form.Group>
         <Form.Group controlId="endTime">
           <Form.Label>End Time</Form.Label>
-          <Form.Control disabled>
-            {format(props.start + props.duration, "MMM Do, hh:mm a")}
-          </Form.Control>
+          <Form.Control disabled placeholder={format(props.start + props.duration, "MMM do, hh:mm a")} />
         </Form.Group>
 
         <Form.Group controlId="student">
@@ -59,7 +62,7 @@ function CreateApptModal(props: CreateApptModalProps) {
               setMessage(e.target.value);
             }} />
         </Form.Group>
-        <Button variant="primary" disabled={studentId == null} onClick={async () => props.createAppt(studentId!, message)}>
+        <Button variant="primary" disabled={studentId == null} onClick={submit}>
           Submit
         </Button>
       </Form>
@@ -73,14 +76,12 @@ function EventCalendar(props: AuthenticatedComponentProps) {
 
   let [start, setStart] = React.useState<number | null>(null);
   let [duration, setDuration] = React.useState<number | null>(null);
+
   let [showCreateApptModal, setShowCreateApptModal] = React.useState(false);
 
   let [apptRequests, setApptRequests] = React.useState<ApptRequest[]>([]);
   let [appts, setAppts] = React.useState<Appt[]>([]);
   let [attendances, setAttendances] = React.useState<Attendance[]>([]);
-
-  setApptRequests(my
-
 
   const getEvents = () => {
     type PartialEvent = {
@@ -118,13 +119,13 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     return [...apptEvents, ...apptRequestEvents, ...attendanceEvents];
   }
 
-
   const createAppt = async (studentId: number, message: string) => {
     const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
       ['attending', 'false'],
       ['targetId', `${studentId}`],
       ['message', message],
-      ['suggestedTime', `${start}`],
+      ['startTime', `${start}`],
+      ['duration', `${duration}`],
       ['apiKey', `${props.apiKey.key}`],
     ])) as ApptRequest;
 
@@ -141,12 +142,20 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     setAppts([...appts, appt])
   }
 
-  const handleDateSelect = () => {
+  const handleDateSelect = (dsa: DateSelectArg) => {
+    setStart(dsa.start.valueOf());
+    setDuration(dsa.end.valueOf() - dsa.start.valueOf());
+    setShowCreateApptModal(true);
+  }
 
+  const handleDateUnselect = (dusa: DateUnselectArg) => {
+    setStart(null);
+    setDuration(null);
+    setShowCreateApptModal(false);
   }
 
   return (
-    <>
+    <div >
       <FullCalendar
         plugins={[timeGridPlugin, interactionPlugin]}
         headerToolbar={{
@@ -160,13 +169,14 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         editable={false}
         selectable={true}
         selectMirror={true}
-        dayMaxEvents={true}
+        unselectCancel=".CreateApptModal"
         businessHours={{
           daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
           startTime: '08:00', // 8am
           endTime: '18:00' // 6pm
         }}
         select={handleDateSelect}
+        unselect={handleDateUnselect}
         events={getEvents()}
       />
       {(start != null) && (duration != null)
@@ -179,7 +189,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
           duration={duration} />
         : <></>
       }
-    </>
+    </div>
   )
 }
 

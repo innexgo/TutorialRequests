@@ -21,7 +21,8 @@ function PendingAppointments(props: ApptProps) {
         upcomingAppts.map((x) =>
           <ApptCard
             student={x.creator.name}
-            time={x.suggestedTime}
+            time={x.startTime}
+            duration={x.duration}
             studentMessage={x.message}
             apptId={x.apptRequestId}
             apiKey={props.apiKey}

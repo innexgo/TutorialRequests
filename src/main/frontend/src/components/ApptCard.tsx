@@ -7,12 +7,13 @@ import { fetchApi } from '../utils/utils';
 type ApptCardProps = {
   student: string,
   time: number,
+  duration: number,
   studentMessage: string,
   apptId: number,
   apiKey: ApiKey,
 }
 
-export default function ApptCard({ student, time, studentMessage, apptId, apiKey }: ApptCardProps) {
+export default function ApptCard({ student, time, duration, studentMessage, apptId, apiKey }: ApptCardProps) {
   const bodyStyle = {
     color: 'white',
     display: 'flex',
@@ -32,7 +33,7 @@ export default function ApptCard({ student, time, studentMessage, apptId, apiKey
     const start = Date.parse(startTime);
     const end = Date.parse(endTime);
 
-    const appt = await fetchApi(`apptRequest/review/?` + new URLSearchParams([
+    const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
       ['apptRequestId', `${apptId}`],
       ['approved', 'true'],
       ['response', response],

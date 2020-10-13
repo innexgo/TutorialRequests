@@ -70,8 +70,8 @@ public class ApiController {
    *                        unsuccessful
    */
   @RequestMapping("/apiKey/new/")
-  public ResponseEntity<?> newApiKey(@RequestParam("userEmail") String userEmail,
-      @RequestParam("userPassword") String password, @RequestParam("duration") Long duration) {
+  public ResponseEntity<?> newApiKey(@RequestParam String userEmail, @RequestParam String password,
+      @RequestParam long duration) {
     // Ensure user exists
     if (!userService.existsByEmail(userEmail)) {
       return Errors.USER_NONEXISTENT.getResponse();
@@ -94,8 +94,8 @@ public class ApiController {
   }
 
   @RequestMapping("/user/new/")
-  public ResponseEntity<?> newUser(@RequestParam("userName") String name, @RequestParam("userEmail") String email,
-      @RequestParam("userPassword") String password, @RequestParam("userKind") UserKind kind) {
+  public ResponseEntity<?> newUser(@RequestParam String name, @RequestParam String email, @RequestParam String password,
+      @RequestParam UserKind kind) {
     if (Utils.isEmpty(email)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
@@ -115,11 +115,12 @@ public class ApiController {
   }
 
   @RequestMapping("/apptRequest/new/")
-  public ResponseEntity<?> newApptRequest(@RequestParam("targetId") Long targetId,
-      @RequestParam("attending") Boolean attending, @RequestParam("message") String message,
-      @RequestParam("startTime") Long startTime,
-@RequestParam("duration") Long duration, 
-      @RequestParam("apiKey") String apiKey) {
+  public ResponseEntity<?> newApptRequest(@RequestParam long targetId, //
+      @RequestParam boolean attending, //
+      @RequestParam String message, //
+      @RequestParam long startTime, //
+      @RequestParam long duration, //
+      @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
@@ -129,10 +130,9 @@ public class ApiController {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
-    if(duration < 0) {
+    if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
-
 
     long hostId;
     long attendeeId;
@@ -157,16 +157,19 @@ public class ApiController {
   }
 
   @RequestMapping("/appt/new/")
-  public ResponseEntity<?> newAppt(@RequestParam("apptRequestId") Long apptRequestId,
-      @RequestParam("message") String message, @RequestParam("startTime") Long startTime,
-      @RequestParam("duration") Long duration, @RequestParam("apiKey") String apiKey) {
+  public ResponseEntity<?> newAppt( //
+      @RequestParam long apptRequestId, //
+      @RequestParam String message, //
+      @RequestParam long startTime, //
+      @RequestParam long duration, //
+      @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
 
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    if(duration < 0) {
+    if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
 
@@ -181,14 +184,16 @@ public class ApiController {
   }
 
   @RequestMapping("/attendance/new/")
-  public ResponseEntity<?> newAttendance(@RequestParam("apptId") Long apptId,
-      @RequestParam("kind") AttendanceKind attendanceKind, @RequestParam("apiKey") String apiKey) {
+  public ResponseEntity<?> newAttendance( //
+      @RequestParam long apptId, //
+      @RequestParam AttendanceKind attendanceKind, //
+      @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    if(attendanceService.existsById(apptId) ) {
+    if (attendanceService.existsById(apptId)) {
       return Errors.ATTENDANCE_EXISTENT.getResponse();
     }
 
@@ -201,59 +206,79 @@ public class ApiController {
   }
 
   @RequestMapping("/user/")
-  public ResponseEntity<?> viewUser(@RequestParam(value = "offset", defaultValue = "0") Long offset,
-      @RequestParam(value = "count", defaultValue = "100") Long count, @RequestParam("apiKey") String apiKey,
-      @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewUser( //
+      @RequestParam(required = false) Long userId, //
+      @RequestParam(required = false) UserKind userKind, //
+      @RequestParam(required = false) String userName, //
+      @RequestParam(required = false) String partialUserName, //
+      @RequestParam(required = false) String userEmail, //
+      @RequestParam(required = false) Boolean validated, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey //
+  ) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    UserKind kind = null;
-    if (allRequestParam.containsKey("userKind")) {
-      String userKindStr = allRequestParam.get("userKind");
-      if (UserKind.contains(userKindStr)) {
-        kind = UserKind.valueOf(userKindStr);
-      } else {
-        return Errors.USERKIND_INVALID.getResponse();
-      }
-    }
-
-    List<User> list = userService
-        .query(Utils.parseLong(allRequestParam.get("userId")), kind, allRequestParam.get("userName"),
-            allRequestParam.get("partialUserName"), allRequestParam.get("userEmail"),
-            Utils.parseBoolean(allRequestParam.get("validated")), offset, count)
-        .stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
+    List<User> list = userService.query( //
+        userId, //
+        userKind, //
+        userName, //
+        partialUserName, //
+        userEmail, //
+        validated, //
+        offset, //
+        count //
+    ).stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
   @RequestMapping("/apptRequest/")
-  public ResponseEntity<?> viewApptRequest(@RequestParam(value = "offset", defaultValue = "0") long offset,
-      @RequestParam(value = "count", defaultValue = "100") long count, @RequestParam("apiKey") String apiKey,
-      @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewApptRequest( //
+      @RequestParam(required = false) Long apptRequestId, //
+      @RequestParam(required = false) Long creatorId, //
+      @RequestParam(required = false) Long attendeeId, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) String message, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Boolean confirmed, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey) {
+
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
 
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    List<ApptRequest> list = apptRequestService.query(
-        Utils.parseLong(allRequestParam.get("id")), // Long id,
-        Utils.parseLong(allRequestParam.get("creatorId")), // Long creatorId,
-        Utils.parseLong(allRequestParam.get("attendeeId")), // Long attendeeId,
-        Utils.parseLong(allRequestParam.get("hostId")), // Long attendeeId,
-        allRequestParam.get("message"), // String message,
-        Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
-        Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,
-        Utils.parseLong(allRequestParam.get("maxCreationTime")), // Long maxCreationTime,
-        Utils.parseLong(allRequestParam.get("startTime")), // Long startTime,
-        Utils.parseLong(allRequestParam.get("minStartTime")), // Long minStartTime,
-        Utils.parseLong(allRequestParam.get("maxStartTime")), // Long maxStartTime,
-        Utils.parseLong(allRequestParam.get("duration")), // Long duration,
-        Utils.parseLong(allRequestParam.get("minDuration")), // Long minDuration,
-        Utils.parseLong(allRequestParam.get("maxDuration")), // Long maxDuration,
-        Utils.parseBoolean(allRequestParam.get("confirmed")), // Boolean confirmed,
+    List<ApptRequest> list = apptRequestService.query(//
+        apptRequestId, // Long id,
+        creatorId, // Long creatorId,
+        attendeeId, // Long attendeeId,
+        hostId, // Long attendeeId,
+        message, // String message,
+        creationTime, // Long creationTime,
+        minCreationTime, // Long minCreationTime,
+        maxCreationTime, // Long maxCreationTime,
+        startTime, // Long startTime,
+        minStartTime, // Long minStartTime,
+        maxStartTime, // Long maxStartTime,
+        duration, // Long duration,
+        minDuration, // Long minDuration,
+        maxDuration, // Long maxDuration,
+        confirmed, // Boolean confirmed,
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillApptRequest(x)).collect(Collectors.toList());
@@ -261,27 +286,47 @@ public class ApiController {
   }
 
   @RequestMapping("/appt/")
-  public ResponseEntity<?> viewAppt(@RequestParam(value = "offset", defaultValue = "0") long offset,
-      @RequestParam(value = "count", defaultValue = "100") long count, @RequestParam("apiKey") String apiKey,
-      @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewAppt( //
+      @RequestParam(required = false) Long apptRequestId, //
+      @RequestParam(required = false) Long creatorId, //
+      @RequestParam(required = false) Long attendeeId, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) String message, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Boolean attended, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey //
+  ) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Appt> list = apptService.query(Utils.parseLong(allRequestParam.get("apptRequestId")), // Long apptRequestId,
-        allRequestParam.get("message"), // String message,
-        Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
-        Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,
-        Utils.parseLong(allRequestParam.get("maxCreationTime")), // Long maxCreationTime,
-        Utils.parseLong(allRequestParam.get("time")), // Long time,
-        Utils.parseLong(allRequestParam.get("minTime")), // Long minTime,
-        Utils.parseLong(allRequestParam.get("maxTime")), // Long maxTime,
-        Utils.parseLong(allRequestParam.get("duration")), // Long duration,
-        Utils.parseLong(allRequestParam.get("minDuration")), // Long minDuration,
-        Utils.parseLong(allRequestParam.get("maxDuration")), // Long maxDuration,
-        Utils.parseBoolean(allRequestParam.get("attended")), // Boolean attended,
+    List<Appt> list = apptService.query( //
+        apptRequestId, // Long apptRequestId,
+        message, // String message,
+        hostId, // Long creatorId,
+        attendeeId, // Long attendeeId,
+        creationTime, // Long creationTime,
+        minCreationTime, // Long minCreationTime,
+        maxCreationTime, // Long maxCreationTime,
+        startTime, // Long time,
+        minStartTime, // Long minTime,
+        maxStartTime, // Long maxTime,
+        duration, // Long duration,
+        minDuration, // Long minDuration,
+        maxDuration, // Long maxDuration,
+        attended, // Boolean attended,
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillAppt(x)).collect(Collectors.toList());
@@ -289,29 +334,36 @@ public class ApiController {
   }
 
   @RequestMapping("/attendance/")
-  public ResponseEntity<?> viewAttendance(@RequestParam(value = "offset", defaultValue = "0") long offset,
-      @RequestParam(value = "count", defaultValue = "100") long count, @RequestParam("apiKey") String apiKey,
-      @RequestParam Map<String, String> allRequestParam) {
+  public ResponseEntity<?> viewAttendance( //
+      @RequestParam(required = false) Long apptId, //
+      @RequestParam(required = false) Long creatorId, //
+      @RequestParam(required = false) Long attendeeId, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) AttendanceKind kind, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey //
+  ) {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    AttendanceKind kind = null;
-    if (allRequestParam.containsKey("attendanceKind")) {
-      String attendanceKindStr = allRequestParam.get("attendanceKind");
-      if (AttendanceKind.contains(attendanceKindStr)) {
-        kind = AttendanceKind.valueOf(attendanceKindStr);
-      } else {
-        return Errors.ATTENDANCEKIND_INVALID.getResponse();
-      }
-    }
-
-    List<Attendance> list = attendanceService.query(Utils.parseLong(allRequestParam.get("apptId")), // Long apptId,
-        Utils.parseLong(allRequestParam.get("creationTime")), // Long creationTime,
-        Utils.parseLong(allRequestParam.get("minCreationTime")), // Long minCreationTime,
-        Utils.parseLong(allRequestParam.get("maxCreationTime")), // Long maxCreationTime,
+    List<Attendance> list = attendanceService.query( //
+        apptId, // Long apptId,
+        creationTime, // Long creationTime,
+        minCreationTime, // Long minCreationTime,
+        maxCreationTime, // Long maxCreationTime,
         kind, // AttendanceKind kind,
         offset, // long offset,
         count // long count)
@@ -321,8 +373,11 @@ public class ApiController {
 
   // This method updates the password for same user only
   @RequestMapping("/misc/updatePassword/")
-  public ResponseEntity<?> updatePassword(@RequestParam("userId") Long userId,
-      @RequestParam("userOldPassword") String oldPassword, @RequestParam("userNewPassword") String newPassword) {
+  public ResponseEntity<?> updatePassword( //
+      @RequestParam Long userId, //
+      @RequestParam String oldPassword, //
+      @RequestParam String newPassword //
+  ) {
 
     if (!userService.existsById(userId)) {
       return Errors.USER_NONEXISTENT.getResponse();
