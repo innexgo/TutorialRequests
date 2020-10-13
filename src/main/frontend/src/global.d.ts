@@ -33,7 +33,8 @@ declare global {
     host: User
     message: string,
     creationTime: number,
-    suggestedTime: number
+    startTime: number
+    duration: number
   }
 
   type Appt = {

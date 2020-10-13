@@ -70,14 +70,19 @@ function CreateApptModal(props: CreateApptModalProps) {
 
 
 function EventCalendar(props: AuthenticatedComponentProps) {
+
   let [start, setStart] = React.useState<number | null>(null);
   let [duration, setDuration] = React.useState<number | null>(null);
+  let [showCreateApptModal, setShowCreateApptModal] = React.useState(false);
 
-  let [apptRequests, setApptRequests] =React.useState<ApptRequest[]>([]);
-  let [appts, setAppts] =React.useState<Appt[]>([]);
-  let [attendances, setAttendances] =React.useState<Attendance[]>([]);
+  let [apptRequests, setApptRequests] = React.useState<ApptRequest[]>([]);
+  let [appts, setAppts] = React.useState<Appt[]>([]);
+  let [attendances, setAttendances] = React.useState<Attendance[]>([]);
 
-  const loadEvents = () => {
+  setApptRequests(my
+
+
+  const getEvents = () => {
     type PartialEvent = {
       id: string,
       title: string,
@@ -89,9 +94,9 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     const apptRequestEvents: PartialEvent[] = apptRequests.map((x: ApptRequest) => ({
       id: `${x.apptRequestId}`,
       title: x.attendee.name,
-      start: new Date(x.suggestedTime),
-      end: new Date(x.startTime),
-      color: "yellow"
+      start: new Date(x.startTime),
+      end: new Date(x.startTime + x.duration),
+      color: "red"
     }));
 
     const apptEvents: PartialEvent[] = appts.map((x: Appt) => ({
@@ -99,75 +104,84 @@ function EventCalendar(props: AuthenticatedComponentProps) {
       title: x.apptRequest.attendee.name,
       start: new Date(x.startTime),
       end: new Date(x.startTime + x.duration),
+      color: "green"
+    }));
+
+    const attendanceEvents: PartialEvent[] = attendances.map((x: Attendance) => ({
+      id: `${x.appt.apptRequest.apptRequestId}`,
+      title: x.appt.apptRequest.attendee.name,
+      start: new Date(x.appt.startTime),
+      end: new Date(x.appt.startTime + x.appt.duration),
       color: "blue"
     }));
 
-
-    return [...apptEvents, ...apptRequestEvents];
+    return [...apptEvents, ...apptRequestEvents, ...attendanceEvents];
   }
 
-  render() {
-    return (
-      <>
-        <FullCalendar
-          plugins={[timeGridPlugin, interactionPlugin]}
-          headerToolbar={{
-            left: 'prev,next today',
-            center: '',
-            right: 'timeGridDay,timeGridWeek',
-          }}
-          initialView='timeGridWeek'
-          allDaySlot={false}
-          nowIndicator={true}
-          editable={false}
-          selectable={true}
-          selectMirror={true}
-          dayMaxEvents={true}
-          businessHours={{
-            daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
-            startTime: '08:00', // 8am
-            endTime: '18:00' // 6pm
-          }}
-          select={handleDateSelect}
-          events={this.getEvents()}
-        />
-        <CreateApptModal apiKey={this.props.apiKey}
 
+  const createAppt = async (studentId: number, message: string) => {
+    const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
+      ['attending', 'false'],
+      ['targetId', `${studentId}`],
+      ['message', message],
+      ['suggestedTime', `${start}`],
+      ['apiKey', `${props.apiKey.key}`],
+    ])) as ApptRequest;
 
-        createAppt={(studentId: number, message: string) => {
-           const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-             ['attending', 'false'],
-             ['targetId', `${studentId}`],
-             ['message', message],
-             ['suggestedTime', `${start}`],
-             ['apiKey', `${this.props.apiKey.key}`],
-           ])) as ApptRequest;
+    const appt = await fetchApi('appt/new/?' + new URLSearchParams([
+      ["apptRequestId", `${apptRequest.apptRequestId}`],
+      ["hostId", `${props.apiKey.creator.id}`],
+      ["attendeeId", `${studentId}`],
+      ["message", message],
+      ["startTime", `${start}`],
+      ["duration", `${duration}`],
+      ["apiKey", `${props.apiKey.key}`]
+    ])) as Appt;
 
-           this.setState({
-             appts: this.state.appts,
-             apptRequests: [...this.state.apptRequests, apptRequest]
-           })
+    setAppts([...appts, appt])
+  }
 
-           const appt = await fetchApi('appt/new/?' + new URLSearchParams([
-             ["apptRequestId", `${apptRequest.apptRequestId}`],
-             ["hostId", `${this.props.apiKey.creator.id}`],
-             ["attendeeId", `${studentId}`],
-             ["message", message],
-             ["startTime", `${start}`],
-             ["duration", `${duration}`],
-             ["apiKey", `${this.props.apiKey.key}`]
-           ])) as Appt;
+  const handleDateSelect = () => {
 
-           this.setState({
-             appts: [...this.state.appts, appt],
-             apptRequests: this.state.apptRequests
-           })
+  }
+
+  return (
+    <>
+      <FullCalendar
+        plugins={[timeGridPlugin, interactionPlugin]}
+        headerToolbar={{
+          left: 'prev,next today',
+          center: '',
+          right: 'timeGridDay,timeGridWeek',
         }}
-
-         />
-      </>
-    )
-  }
+        initialView='timeGridWeek'
+        allDaySlot={false}
+        nowIndicator={true}
+        editable={false}
+        selectable={true}
+        selectMirror={true}
+        dayMaxEvents={true}
+        businessHours={{
+          daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
+          startTime: '08:00', // 8am
+          endTime: '18:00' // 6pm
+        }}
+        select={handleDateSelect}
+        events={getEvents()}
+      />
+      {(start != null) && (duration != null)
+        ? <CreateApptModal
+          apiKey={props.apiKey}
+          createAppt={createAppt}
+          show={showCreateApptModal}
+          setShow={setShowCreateApptModal}
+          start={start}
+          duration={duration} />
+        : <></>
+      }
+    </>
+  )
+}
 
 
 function UserDashboard(props: AuthenticatedComponentProps) {
