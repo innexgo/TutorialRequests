@@ -57,24 +57,38 @@ public class AttendanceService {
   }
 
   public List<Attendance> query(
-      Long apptId,
-      Long creationTime,
-      Long minCreationTime,
-      Long maxCreationTime,
-      AttendanceKind kind,
-      long offset,
-      long count) {
+     Long apptId,
+     Long attendeeId,
+     Long hostId,
+     Long creationTime,
+     Long minCreationTime,
+     Long maxCreationTime,
+     Long startTime,
+     Long minStartTime,
+     Long maxStartTime,
+     AttendanceKind kind,
+     long offset,
+     long count)
+ {
+    boolean nojoin = startTime == null && minStartTime == null && maxStartTime == null && attendeeId == null && hostId == null;
+
     String sql =
-        "SELECT at.appt_id, at.creation_time, at.kind FROM attendance at"
-            + " WHERE 1=1 "
-            + (apptId == null ? "" : " AND at.appt_id = " + apptId)
-            + (kind == null ? "" : " AND at.kind = " + kind.value)
-            + (creationTime == null ? "" : " AND at.creation_time = " + creationTime)
-            + (minCreationTime == null ? "" : " AND at.creation_time > " + minCreationTime)
-            + (maxCreationTime == null ? "" : " AND at.creation_time < " + maxCreationTime)
-            + (" ORDER BY at.appt_id")
-            + (" LIMIT " + offset + ", " + count)
-            + ";";
+      "SELECT at.appt_id, at.creation_time, at.kind FROM attendance at"
+        + (nojoin ? "" : "LEFT JOIN appt ap ON ap.appt_request_id = at.appt_id")
+        + " WHERE 1=1 "
+        + (apptId == null ? "" : " AND at.appt_id = " + apptId)
+        + (attendeeId == null ? "" : " AND ap.attendee_id = " + attendeeId)
+        + (hostId == null     ? "" : " AND ap.host_id = " + hostId)
+        + (creationTime == null ? "" : " AND at.creation_time = " + creationTime)
+        + (minCreationTime == null ? "" : " AND at.creation_time > " + minCreationTime)
+        + (maxCreationTime == null ? "" : " AND at.creation_time < " + maxCreationTime)
+        + (startTime == null ? "" : " AND ap.start_time = " + startTime)
+        + (minStartTime == null ? "" : " AND ap.start_time > " + minStartTime)
+        + (maxStartTime == null ? "" : " AND ap.start_time < " + maxStartTime)
+        + (kind == null ? "" : " AND at.kind = " + kind.value)
+        + (" ORDER BY at.appt_id")
+        + (" LIMIT " + offset + ", " + count)
+        + ";";
 
     RowMapper<Attendance> rowMapper = new AttendanceRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);

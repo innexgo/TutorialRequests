@@ -19,7 +19,6 @@
 package innexgo.hours;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -314,9 +313,9 @@ public class ApiController {
 
     List<Appt> list = apptService.query( //
         apptRequestId, // Long apptRequestId,
-        message, // String message,
-        hostId, // Long creatorId,
         attendeeId, // Long attendeeId,
+        hostId, // Long hostId,
+        message, // String message,
         creationTime, // Long creationTime,
         minCreationTime, // Long minCreationTime,
         maxCreationTime, // Long maxCreationTime,
@@ -336,7 +335,6 @@ public class ApiController {
   @RequestMapping("/attendance/")
   public ResponseEntity<?> viewAttendance( //
       @RequestParam(required = false) Long apptId, //
-      @RequestParam(required = false) Long creatorId, //
       @RequestParam(required = false) Long attendeeId, //
       @RequestParam(required = false) Long hostId, //
       @RequestParam(required = false) Long creationTime, //
@@ -345,9 +343,6 @@ public class ApiController {
       @RequestParam(required = false) Long startTime, //
       @RequestParam(required = false) Long minStartTime, //
       @RequestParam(required = false) Long maxStartTime, //
-      @RequestParam(required = false) Long duration, //
-      @RequestParam(required = false) Long minDuration, //
-      @RequestParam(required = false) Long maxDuration, //
       @RequestParam(required = false) AttendanceKind kind, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
@@ -361,9 +356,14 @@ public class ApiController {
 
     List<Attendance> list = attendanceService.query( //
         apptId, // Long apptId,
+        attendeeId, // Long attendeeId
+        hostId, // Long hostId,
         creationTime, // Long creationTime,
         minCreationTime, // Long minCreationTime,
         maxCreationTime, // Long maxCreationTime,
+        startTime, // Long startTime,
+        minStartTime, // Long minStartTime,
+        maxStartTime, // Long maxStartTime,
         kind, // AttendanceKind kind,
         offset, // long offset,
         count // long count)
