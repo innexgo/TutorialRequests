@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import FullCalendar, { DateSelectArg, DateUnselectArg } from '@fullcalendar/react'
+import React from 'react'
+import FullCalendar, { DateSelectArg, DateUnselectArg, EventApi, EventSourceInput, EventInput } from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import UserDashboardLayout from '../components/UserDashboardLayout';
@@ -24,8 +24,8 @@ function CreateApptModal(props: CreateApptModalProps) {
   const [message, setMessage] = React.useState("");
 
   const submit = async () => {
-      props.createAppt(studentId!, message)
-      props.setShow(false);
+    props.createAppt(studentId!, message)
+    props.setShow(false);
   }
 
   return <Modal
@@ -74,89 +74,88 @@ function CreateApptModal(props: CreateApptModalProps) {
 
 function EventCalendar(props: AuthenticatedComponentProps) {
 
-  let [start, setStart] = React.useState<number | null>(null);
-  let [duration, setDuration] = React.useState<number | null>(null);
-
-  let [showCreateApptModal, setShowCreateApptModal] = React.useState(false);
-
-  let [apptRequests, setApptRequests] = React.useState<ApptRequest[]>([]);
-  let [appts, setAppts] = React.useState<Appt[]>([]);
-  let [attendances, setAttendances] = React.useState<Attendance[]>([]);
-
-  const getEvents = () => {
-    type PartialEvent = {
-      id: string,
-      title: string,
-      start: Date,
-      end: Date,
-      color: string
-    }
-
-    const apptRequestEvents: PartialEvent[] = apptRequests.map((x: ApptRequest) => ({
-      id: `${x.apptRequestId}`,
-      title: x.attendee.name,
-      start: new Date(x.startTime),
-      end: new Date(x.startTime + x.duration),
-      color: "red"
-    }));
-
-    const apptEvents: PartialEvent[] = appts.map((x: Appt) => ({
-      id: `${x.apptRequest.apptRequestId}`,
-      title: x.apptRequest.attendee.name,
-      start: new Date(x.startTime),
-      end: new Date(x.startTime + x.duration),
-      color: "green"
-    }));
-
-    const attendanceEvents: PartialEvent[] = attendances.map((x: Attendance) => ({
-      id: `${x.appt.apptRequest.apptRequestId}`,
-      title: x.appt.apptRequest.attendee.name,
-      start: new Date(x.appt.startTime),
-      end: new Date(x.appt.startTime + x.appt.duration),
-      color: "blue"
-    }));
-
-    return [...apptEvents, ...apptRequestEvents, ...attendanceEvents];
+  type PartialEvent = {
+    id: string,
+    title: string,
+    start: Date,
+    end: Date,
+    color: string
   }
 
-  const createAppt = async (studentId: number, message: string) => {
-    const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-      ['attending', 'false'],
-      ['targetId', `${studentId}`],
-      ['message', message],
-      ['startTime', `${start}`],
-      ['duration', `${duration}`],
+  const apptRequestToEvent = (x: ApptRequest) => ({
+    id: `${x.apptRequestId}`,
+    title: x.attendee.name,
+    start: new Date(x.startTime),
+    end: new Date(x.startTime + x.duration),
+    color: "red"
+  })
+
+  const apptToEvent = (x: Appt) => ({
+    id: `${x.apptRequest.apptRequestId}`,
+    title: x.apptRequest.attendee.name,
+    start: new Date(x.startTime),
+    end: new Date(x.startTime + x.duration),
+    color: "green"
+  })
+
+  const attendanceToEvent = (x: Attendance) => ({
+    id: `${x.appt.apptRequest.apptRequestId}`,
+    title: x.appt.apptRequest.attendee.name,
+    start: new Date(x.appt.startTime),
+    end: new Date(x.appt.startTime + x.appt.duration),
+    color: "purple"
+  })
+
+  const [start, setStart] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
+
+  const [showCreateApptModal, setShowCreateApptModal] = React.useState(false);
+
+  const calendarRef = React.useRef<FullCalendar | null>(null);
+
+  const eventSource = async (
+    args: {
+      start: Date;
+      end: Date;
+      startStr: string;
+      endStr: string;
+      timeZone: string;
+    }) => {
+
+    const localApptRequests = await fetchApi(`apptRequest/?` + new URLSearchParams([
+      ['hostId', `${props.apiKey.creator.id}`],
+      ['minStartTime', `${args.start.valueOf()}`],
+      ['maxStartTime', `${args.end.valueOf()}`],
+      ['confirmed', 'false'],
       ['apiKey', `${props.apiKey.key}`],
-    ])) as ApptRequest;
+    ])) as ApptRequest[];
 
-    const appt = await fetchApi('appt/new/?' + new URLSearchParams([
-      ["apptRequestId", `${apptRequest.apptRequestId}`],
+    const localAppts = await fetchApi('appt/?' + new URLSearchParams([
       ["hostId", `${props.apiKey.creator.id}`],
-      ["attendeeId", `${studentId}`],
-      ["message", message],
-      ["startTime", `${start}`],
-      ["duration", `${duration}`],
+      ['minStartTime', `${args.start.valueOf()}`],
+      ['maxStartTime', `${args.end.valueOf()}`],
+      ['attended', 'false'],
       ["apiKey", `${props.apiKey.key}`]
-    ])) as Appt;
+    ])) as Appt[];
 
-    setAppts([...appts, appt])
-  }
+    const localAttendances = await fetchApi('attendance/?' + new URLSearchParams([
+      ["hostId", `${props.apiKey.creator.id}`],
+      ['minStartTime', `${args.start.valueOf()}`],
+      ['maxStartTime', `${args.end.valueOf()}`],
+      ["apiKey", `${props.apiKey.key}`]
+    ])) as Attendance[];
 
-  const handleDateSelect = (dsa: DateSelectArg) => {
-    setStart(dsa.start.valueOf());
-    setDuration(dsa.end.valueOf() - dsa.start.valueOf());
-    setShowCreateApptModal(true);
-  }
-
-  const handleDateUnselect = (dusa: DateUnselectArg) => {
-    setStart(null);
-    setDuration(null);
-    setShowCreateApptModal(false);
+    return [
+      ...localApptRequests.map(apptRequestToEvent),
+      ...localAppts.map(apptToEvent),
+      ...localAttendances.map(attendanceToEvent),
+    ];
   }
 
   return (
-    <div >
+    <div>
       <FullCalendar
+        ref={calendarRef}
         plugins={[timeGridPlugin, interactionPlugin]}
         headerToolbar={{
           left: 'prev,next today',
@@ -169,26 +168,53 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         editable={false}
         selectable={true}
         selectMirror={true}
+        events={eventSource}
         unselectCancel=".CreateApptModal"
         businessHours={{
           daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
           startTime: '08:00', // 8am
           endTime: '18:00' // 6pm
         }}
-        select={handleDateSelect}
-        unselect={handleDateUnselect}
-        events={getEvents()}
+        select={(dsa: DateSelectArg) => {
+          setStart(dsa.start.valueOf());
+          setDuration(dsa.end.valueOf() - dsa.start.valueOf());
+          setShowCreateApptModal(true);
+        }}
+        unselect={() => {
+          setShowCreateApptModal(false);
+        }}
       />
-      {(start != null) && (duration != null)
-        ? <CreateApptModal
-          apiKey={props.apiKey}
-          createAppt={createAppt}
-          show={showCreateApptModal}
-          setShow={setShowCreateApptModal}
-          start={start}
-          duration={duration} />
+      <CreateApptModal
+        apiKey={props.apiKey}
+        show={showCreateApptModal}
+        setShow={(a: boolean) => {
+          setShowCreateApptModal(a)
+          if (!a && calendarRef.current != null) {
+            calendarRef.current.getApi().unselect();
+          }
+        }}
+        start={start}
+        duration={duration}
+        createAppt={async (studentId: number, message: string) => {
+          const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
+            ['targetId', `${studentId}`],
+            ["attending", 'false'],
+            ['message', message],
+            ['startTime', `${start}`],
+            ['duration', `${duration}`],
+            ['apiKey', `${props.apiKey.key}`],
+          ])) as ApptRequest;
+
+          await fetchApi('appt/new/?' + new URLSearchParams([
+            ["apptRequestId", `${apptRequest.apptRequestId}`],
+            ["message", message],
+            ["startTime", `${start}`],
+            ["duration", `${duration}`],
+            ["apiKey", `${props.apiKey.key}`]
+          ]));
+        }}
+      />
         : <></>
-      }
     </div>
   )
 }

@@ -69,7 +69,9 @@ public class ApiController {
    *                        unsuccessful
    */
   @RequestMapping("/apiKey/new/")
-  public ResponseEntity<?> newApiKey(@RequestParam String userEmail, @RequestParam String password,
+  public ResponseEntity<?> newApiKey( //
+      @RequestParam String userEmail, //
+      @RequestParam String userPassword, //
       @RequestParam long duration) {
     // Ensure user exists
     if (!userService.existsByEmail(userEmail)) {
@@ -77,7 +79,7 @@ public class ApiController {
     }
     // Ensure password is valid
     User u = userService.getByEmail(userEmail);
-    if (!Utils.matchesPassword(password, u.passwordHash)) {
+    if (!Utils.matchesPassword(userPassword, u.passwordHash)) {
       return Errors.PASSWORD_INCORRECT.getResponse();
     }
 
@@ -93,28 +95,32 @@ public class ApiController {
   }
 
   @RequestMapping("/user/new/")
-  public ResponseEntity<?> newUser(@RequestParam String name, @RequestParam String email, @RequestParam String password,
-      @RequestParam UserKind kind) {
-    if (Utils.isEmpty(email)) {
+  public ResponseEntity<?> newUser( //
+      @RequestParam String userName, //
+      @RequestParam String userEmail, //
+      @RequestParam String userPassword, //
+      @RequestParam UserKind userKind) {
+    if (Utils.isEmpty(userEmail)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
-    if (Utils.isEmpty(name)) {
+    if (Utils.isEmpty(userName)) {
       return Errors.USER_NAME_EMPTY.getResponse();
     }
-    if (userService.existsByEmail(email)) {
+    if (userService.existsByEmail(userEmail)) {
       return Errors.USER_EXISTENT.getResponse();
     }
     User u = new User();
-    u.name = name;
-    u.email = email;
-    u.passwordHash = Utils.encodePassword(password);
-    u.kind = kind;
+    u.name = userName;
+    u.email = userEmail;
+    u.passwordHash = Utils.encodePassword(userPassword);
+    u.kind = userKind;
     userService.add(u);
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
   @RequestMapping("/apptRequest/new/")
-  public ResponseEntity<?> newApptRequest(@RequestParam long targetId, //
+  public ResponseEntity<?> newApptRequest( //
+      @RequestParam long targetId, //
       @RequestParam boolean attending, //
       @RequestParam String message, //
       @RequestParam long startTime, //

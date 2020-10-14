@@ -1,6 +1,5 @@
 export async function fetchJson(url:string, params={}) {
   let response = await fetch(url, params);
-  console.log(response);
   if (!response.ok) {
     throw Error(await response.text());
   }

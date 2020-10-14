@@ -66,7 +66,7 @@ public class ApptService {
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
-      Long time,
+      Long startTime,
       Long minStartTime, 
       Long maxStartTime,
       Long duration,
@@ -75,22 +75,28 @@ public class ApptService {
       Boolean attended,
       long offset,
       long count) {
+
+    boolean nojoin = attendeeId == null && hostId == null;
+
     String sql =
         "SELECT ap.appt_request_id, ap.message, ap.creation_time, ap.start_time, ap.duration FROM appt ap"
-            + (attended == null ? "" : " JOIN attendance att ON att.appt_id = ap.appt_request_id")
+            + (attended == null ? "" : " LEFT JOIN attendance att ON att.appt_id = ap.appt_request_id")
+            + (nojoin ? "" : " LEFT JOIN appt_request apr ON apr.appt_request_id = ap.appt_request_id")
             + " WHERE 1=1 "
-            + (attended == null ? "" : " AND att.appt_id IS" + (attended ? " NOT NULL" : " NULL"))
             + (apptRequestId == null ? "" : " AND ap.appt_request_id = " + apptRequestId)
+            + (attendeeId == null ? "" : " AND apr.attendee_id = " + attendeeId)
+            + (hostId == null ? "" : " AND apr.host_id = " + hostId)
             + (message == null ? "" : " AND ap.message = " + Utils.escape(message))
             + (creationTime == null ? "" : " AND ap.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND ap.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND ap.creation_time < " + maxCreationTime)
-            + (time == null ? "" : " AND ap.start_time = " + time)
+            + (startTime == null ? "" : " AND ap.start_time = " + startTime)
             + (minStartTime == null ? "" : " AND ap.start_time > " + minStartTime)
             + (maxStartTime == null ? "" : " AND ap.start_time < " + maxStartTime)
             + (duration == null ? "" : " AND ap.duration = " + duration)
             + (minDuration == null ? "" : " AND ap.duration > " + minDuration)
             + (maxDuration == null ? "" : " AND ap.duration < " + maxDuration)
+            + (attended == null ? "" : " AND att.appt_id IS" + (attended ? " NOT NULL" : " NULL"))
             + (" ORDER BY ap.appt_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

@@ -72,13 +72,14 @@ public class AttendanceService {
  {
     boolean nojoin = startTime == null && minStartTime == null && maxStartTime == null && attendeeId == null && hostId == null;
 
-    String sql =
+    String sql=
       "SELECT at.appt_id, at.creation_time, at.kind FROM attendance at"
-        + (nojoin ? "" : "LEFT JOIN appt ap ON ap.appt_request_id = at.appt_id")
+        + (nojoin ? "" : " LEFT JOIN appt ap ON ap.appt_request_id = at.appt_id")
+        + (nojoin ? "" : " LEFT JOIN appt_request apr ON apr.appt_request_id = at.appt_id")
         + " WHERE 1=1 "
         + (apptId == null ? "" : " AND at.appt_id = " + apptId)
-        + (attendeeId == null ? "" : " AND ap.attendee_id = " + attendeeId)
-        + (hostId == null     ? "" : " AND ap.host_id = " + hostId)
+        + (attendeeId == null ? "" : " AND apr.attendee_id = " + attendeeId)
+        + (hostId == null     ? "" : " AND apr.host_id = " + hostId)
         + (creationTime == null ? "" : " AND at.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND at.creation_time > " + minCreationTime)
         + (maxCreationTime == null ? "" : " AND at.creation_time < " + maxCreationTime)
