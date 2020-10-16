@@ -1,14 +1,15 @@
 import React from 'react'
-import FullCalendar, { DateSelectArg, DateUnselectArg, EventApi, EventSourceInput, EventInput } from '@fullcalendar/react'
+import FullCalendar, { DateSelectArg, EventInput, EventClickArg} from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import UserDashboardLayout from '../components/UserDashboardLayout';
 import SearchUserDropdown from '../components/SearchUserDropdown';
+import UserCalendarCard from '../components/UserCalendarCard';
 
 import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import UtilityWrapper from '../components/UtilityWrapper';
 import { fetchApi } from '../utils/utils';
-import { format } from 'date-fns';
+import format from 'date-fns/format';
 
 type CreateApptModalProps = {
   show: boolean;
@@ -16,7 +17,6 @@ type CreateApptModalProps = {
   duration: number;
   setShow: (show: boolean) => void;
   apiKey: ApiKey;
-  createAppt: (studentId: number, message: string) => void;
 }
 
 function CreateApptModal(props: CreateApptModalProps) {
@@ -24,7 +24,22 @@ function CreateApptModal(props: CreateApptModalProps) {
   const [message, setMessage] = React.useState("");
 
   const submit = async () => {
-    props.createAppt(studentId!, message)
+    const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
+      ['targetId', `${studentId}`],
+      ["attending", 'false'],
+      ['message', message],
+      ['startTime', `${props.start}`],
+      ['duration', `${props.duration}`],
+      ['apiKey', `${props.apiKey.key}`],
+    ])) as ApptRequest;
+
+    await fetchApi('appt/new/?' + new URLSearchParams([
+      ["apptRequestId", `${apptRequest.apptRequestId}`],
+      ["message", message],
+      ["startTime", `${props.start}`],
+      ["duration", `${props.duration}`],
+      ["apiKey", `${props.apiKey.key}`]
+    ]));
     props.setShow(false);
   }
 
@@ -70,40 +85,89 @@ function CreateApptModal(props: CreateApptModalProps) {
   </Modal>
 }
 
+/*
+type ReviewApptRequestModal= {
+  show: boolean;
+  setShow: (show: boolean) => void;
+  apiKey: ApiKey;
+}
+
+function ReviewApptRequestModal(props: ReviewApptRequestModal) {
+  const [studentId, setStudentId] = React.useState<number | null>(null);
+  const [message, setMessage] = React.useState("");
+
+
+  return <Modal
+    className="CreateApptModal"
+    show={props.show}
+    onHide={() => props.setShow(false)}
+    keyboard={false}
+    size="lg"
+    centered
+  >
+    <Modal.Header closeButton>
+      <Modal.Title id="modal-title">Create Appointment with Student</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <Form>
+        <Form.Group controlId="startTime">
+          <Form.Label>Start Time</Form.Label>
+          <Form.Control disabled placeholder={format(props.start, "MMM do, hh:mm a")} />
+        </Form.Group>
+        <Form.Group controlId="endTime">
+          <Form.Label>End Time</Form.Label>
+          <Form.Control disabled placeholder={format(props.start + props.duration, "MMM do, hh:mm a")} />
+        </Form.Group>
+
+        <Form.Group controlId="student">
+          <Form.Label>Student ID</Form.Label>
+          <SearchUserDropdown apiKey={props.apiKey} userKind={"STUDENT"} setFn={e => setStudentId(e)} />
+        </Form.Group>
+
+        <Form.Group controlId="message">
+          <Form.Label>Message</Form.Label>
+          <Form.Control as="textarea" rows={3}
+            onChange={e => {
+              setMessage(e.target.value);
+            }} />
+        </Form.Group>
+        <Button variant="primary" disabled={studentId == null} onClick={submit}>
+          Submit
+        </Button>
+      </Form>
+    </Modal.Body>
+  </Modal>
+}
+*/
 
 
 function EventCalendar(props: AuthenticatedComponentProps) {
 
-  type PartialEvent = {
-    id: string,
-    title: string,
-    start: Date,
-    end: Date,
-    color: string
-  }
-
-  const apptRequestToEvent = (x: ApptRequest) => ({
+  const apptRequestToEvent = (x: ApptRequest):EventInput => ({
     id: `${x.apptRequestId}`,
-    title: x.attendee.name,
     start: new Date(x.startTime),
     end: new Date(x.startTime + x.duration),
-    color: "red"
+    color: "#00000000",
+    kind: "ApptRequest",
+    apptRequest: x
   })
 
-  const apptToEvent = (x: Appt) => ({
+  const apptToEvent = (x: Appt):EventInput  => ({
     id: `${x.apptRequest.apptRequestId}`,
-    title: x.apptRequest.attendee.name,
     start: new Date(x.startTime),
     end: new Date(x.startTime + x.duration),
-    color: "green"
+    color: "#00000000",
+    kind: "Appt",
+    appt: x
   })
 
-  const attendanceToEvent = (x: Attendance) => ({
+  const attendanceToEvent = (x: Attendance):EventInput  => ({
     id: `${x.appt.apptRequest.apptRequestId}`,
-    title: x.appt.apptRequest.attendee.name,
     start: new Date(x.appt.startTime),
     end: new Date(x.appt.startTime + x.appt.duration),
-    color: "purple"
+    color: "#00000000",
+    kind: "Attendance",
+    attendance: x
   })
 
   const [start, setStart] = React.useState(0);
@@ -152,6 +216,11 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     ];
   }
 
+  const eventClickHandler = (eca:EventClickArg) => {
+    const info = eca.event;
+    console.log(info.extendedProps.kind);
+  }
+
   return (
     <div>
       <FullCalendar
@@ -169,7 +238,9 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         selectable={true}
         selectMirror={true}
         events={eventSource}
+        eventContent={UserCalendarCard}
         unselectCancel=".CreateApptModal"
+        eventClick={eventClickHandler}
         businessHours={{
           daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
           startTime: '08:00', // 8am
@@ -195,24 +266,6 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         }}
         start={start}
         duration={duration}
-        createAppt={async (studentId: number, message: string) => {
-          const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-            ['targetId', `${studentId}`],
-            ["attending", 'false'],
-            ['message', message],
-            ['startTime', `${start}`],
-            ['duration', `${duration}`],
-            ['apiKey', `${props.apiKey.key}`],
-          ])) as ApptRequest;
-
-          await fetchApi('appt/new/?' + new URLSearchParams([
-            ["apptRequestId", `${apptRequest.apptRequestId}`],
-            ["message", message],
-            ["startTime", `${start}`],
-            ["duration", `${duration}`],
-            ["apiKey", `${props.apiKey.key}`]
-          ]));
-        }}
       />
         : <></>
     </div>

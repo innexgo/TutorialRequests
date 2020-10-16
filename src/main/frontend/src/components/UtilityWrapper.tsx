@@ -1,14 +1,16 @@
 import React from 'react';
-import { OverlayTrigger, Card } from 'react-bootstrap';
+import { OverlayTrigger, Card, CardProps } from 'react-bootstrap';
 import { Help } from '@material-ui/icons';
 
-interface UtilityWrapperProps {
+type NoChildrenCardProps = Omit<CardProps, 'children'|'title'>
+
+type UtilityWrapperProps = NoChildrenCardProps & {
   title: string
   children: [React.ReactElement, React.ReactElement]
-}
+} 
 
 function UtilityWrapper(props: UtilityWrapperProps) {
-  return <Card>
+  return <Card {...(props as NoChildrenCardProps )}>
     <Card.Body>
       <div className="d-flex justify-content-between">
         <Card.Title >{props.title}</Card.Title>
