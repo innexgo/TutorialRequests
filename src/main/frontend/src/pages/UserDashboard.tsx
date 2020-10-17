@@ -33,10 +33,6 @@ function CreateApptModal(props: CreateApptModalProps) {
       ['apiKey', `${props.apiKey.key}`],
     ])) as ApptRequest;
 
-    // TODO
-    props.setShow(false);
-    return;
-
     await fetchApi('appt/new/?' + new URLSearchParams([
       ["apptRequestId", `${apptRequest.apptRequestId}`],
       ["message", message],
@@ -63,13 +59,13 @@ function CreateApptModal(props: CreateApptModalProps) {
         <Form.Group as={Row} controlId="startTime">
           <Form.Label column sm={2}>Start Time</Form.Label>
           <Col>
-            <Form.Control readOnly plaintext defaultValue={format(props.start, "MMM do, hh:mm a")} />
+            <span>{format(props.start, "MMM do, hh:mm a")} </span>
           </Col>
         </Form.Group>
         <Form.Group as={Row} controlId="endTime">
           <Form.Label column sm={2}>End Time</Form.Label>
           <Col>
-            <Form.Control readOnly plaintext defaultValue={format(props.start + props.duration, "MMM do, hh:mm a")} />
+            <span>{format(props.start + props.duration, "MMM do, hh:mm a")} </span>
           </Col>
         </Form.Group>
         <Form.Group as={Row} controlId="student">

@@ -1,55 +1,49 @@
 import React from "react";
-import FullCalendar, { EventContentArg, EventChangeArg } from "@fullcalendar/react"
-import interactionPlugin from '@fullcalendar/interaction'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import { Row, Col, Card, Modal, Button, Form } from 'react-bootstrap';
+import { EventContentArg } from "@fullcalendar/react"
 import format from 'date-fns/format';
+import {sleep} from '../utils/utils'
 
-type ApptRequestCardProps = {
-  apptRequest: ApptRequest,
-  apiKey: ApiKey
-}
+import ReviewApptRequestModal from "../components/ReviewApptRequestModal";
 
-function ApptRequestCard(props: ApptRequestCardProps) {
+function ApptRequestCard(props: { apptRequest: ApptRequest, apiKey: ApiKey }) {
   const apptRequest = props.apptRequest;
 
-  const [show, setShow] = React.useState(false);
+  const [reviewApptRequestModelShow, setReviewApptRequestModelShow] = React.useState(false);
 
   return (
-    <div>
-      <div
-        onClick={() => setShow(true)}
-        className="px-1 py-1 h-100 w-100 bg-danger text-dark overflow-auto"
-      >
-        <span>
-          {format(apptRequest.startTime, "h:mm a")} - {format(apptRequest.startTime + apptRequest.duration, "h:mm a")}
-        </span>
-        <br />
-        <span>
-          Request From: {apptRequest.attendee.name}
-        </span>
-        <br />
-        <span>
-          Msg: {apptRequest.message}
-        </span>
-      </div>
+    <div
+      className="px-1 py-1 h-100 w-100 bg-danger text-dark overflow-auto"
+      onClick={(e) => {
+          setReviewApptRequestModelShow(true);
+          e.stopPropagation();
+      }}
+    >
+      <span>
+        {format(apptRequest.startTime, "h:mm a")} - {format(apptRequest.startTime + apptRequest.duration, "h:mm a")}
+      </span>
+      <br />
+      <span>
+        Request From: {apptRequest.attendee.name}
+      </span>
+      <br />
+      <span>
+        Msg: {apptRequest.message}
+      </span>
       <ReviewApptRequestModal
-        show={show}
-        setShow={setShow}
+        show={reviewApptRequestModelShow}
+        setShow={(a:boolean) => {
+          setReviewApptRequestModelShow(a);
+          console.log(reviewApptRequestModelShow);
+        }}
         apptRequest={apptRequest}
         apiKey={props.apiKey}
       />
-    </div >
+    </div>
   )
 }
 
 
-type ApptCardProps = {
-  appt: Appt,
-  apiKey: ApiKey
-}
-
-function ApptCard(props: ApptCardProps) {
+function ApptCard(props: { appt: Appt, apiKey: ApiKey }) {
   const appt = props.appt;
   const [show, setShow] = React.useState(false);
 
@@ -68,12 +62,7 @@ function ApptCard(props: ApptCardProps) {
   </div>
 }
 
-type AttendanceCardProps = {
-  attendance: Attendance,
-  apiKey: ApiKey
-}
-
-function AttendanceCard(props: AttendanceCardProps) {
+function AttendanceCard(props: { attendance: Attendance, apiKey: ApiKey }) {
   const attendance = props.attendance;
   return <div className="px-1 py-1 h-100 w-100 bg-success text-dark overflow-auto">
     {attendance.kind}
