@@ -1,12 +1,12 @@
 import React from 'react'
-import FullCalendar, { DateSelectArg, EventInput, EventClickArg} from '@fullcalendar/react'
+import FullCalendar, { DateSelectArg, EventInput, EventClickArg } from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import UserDashboardLayout from '../components/UserDashboardLayout';
 import SearchUserDropdown from '../components/SearchUserDropdown';
 import UserCalendarCard from '../components/UserCalendarCard';
 
-import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
+import { Row, Col, Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
 import UtilityWrapper from '../components/UtilityWrapper';
 import { fetchApi } from '../utils/utils';
 import format from 'date-fns/format';
@@ -33,6 +33,10 @@ function CreateApptModal(props: CreateApptModalProps) {
       ['apiKey', `${props.apiKey.key}`],
     ])) as ApptRequest;
 
+    // TODO
+    props.setShow(false);
+    return;
+
     await fetchApi('appt/new/?' + new URLSearchParams([
       ["apptRequestId", `${apptRequest.apptRequestId}`],
       ["message", message],
@@ -56,80 +60,32 @@ function CreateApptModal(props: CreateApptModalProps) {
     </Modal.Header>
     <Modal.Body>
       <Form>
-        <Form.Group controlId="startTime">
-          <Form.Label>Start Time</Form.Label>
-          <Form.Control disabled placeholder={format(props.start, "MMM do, hh:mm a")} />
+        <Form.Group as={Row} controlId="startTime">
+          <Form.Label column sm={2}>Start Time</Form.Label>
+          <Col>
+            <Form.Control readOnly plaintext defaultValue={format(props.start, "MMM do, hh:mm a")} />
+          </Col>
         </Form.Group>
-        <Form.Group controlId="endTime">
-          <Form.Label>End Time</Form.Label>
-          <Form.Control disabled placeholder={format(props.start + props.duration, "MMM do, hh:mm a")} />
+        <Form.Group as={Row} controlId="endTime">
+          <Form.Label column sm={2}>End Time</Form.Label>
+          <Col>
+            <Form.Control readOnly plaintext defaultValue={format(props.start + props.duration, "MMM do, hh:mm a")} />
+          </Col>
         </Form.Group>
-
-        <Form.Group controlId="student">
-          <Form.Label>Student ID</Form.Label>
-          <SearchUserDropdown apiKey={props.apiKey} userKind={"STUDENT"} setFn={e => setStudentId(e)} />
+        <Form.Group as={Row} controlId="student">
+          <Form.Label column sm={2}>Student ID</Form.Label>
+          <Col>
+            <SearchUserDropdown apiKey={props.apiKey} userKind={"STUDENT"} setFn={e => setStudentId(e)} />
+          </Col>
         </Form.Group>
-
-        <Form.Group controlId="message">
-          <Form.Label>Message</Form.Label>
-          <Form.Control as="textarea" rows={3}
-            onChange={e => {
-              setMessage(e.target.value);
-            }} />
-        </Form.Group>
-        <Button variant="primary" disabled={studentId == null} onClick={submit}>
-          Submit
-        </Button>
-      </Form>
-    </Modal.Body>
-  </Modal>
-}
-
-/*
-type ReviewApptRequestModal= {
-  show: boolean;
-  setShow: (show: boolean) => void;
-  apiKey: ApiKey;
-}
-
-function ReviewApptRequestModal(props: ReviewApptRequestModal) {
-  const [studentId, setStudentId] = React.useState<number | null>(null);
-  const [message, setMessage] = React.useState("");
-
-
-  return <Modal
-    className="CreateApptModal"
-    show={props.show}
-    onHide={() => props.setShow(false)}
-    keyboard={false}
-    size="lg"
-    centered
-  >
-    <Modal.Header closeButton>
-      <Modal.Title id="modal-title">Create Appointment with Student</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      <Form>
-        <Form.Group controlId="startTime">
-          <Form.Label>Start Time</Form.Label>
-          <Form.Control disabled placeholder={format(props.start, "MMM do, hh:mm a")} />
-        </Form.Group>
-        <Form.Group controlId="endTime">
-          <Form.Label>End Time</Form.Label>
-          <Form.Control disabled placeholder={format(props.start + props.duration, "MMM do, hh:mm a")} />
-        </Form.Group>
-
-        <Form.Group controlId="student">
-          <Form.Label>Student ID</Form.Label>
-          <SearchUserDropdown apiKey={props.apiKey} userKind={"STUDENT"} setFn={e => setStudentId(e)} />
-        </Form.Group>
-
-        <Form.Group controlId="message">
-          <Form.Label>Message</Form.Label>
-          <Form.Control as="textarea" rows={3}
-            onChange={e => {
-              setMessage(e.target.value);
-            }} />
+        <Form.Group as={Row} controlId="message">
+          <Form.Label column sm={2}>Message</Form.Label>
+          <Col>
+            <Form.Control as="textarea" rows={3}
+              onChange={e => {
+                setMessage(e.target.value);
+              }} />
+          </Col>
         </Form.Group>
         <Button variant="primary" disabled={studentId == null} onClick={submit}>
           Submit
@@ -138,35 +94,37 @@ function ReviewApptRequestModal(props: ReviewApptRequestModal) {
     </Modal.Body>
   </Modal>
 }
-*/
 
 
 function EventCalendar(props: AuthenticatedComponentProps) {
 
-  const apptRequestToEvent = (x: ApptRequest):EventInput => ({
+  const apptRequestToEvent = (x: ApptRequest): EventInput => ({
     id: `${x.apptRequestId}`,
     start: new Date(x.startTime),
     end: new Date(x.startTime + x.duration),
     color: "#00000000",
     kind: "ApptRequest",
+    apiKey: props.apiKey,
     apptRequest: x
   })
 
-  const apptToEvent = (x: Appt):EventInput  => ({
+  const apptToEvent = (x: Appt): EventInput => ({
     id: `${x.apptRequest.apptRequestId}`,
     start: new Date(x.startTime),
     end: new Date(x.startTime + x.duration),
     color: "#00000000",
     kind: "Appt",
+    apiKey: props.apiKey,
     appt: x
   })
 
-  const attendanceToEvent = (x: Attendance):EventInput  => ({
+  const attendanceToEvent = (x: Attendance): EventInput => ({
     id: `${x.appt.apptRequest.apptRequestId}`,
     start: new Date(x.appt.startTime),
     end: new Date(x.appt.startTime + x.appt.duration),
     color: "#00000000",
     kind: "Attendance",
+    apiKey: props.apiKey,
     attendance: x
   })
 
@@ -216,11 +174,6 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     ];
   }
 
-  const eventClickHandler = (eca:EventClickArg) => {
-    const info = eca.event;
-    console.log(info.extendedProps.kind);
-  }
-
   return (
     <div>
       <FullCalendar
@@ -232,6 +185,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
           right: 'timeGridDay,timeGridWeek',
         }}
         initialView='timeGridWeek'
+        height={"80vh"}
         allDaySlot={false}
         nowIndicator={true}
         editable={false}
@@ -240,12 +194,16 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         events={eventSource}
         eventContent={UserCalendarCard}
         unselectCancel=".CreateApptModal"
-        eventClick={eventClickHandler}
+        slotMinTime="08:00"
+        slotMaxTime="18:00"
+        weekends={false}
+        expandRows={true}
         businessHours={{
           daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
           startTime: '08:00', // 8am
           endTime: '18:00' // 6pm
         }}
+        selectConstraint="businessHours"
         select={(dsa: DateSelectArg) => {
           setStart(dsa.start.valueOf());
           setDuration(dsa.end.valueOf() - dsa.start.valueOf());
@@ -267,7 +225,6 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         start={start}
         duration={duration}
       />
-        : <></>
     </div>
   )
 }

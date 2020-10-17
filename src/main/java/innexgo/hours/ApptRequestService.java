@@ -119,7 +119,7 @@ public class ApptRequestService {
       long count) {
     String sql =
         "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.start_time, apr.duration FROM appt_request apr"
-            + (confirmed == null ? "" : " JOIN appt ap ON ap.appt_request_id = apr.appt_request_id")
+            + (confirmed == null ? "" : " LEFT JOIN appt ap ON ap.appt_request_id = apr.appt_request_id")
             + " WHERE 1=1 "
             + (confirmed == null ? "" : " AND ap.appt_request_id IS" + (confirmed ? " NOT NULL" : " NULL"))
             + (apptRequestId== null ? "" : " AND apr.appt_request_id = " + apptRequestId)
