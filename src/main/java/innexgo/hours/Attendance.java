@@ -24,7 +24,7 @@ public class Attendance {
   public AttendanceKind kind;
 
   // for jackson
-  Appt appt;
+  public Appt appt;
 }
 
 

@@ -6,10 +6,12 @@ import UserDashboardLayout from '../components/UserDashboardLayout';
 import UserCalendarCard from '../components/UserCalendarCard';
 
 import { Popover, Container, CardDeck } from 'react-bootstrap';
+import { fetchApi } from '../utils/utils';
 import UtilityWrapper from '../components/UtilityWrapper';
+
 import CreateApptModal from '../components/CreateApptModal';
 import ReviewApptRequestModal from '../components/ReviewApptRequestModal';
-import { fetchApi } from '../utils/utils';
+import ApptTakeAttendanceModal from '../components/ApptTakeAttendanceModal';
 
 function EventCalendar(props: AuthenticatedComponentProps) {
 
@@ -45,7 +47,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
 
   const [showCreateApptModal, setShowCreateApptModal] = React.useState(false);
   const [showReviewApptRequestModal, setShowReviewApptRequestModal] = React.useState(false);
-  const [showApptModal, setShowApptModal] = React.useState(false);
+  const [showTakeAttendanceApptModal, setShowTakeAttendanceApptModal] = React.useState(false);
   const [showAttendanceInfoModal, setShowAttendanceInfoModal] = React.useState(false);
 
 
@@ -100,13 +102,13 @@ function EventCalendar(props: AuthenticatedComponentProps) {
       case "ApptRequest": {
           setApptRequest(props.apptRequest);
           setShowReviewApptRequestModal(true);
-          setShowApptModal(false);
+          setShowTakeAttendanceApptModal(false);
           setShowAttendanceInfoModal(false);
           break;
       }
       case "Appt": {
           setAppt(props.appt);
-          setShowApptModal(true);
+          setShowTakeAttendanceApptModal(true);
           setShowReviewApptRequestModal(false);
           setShowAttendanceInfoModal(false);
           break;
@@ -114,7 +116,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
       case "Attendance": {
           setAttendance(props.attendance);
           setShowAttendanceInfoModal(true);
-          setShowApptModal(false);
+          setShowTakeAttendanceApptModal(false);
           break;
       }
     }
@@ -139,7 +141,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         selectMirror={true}
         events={eventSource}
         eventContent={UserCalendarCard}
-        unselectCancel=".CreateApptModal"
+        unselectCancel=".CreateApptModal "
         slotMinTime="08:00"
         slotMaxTime="18:00"
         weekends={false}
@@ -177,6 +179,14 @@ function EventCalendar(props: AuthenticatedComponentProps) {
           show={showReviewApptRequestModal}
           setShow={setShowReviewApptRequestModal}
           apptRequest={apptRequest}
+          apiKey={props.apiKey}
+        />
+      }
+      {appt == null ? <> </> :
+        <ApptTakeAttendanceModal
+          show={showTakeAttendanceApptModal}
+          setShow={setShowTakeAttendanceApptModal}
+          appt={appt}
           apiKey={props.apiKey}
         />
       }

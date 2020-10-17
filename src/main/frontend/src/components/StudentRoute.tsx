@@ -1,5 +1,5 @@
 import React from "react";
-import Login from "./Login";
+import LoginInterface from "./LoginInterface";
 import { RouteProps} from "react-router";
 import { Route } from "react-router-dom";
 
@@ -24,7 +24,7 @@ function StudentRoute({
     <Route {...rest} >
       {isAuthenticated
         ? <StudentComponent apiKey={apiKey!} setApiKey={setApiKey} />
-        : <Login setApiKey={setApiKey} />}
+        : <LoginInterface setApiKey={setApiKey} />}
     </Route>
   );
 }

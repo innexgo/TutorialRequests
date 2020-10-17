@@ -2,13 +2,8 @@ import React from "react";
 import { EventContentArg } from "@fullcalendar/react"
 import format from 'date-fns/format';
 
-import ReviewApptRequestModal from "../components/ReviewApptRequestModal";
-
 function ApptRequestCard(props: { apptRequest: ApptRequest, apiKey: ApiKey }) {
   const apptRequest = props.apptRequest;
-
-  const [reviewApptRequestModelShow, setReviewApptRequestModelShow] = React.useState(false);
-
   return (
     <div className="px-1 py-1 h-100 w-100 bg-danger text-dark overflow-auto" >
       <span>
@@ -26,11 +21,8 @@ function ApptRequestCard(props: { apptRequest: ApptRequest, apiKey: ApiKey }) {
   )
 }
 
-
 function ApptCard(props: { appt: Appt, apiKey: ApiKey }) {
   const appt = props.appt;
-  const [show, setShow] = React.useState(false);
-
   return <div className="px-1 py-1 h-100 w-100 bg-warning text-dark overflow-auto">
     <span>
       {format(appt.startTime, "h:mm a")} - {format(appt.startTime + appt.duration, "h:mm a")}
@@ -48,12 +40,12 @@ function ApptCard(props: { appt: Appt, apiKey: ApiKey }) {
 
 function AttendanceCard(props: { attendance: Attendance, apiKey: ApiKey }) {
   const attendance = props.attendance;
-  return <div className="px-1 py-1 h-100 w-100 bg-success text-dark overflow-auto">
+  return <div className="px-1 py-1 h-100 w-100 bg-success text-light overflow-auto">
+    Student: {attendance.appt.apptRequest.attendee.name}
+    <br />
     {attendance.kind}
     <br />
     {format(attendance.appt.startTime, "h:mm a")} - {format(attendance.appt.startTime + attendance.appt.duration, "h:mm a")}
-    <br />
-    Appt: {attendance.appt.apptRequest.attendee.name}
   </div>
 }
 
