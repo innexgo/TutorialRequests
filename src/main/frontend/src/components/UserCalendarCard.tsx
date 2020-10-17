@@ -1,7 +1,6 @@
 import React from "react";
 import { EventContentArg } from "@fullcalendar/react"
 import format from 'date-fns/format';
-import {sleep} from '../utils/utils'
 
 import ReviewApptRequestModal from "../components/ReviewApptRequestModal";
 
@@ -11,13 +10,7 @@ function ApptRequestCard(props: { apptRequest: ApptRequest, apiKey: ApiKey }) {
   const [reviewApptRequestModelShow, setReviewApptRequestModelShow] = React.useState(false);
 
   return (
-    <div
-      className="px-1 py-1 h-100 w-100 bg-danger text-dark overflow-auto"
-      onClick={(e) => {
-          setReviewApptRequestModelShow(true);
-          e.stopPropagation();
-      }}
-    >
+    <div className="px-1 py-1 h-100 w-100 bg-danger text-dark overflow-auto" >
       <span>
         {format(apptRequest.startTime, "h:mm a")} - {format(apptRequest.startTime + apptRequest.duration, "h:mm a")}
       </span>
@@ -29,15 +22,6 @@ function ApptRequestCard(props: { apptRequest: ApptRequest, apiKey: ApiKey }) {
       <span>
         Msg: {apptRequest.message}
       </span>
-      <ReviewApptRequestModal
-        show={reviewApptRequestModelShow}
-        setShow={(a:boolean) => {
-          setReviewApptRequestModelShow(a);
-          console.log(reviewApptRequestModelShow);
-        }}
-        apptRequest={apptRequest}
-        apiKey={props.apiKey}
-      />
     </div>
   )
 }

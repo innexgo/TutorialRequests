@@ -3,94 +3,13 @@ import FullCalendar, { DateSelectArg, EventInput, EventClickArg } from '@fullcal
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import UserDashboardLayout from '../components/UserDashboardLayout';
-import SearchUserDropdown from '../components/SearchUserDropdown';
 import UserCalendarCard from '../components/UserCalendarCard';
 
-import { Row, Col, Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
+import { Popover, Container, CardDeck } from 'react-bootstrap';
 import UtilityWrapper from '../components/UtilityWrapper';
+import CreateApptModal from '../components/CreateApptModal';
+import ReviewApptRequestModal from '../components/ReviewApptRequestModal';
 import { fetchApi } from '../utils/utils';
-import format from 'date-fns/format';
-
-type CreateApptModalProps = {
-  show: boolean;
-  start: number;
-  duration: number;
-  setShow: (show: boolean) => void;
-  apiKey: ApiKey;
-}
-
-function CreateApptModal(props: CreateApptModalProps) {
-  const [studentId, setStudentId] = React.useState<number | null>(null);
-  const [message, setMessage] = React.useState("");
-
-  const submit = async () => {
-    const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-      ['targetId', `${studentId}`],
-      ["attending", 'false'],
-      ['message', message],
-      ['startTime', `${props.start}`],
-      ['duration', `${props.duration}`],
-      ['apiKey', `${props.apiKey.key}`],
-    ])) as ApptRequest;
-
-    await fetchApi('appt/new/?' + new URLSearchParams([
-      ["apptRequestId", `${apptRequest.apptRequestId}`],
-      ["message", message],
-      ["startTime", `${props.start}`],
-      ["duration", `${props.duration}`],
-      ["apiKey", `${props.apiKey.key}`]
-    ]));
-    props.setShow(false);
-  }
-
-  return <Modal
-    className="CreateApptModal"
-    show={props.show}
-    onHide={() => props.setShow(false)}
-    keyboard={false}
-    size="lg"
-    centered
-  >
-    <Modal.Header closeButton>
-      <Modal.Title id="modal-title">Create Appointment with Student</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      <Form>
-        <Form.Group as={Row} controlId="startTime">
-          <Form.Label column sm={2}>Start Time</Form.Label>
-          <Col>
-            <span>{format(props.start, "MMM do, hh:mm a")} </span>
-          </Col>
-        </Form.Group>
-        <Form.Group as={Row} controlId="endTime">
-          <Form.Label column sm={2}>End Time</Form.Label>
-          <Col>
-            <span>{format(props.start + props.duration, "MMM do, hh:mm a")} </span>
-          </Col>
-        </Form.Group>
-        <Form.Group as={Row} controlId="student">
-          <Form.Label column sm={2}>Student ID</Form.Label>
-          <Col>
-            <SearchUserDropdown apiKey={props.apiKey} userKind={"STUDENT"} setFn={e => setStudentId(e)} />
-          </Col>
-        </Form.Group>
-        <Form.Group as={Row} controlId="message">
-          <Form.Label column sm={2}>Message</Form.Label>
-          <Col>
-            <Form.Control as="textarea" rows={3}
-              onChange={e => {
-                setMessage(e.target.value);
-              }} />
-          </Col>
-        </Form.Group>
-        <Button variant="primary" disabled={studentId == null} onClick={submit}>
-          Submit
-        </Button>
-      </Form>
-    </Modal.Body>
-  </Modal>
-}
-
 
 function EventCalendar(props: AuthenticatedComponentProps) {
 
@@ -100,7 +19,6 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     end: new Date(x.startTime + x.duration),
     color: "#00000000",
     kind: "ApptRequest",
-    apiKey: props.apiKey,
     apptRequest: x
   })
 
@@ -110,7 +28,6 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     end: new Date(x.startTime + x.duration),
     color: "#00000000",
     kind: "Appt",
-    apiKey: props.apiKey,
     appt: x
   })
 
@@ -120,7 +37,6 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     end: new Date(x.appt.startTime + x.appt.duration),
     color: "#00000000",
     kind: "Attendance",
-    apiKey: props.apiKey,
     attendance: x
   })
 
@@ -128,6 +44,14 @@ function EventCalendar(props: AuthenticatedComponentProps) {
   const [duration, setDuration] = React.useState(0);
 
   const [showCreateApptModal, setShowCreateApptModal] = React.useState(false);
+  const [showReviewApptRequestModal, setShowReviewApptRequestModal] = React.useState(false);
+  const [showApptModal, setShowApptModal] = React.useState(false);
+  const [showAttendanceInfoModal, setShowAttendanceInfoModal] = React.useState(false);
+
+
+  const [appt, setAppt] = React.useState<Appt | null>(null);
+  const [attendance, setAttendance] = React.useState<Attendance | null>(null);
+  const [apptRequest, setApptRequest] = React.useState<ApptRequest | null>(null);
 
   const calendarRef = React.useRef<FullCalendar | null>(null);
 
@@ -170,6 +94,32 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     ];
   }
 
+  const clickHandler = (eca:EventClickArg) => {
+    const props = eca.event.extendedProps;
+    switch (props.kind) {
+      case "ApptRequest": {
+          setApptRequest(props.apptRequest);
+          setShowReviewApptRequestModal(true);
+          setShowApptModal(false);
+          setShowAttendanceInfoModal(false);
+          break;
+      }
+      case "Appt": {
+          setAppt(props.appt);
+          setShowApptModal(true);
+          setShowReviewApptRequestModal(false);
+          setShowAttendanceInfoModal(false);
+          break;
+      }
+      case "Attendance": {
+          setAttendance(props.attendance);
+          setShowAttendanceInfoModal(true);
+          setShowApptModal(false);
+          break;
+      }
+    }
+  }
+
   return (
     <div>
       <FullCalendar
@@ -193,6 +143,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         slotMinTime="08:00"
         slotMaxTime="18:00"
         weekends={false}
+        eventClick={clickHandler}
         expandRows={true}
         businessHours={{
           daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
@@ -221,6 +172,14 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         start={start}
         duration={duration}
       />
+      {apptRequest == null ? <> </> :
+        <ReviewApptRequestModal
+          show={showReviewApptRequestModal}
+          setShow={setShowReviewApptRequestModal}
+          apptRequest={apptRequest}
+          apiKey={props.apiKey}
+        />
+      }
     </div>
   )
 }

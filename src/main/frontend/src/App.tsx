@@ -8,8 +8,6 @@ import HomeRoute from './components/HomeRoute';
 import TermsOfService from './pages/TermsOfService';
 import Instructions from './pages/Instructions';
 import UserDashboard from './pages/UserDashboard';
-import Pending from './pages/Pending';
-import Attendance from './pages/Attendance';
 import Admin from './pages/Admin';
 import Register from './pages/Register';
 import RegisterConfirm from './pages/RegisterConfirm';
@@ -53,10 +51,6 @@ function App() {
         <Route path="/register" component={Register} />
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
           component={UserDashboard} />
-        <AuthenticatedRoute path="/pending" {...apiKeyGetSetter}
-          component={Pending} />
-        <AuthenticatedRoute path="/attendance" {...apiKeyGetSetter}
-          component={Attendance} />
         <AuthenticatedRoute path="/admin" {...apiKeyGetSetter}
           component={Admin} />
         <AuthenticatedRoute path="/registerconfirm" {...apiKeyGetSetter}
