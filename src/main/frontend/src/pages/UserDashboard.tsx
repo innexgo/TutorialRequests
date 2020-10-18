@@ -159,9 +159,16 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         }}
         selectConstraint="businessHours"
         select={(dsa: DateSelectArg) => {
-          setStart(dsa.start.valueOf());
-          setDuration(dsa.end.valueOf() - dsa.start.valueOf());
-          setShowCreateApptModal(true);
+          // only open modal if this date is in the future
+          if (dsa.start.valueOf() > Date.now()) {
+            setStart(dsa.start.valueOf());
+            setDuration(dsa.end.valueOf() - dsa.start.valueOf());
+            setShowCreateApptModal(true);
+          } else {
+            if (calendarRef.current != null) {
+              calendarRef.current.getApi().unselect();
+            }
+          }
         }}
         unselect={() => {
           setShowCreateApptModal(false);
@@ -205,7 +212,6 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     </div>
   )
 }
-
 
 function UserDashboard(props: AuthenticatedComponentProps) {
   return (
