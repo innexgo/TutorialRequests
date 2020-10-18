@@ -20,7 +20,7 @@ function Home({
     const authenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now();
     if(!authenticated) {
       return <LoginInterface setApiKey={setApiKey} />
-    } else if(apiKey!.creator.kind == "STUDENT"){
+    } else if(apiKey!.creator.kind === "STUDENT"){
       return <Redirect to="/student" /> 
     } else {
       return <Redirect to="/user" />  

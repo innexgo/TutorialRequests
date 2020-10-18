@@ -12,6 +12,7 @@ import UtilityWrapper from '../components/UtilityWrapper';
 import CreateApptModal from '../components/CreateApptModal';
 import ReviewApptRequestModal from '../components/ReviewApptRequestModal';
 import ApptTakeAttendanceModal from '../components/ApptTakeAttendanceModal';
+import AttendanceInfoModal from '../components/AttendanceInfoModal';
 
 function EventCalendar(props: AuthenticatedComponentProps) {
 
@@ -66,6 +67,8 @@ function EventCalendar(props: AuthenticatedComponentProps) {
       timeZone: string;
     }) => {
 
+    console.log("nice");
+
     const localApptRequests = await fetchApi(`apptRequest/?` + new URLSearchParams([
       ['hostId', `${props.apiKey.creator.id}`],
       ['minStartTime', `${args.start.valueOf()}`],
@@ -96,28 +99,29 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     ];
   }
 
-  const clickHandler = (eca:EventClickArg) => {
+  const clickHandler = (eca: EventClickArg) => {
     const props = eca.event.extendedProps;
     switch (props.kind) {
       case "ApptRequest": {
-          setApptRequest(props.apptRequest);
-          setShowReviewApptRequestModal(true);
-          setShowTakeAttendanceApptModal(false);
-          setShowAttendanceInfoModal(false);
-          break;
+        setApptRequest(props.apptRequest);
+        setShowReviewApptRequestModal(true);
+        setShowTakeAttendanceApptModal(false);
+        setShowAttendanceInfoModal(false);
+        break;
       }
       case "Appt": {
-          setAppt(props.appt);
-          setShowTakeAttendanceApptModal(true);
-          setShowReviewApptRequestModal(false);
-          setShowAttendanceInfoModal(false);
-          break;
+        setAppt(props.appt);
+        setShowTakeAttendanceApptModal(true);
+        setShowReviewApptRequestModal(false);
+        setShowAttendanceInfoModal(false);
+        break;
       }
       case "Attendance": {
-          setAttendance(props.attendance);
-          setShowAttendanceInfoModal(true);
-          setShowTakeAttendanceApptModal(false);
-          break;
+        setAttendance(props.attendance);
+        setShowAttendanceInfoModal(true);
+        setShowReviewApptRequestModal(false);
+        setShowTakeAttendanceApptModal(false);
+        break;
       }
     }
   }
@@ -141,7 +145,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         selectMirror={true}
         events={eventSource}
         eventContent={UserCalendarCard}
-        unselectCancel=".CreateApptModal "
+        unselectCancel=".CreateApptModal"
         slotMinTime="08:00"
         slotMaxTime="18:00"
         weekends={false}
@@ -149,8 +153,9 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         expandRows={true}
         businessHours={{
           daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
-          startTime: '08:00', // 8am
-          endTime: '18:00' // 6pm
+          startTime: "08:00", // 8am
+          endTime: "18:00", // 6pm
+          startRecur: new Date()
         }}
         selectConstraint="businessHours"
         select={(dsa: DateSelectArg) => {
@@ -188,6 +193,13 @@ function EventCalendar(props: AuthenticatedComponentProps) {
           setShow={setShowTakeAttendanceApptModal}
           appt={appt}
           apiKey={props.apiKey}
+        />
+      }
+      {attendance == null ? <> </> :
+        <AttendanceInfoModal
+          show={showAttendanceInfoModal}
+          setShow={setShowAttendanceInfoModal}
+          attendance={attendance}
         />
       }
     </div>

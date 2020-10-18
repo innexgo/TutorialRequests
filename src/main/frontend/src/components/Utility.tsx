@@ -1,6 +1,4 @@
 import React from 'react';
-import { OverlayTrigger, Card } from 'react-bootstrap';
-import { Help } from '@material-ui/icons';
 import ErrorBoundary from '../components/ErrorBoundary';
 import Loader from '../components/Loader';
 import { Async, AsyncFulfilled } from 'react-async';

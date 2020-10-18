@@ -19,7 +19,7 @@ function LoginInterface(props: LoginInterfaceProps) {
           minWidth: "5rem",
           backgroundColor: '#990000ff',
         }}>
-          <img src={transparent} />
+          <img src={transparent} alt="Innexgo Logo" />
           <h4 className="my-3">Attendance simplified.</h4>
           <a href="" className="text-light">
             New? Create an account <ArrowForward />
@@ -29,7 +29,7 @@ function LoginInterface(props: LoginInterfaceProps) {
             Forgot password?<ArrowForward />
           </a>
           <br />
-          <a href="" className="text-light">
+          <a href="https://hours.innexgo.com" className="text-light">
             Not your school?<ArrowForward />
           </a>
           <br />
