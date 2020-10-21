@@ -12,7 +12,7 @@ import UtilityWrapper from '../components/UtilityWrapper';
 import CreateApptModal from '../components/CreateApptModal';
 import ReviewApptRequestModal from '../components/ReviewApptRequestModal';
 import ApptTakeAttendanceModal from '../components/ApptTakeAttendanceModal';
-import AttendanceInfoModal from '../components/AttendanceInfoModal';
+import ViewAttendanceModal from '../components/ViewAttendanceModal';
 
 function EventCalendar(props: AuthenticatedComponentProps) {
 
@@ -49,7 +49,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
   const [showCreateApptModal, setShowCreateApptModal] = React.useState(false);
   const [showReviewApptRequestModal, setShowReviewApptRequestModal] = React.useState(false);
   const [showTakeAttendanceApptModal, setShowTakeAttendanceApptModal] = React.useState(false);
-  const [showAttendanceInfoModal, setShowAttendanceInfoModal] = React.useState(false);
+  const [showViewAttendanceModal, setShowViewAttendanceModal] = React.useState(false);
 
 
   const [appt, setAppt] = React.useState<Appt | null>(null);
@@ -106,19 +106,19 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         setApptRequest(props.apptRequest);
         setShowReviewApptRequestModal(true);
         setShowTakeAttendanceApptModal(false);
-        setShowAttendanceInfoModal(false);
+        setShowViewAttendanceModal(false);
         break;
       }
       case "Appt": {
         setAppt(props.appt);
         setShowTakeAttendanceApptModal(true);
         setShowReviewApptRequestModal(false);
-        setShowAttendanceInfoModal(false);
+        setShowViewAttendanceModal(false);
         break;
       }
       case "Attendance": {
         setAttendance(props.attendance);
-        setShowAttendanceInfoModal(true);
+        setShowViewAttendanceModal(true);
         setShowReviewApptRequestModal(false);
         setShowTakeAttendanceApptModal(false);
         break;
@@ -203,9 +203,9 @@ function EventCalendar(props: AuthenticatedComponentProps) {
         />
       }
       {attendance == null ? <> </> :
-        <AttendanceInfoModal
-          show={showAttendanceInfoModal}
-          setShow={setShowAttendanceInfoModal}
+        <ViewAttendanceModal
+          show={showViewAttendanceModal}
+          setShow={setShowViewAttendanceModal}
           attendance={attendance}
         />
       }

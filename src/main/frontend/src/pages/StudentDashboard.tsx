@@ -67,8 +67,6 @@ function StudentEventCalendar(props: StudentComponentProps) {
       timeZone: string;
     }) => {
 
-    console.log("nice");
-
     const localApptRequests = await fetchApi(`apptRequest/?` + new URLSearchParams([
       ['attendeeId', `${props.apiKey.creator.id}`],
       ['minStartTime', `${args.start.valueOf()}`],
@@ -191,7 +189,6 @@ function StudentEventCalendar(props: StudentComponentProps) {
           show={showViewApptRequestModal}
           setShow={setShowViewApptRequestModal}
           apptRequest={apptRequest}
-          apiKey={props.apiKey}
         />
       }
       {appt == null ? <> </> :
@@ -199,7 +196,6 @@ function StudentEventCalendar(props: StudentComponentProps) {
           show={showTakeAttendanceApptModal}
           setShow={setShowTakeAttendanceApptModal}
           appt={appt}
-          apiKey={props.apiKey}
         />
       }
       {attendance == null ? <> </> :

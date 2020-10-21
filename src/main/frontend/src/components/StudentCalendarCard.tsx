@@ -11,7 +11,7 @@ function ApptRequestCard(props: { apptRequest: ApptRequest, apiKey: ApiKey }) {
       </span>
       <br />
       <span>
-        Request From: {apptRequest.host.name}
+        Request To: {apptRequest.host.name}
       </span>
       <br />
       <span>

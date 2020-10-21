@@ -1,22 +1,16 @@
 import React from 'react'
-import SearchUserDropdown from '../components/SearchUserDropdown';
-
-import { Row, Col, Modal, Button, Form } from 'react-bootstrap';
-import { fetchApi } from '../utils/utils';
+import { Row, Col, Modal, Form } from 'react-bootstrap';
 import format from 'date-fns/format';
 
-type AttendanceInfoModalProps = {
+type ViewAttendanceModalProps = {
   show: boolean;
   setShow: (show: boolean) => void;
   attendance: Attendance;
 }
 
-function AttendanceInfoModal(props: AttendanceInfoModalProps) {
-  const [studentId, setStudentId] = React.useState<number | null>(null);
-  const [message, setMessage] = React.useState("");
-
+function ViewAttendanceModal(props: ViewAttendanceModalProps) {
   return <Modal
-    className="AttendanceInfoModal"
+    className="ViewAttendanceModal"
     show={props.show}
     onHide={() => props.setShow(false)}
     keyboard={false}
@@ -69,4 +63,4 @@ function AttendanceInfoModal(props: AttendanceInfoModalProps) {
   </Modal>
 }
 
-export default AttendanceInfoModal;
+export default ViewAttendanceModal;
