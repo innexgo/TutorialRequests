@@ -8,44 +8,46 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 
-public class SendMail {
+public class SendMailUtils {
   @Autowired UserService userService;
 
-  public Mail buildAccVerificationTemplate(long ID) {
+  private Mail buildAccVerificationTemplate(long ID) {
     User user = userService.getById(ID);
     Mail mail = new Mail();
 
     Email fromEmail = new Email();
     fromEmail.setName("Email Authenticator");
-    fromEmail.setEmail("email-authenticator@hours.innexgo.com");
+    fromEmail.setEmail("email-authenticator@innexgo.com");
     mail.setFrom(fromEmail);
 
     mail.setTemplateId("d-deadbeefdeadbeefdeadbeefdeadbeef"); //TODO set template
 
     Personalization personalization = new Personalization();
-    personalization.addDynamicTemplateData("name", user.name);
+    personalization.addDynamicTemplateData("request_name", user.name);
+    personalization.addDynamicTemplateData("request_email", user.email);
     //personalization.addDynamicTemplateData("verifLink", ); //TODO add verif link generator 
-    personalization.addTo(new Email(user.email));
+    personalization.addTo(new Email("innexgo@gmail.com")); //user.email));
     mail.addPersonalization(personalization);
 
     return mail;
   }
 
-  public Mail buildForgotPasswordTemplate(long ID) {
+  private Mail buildForgotPasswordTemplate(long ID) {
     User user = userService.getById(ID);
     Mail mail = new Mail();
 
     Email fromEmail = new Email();
     fromEmail.setName("Reset Password");
-    fromEmail.setEmail("reset-password@hours.innexgo.com");
+    fromEmail.setEmail("reset-password@innexgo.com");
     mail.setFrom(fromEmail);
 
-    mail.setTemplateId("d-deadbeefdeadbeefdeadbeefdeadbeef"); //TODO set template
+    mail.setTemplateId("d-62e6fcdd178349ad88646755822224a2"); //TODO make this template actually look nice.
 
     Personalization personalization = new Personalization();
-    personalization.addDynamicTemplateData("name", user.name);
+    personalization.addDynamicTemplateData("request_name", user.name);
+    personalization.addDynamicTemplateData("request_email", user.email);
     //personalization.addDynamicTemplateData("resetLink", ); //TODO add verif link generator 
-    personalization.addTo(new Email(user.email));
+    personalization.addTo(new Email("innexgo@gmail.com")); //user.email));
     mail.addPersonalization(personalization);
 
     return mail;
@@ -62,7 +64,7 @@ public class SendMail {
   }
 
   private static void send(final Mail mail) throws IOException {
-    final SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY")); //TODO add .env API KEY
+    final SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY"));
 
     final Request request = new Request();
     request.setMethod(Method.POST);
