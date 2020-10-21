@@ -1,187 +1,235 @@
-import React, { useState } from 'react'
-import FullCalendar, { EventInput, EventClickArg, DateSelectArg } from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
+import React from 'react'
+import FullCalendar, { DateSelectArg, EventInput, EventClickArg } from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import StudentDashboardLayout from '../components/StudentDashboardLayout';
+import StudentCalendarCard from '../components/StudentCalendarCard';
 
-import { Popover, Container, CardDeck, Modal, Button, Form } from 'react-bootstrap';
-import Utility from '../components/Utility';
+import { Popover, Container, CardDeck } from 'react-bootstrap';
 import { fetchApi } from '../utils/utils';
+import UtilityWrapper from '../components/UtilityWrapper';
 
-interface ApptProps {
-  appointments: Appt[],
-  apiKey: ApiKey
-}
+import CreateApptRequestModal from '../components/CreateApptRequestModal';
+import ViewApptRequestModal from '../components/ViewApptRequestModal';
+import ViewApptModal from '../components/ViewApptModal';
+import ViewAttendanceModal from '../components/ViewAttendanceModal';
 
-function LoadEvents(props: ApptProps) {
+function StudentEventCalendar(props: StudentComponentProps) {
 
-  const [show, setShow] = useState(false);
-  const [date, setDate] = useState("");
-  const handleClose = () => setShow(false);
+  const apptRequestToEvent = (x: ApptRequest): EventInput => ({
+    id: `${x.apptRequestId}`,
+    start: new Date(x.startTime),
+    end: new Date(x.startTime + x.duration),
+    color: "#00000000",
+    kind: "ApptRequest",
+    apptRequest: x
+  })
 
-  const [apptDate, setapptDate] = React.useState("");
-  const [teacher, setTeacher] = React.useState("");
-  const [message, setMessage] = React.useState("");
+  const apptToEvent = (x: Appt): EventInput => ({
+    id: `${x.apptRequest.apptRequestId}`,
+    start: new Date(x.startTime),
+    end: new Date(x.startTime + x.duration),
+    color: "#00000000",
+    kind: "Appt",
+    appt: x
+  })
+
+  const attendanceToEvent = (x: Attendance): EventInput => ({
+    id: `${x.appt.apptRequest.apptRequestId}`,
+    start: new Date(x.appt.startTime),
+    end: new Date(x.appt.startTime + x.appt.duration),
+    color: "#00000000",
+    kind: "Attendance",
+    attendance: x
+  })
+
+  const [start, setStart] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
+
+  const [showCreateApptRequestModal, setShowCreateApptRequestModal] = React.useState(false);
+  const [showViewApptRequestModal, setShowViewApptRequestModal] = React.useState(false);
+  const [showTakeAttendanceApptModal, setShowTakeAttendanceApptModal] = React.useState(false);
+  const [showViewAttendanceModal, setShowViewAttendanceModal] = React.useState(false);
 
 
-  /*async function createAppt(){
-    const start = moment(date, 'YYYY-M-D').valueOf();
-    const appt = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-    //TODO dynamically generate dropdown with all users (teachers), with value as teacher Id and placeholder as teacher name. get teacher value and plug into userID.
-      ['studentId', `${props.apiKey.id}],
-      ['message', message],
-      ['requestTime', start],
-      ['requestDuration', 0],
-      ['approved', 'false'],
-      ['reviewed', 'false'],
-      ['apiKey', props.apiKey.key],
-  ])) as ApptRequest;
-  }*/
+  const [appt, setAppt] = React.useState<Appt | null>(null);
+  const [attendance, setAttendance] = React.useState<Attendance | null>(null);
+  const [apptRequest, setApptRequest] = React.useState<ApptRequest | null>(null);
 
-  const events = props.appointments;
+  const calendarRef = React.useRef<FullCalendar | null>(null);
 
-  const INITIAL_EVENTS: EventInput[] =
-    events.map((x) => ({
-        id: `${x.apptRequest.apptRequestId}`,
-        title: x.apptRequest.host.name,
-        start: x.startTime,
-        end: x.startTime + x.duration,
-      })
-    );
+  const eventSource = async (
+    args: {
+      start: Date;
+      end: Date;
+      startStr: string;
+      endStr: string;
+      timeZone: string;
+    }) => {
 
+    console.log("nice");
 
-  const handleEventClick = (clickInfo: EventClickArg) => {
-    if (window.confirm(`Are you sure you want to delete the appointment with'${clickInfo.event.title}'`)) {
-      clickInfo.event.remove()
-      //TODO NEED TO ACTUALLY DELETE EVENT FROm BACKEND
-    }
+    const localApptRequests = await fetchApi(`apptRequest/?` + new URLSearchParams([
+      ['attendeeId', `${props.apiKey.creator.id}`],
+      ['minStartTime', `${args.start.valueOf()}`],
+      ['maxStartTime', `${args.end.valueOf()}`],
+      ['confirmed', 'false'],
+      ['apiKey', `${props.apiKey.key}`],
+    ])) as ApptRequest[];
+
+    const localAppts = await fetchApi('appt/?' + new URLSearchParams([
+      ["attendeeId", `${props.apiKey.creator.id}`],
+      ['minStartTime', `${args.start.valueOf()}`],
+      ['maxStartTime', `${args.end.valueOf()}`],
+      ['attended', 'false'],
+      ["apiKey", `${props.apiKey.key}`]
+    ])) as Appt[];
+
+    const localAttendances = await fetchApi('attendance/?' + new URLSearchParams([
+      ["attendeeId", `${props.apiKey.creator.id}`],
+      ['minStartTime', `${args.start.valueOf()}`],
+      ['maxStartTime', `${args.end.valueOf()}`],
+      ["apiKey", `${props.apiKey.key}`]
+    ])) as Attendance[];
+
+    return [
+      ...localApptRequests.map(apptRequestToEvent),
+      ...localAppts.map(apptToEvent),
+      ...localAttendances.map(attendanceToEvent),
+    ];
   }
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
-
-    let calendarApi = selectInfo.view.calendar
-
-    calendarApi.unselect() // clear date selection
-
-    setShow(true);
-    setDate(selectInfo.startStr);
-
-    /* calendarApi.addEvent({
-       id: createEventId(),
-       title,
-       start: selectInfo.startStr,
-       end: selectInfo.endStr,
-       allDay: selectInfo.allDay
-     })*/
-    //TODO not sure if we need to add event through calendar api
+  const clickHandler = (eca: EventClickArg) => {
+    const props = eca.event.extendedProps;
+    switch (props.kind) {
+      case "ApptRequest": {
+        setApptRequest(props.apptRequest);
+        setShowViewApptRequestModal(true);
+        setShowTakeAttendanceApptModal(false);
+        setShowViewAttendanceModal(false);
+        break;
+      }
+      case "Appt": {
+        setAppt(props.appt);
+        setShowTakeAttendanceApptModal(true);
+        setShowViewApptRequestModal(false);
+        setShowViewAttendanceModal(false);
+        break;
+      }
+      case "Attendance": {
+        setAttendance(props.attendance);
+        setShowViewAttendanceModal(true);
+        setShowViewApptRequestModal(false);
+        setShowTakeAttendanceApptModal(false);
+        break;
+      }
+    }
   }
 
   return (
-    <>
+    <div>
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        ref={calendarRef}
+        plugins={[timeGridPlugin, interactionPlugin]}
         headerToolbar={{
           left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          center: '',
+          right: 'timeGridDay,timeGridWeek',
         }}
-        initialView='dayGridMonth'
+        initialView='timeGridWeek'
+        height={"80vh"}
+        allDaySlot={false}
+        nowIndicator={true}
         editable={false}
         selectable={true}
         selectMirror={true}
-        dayMaxEvents={true}
+        events={eventSource}
+        eventContent={StudentCalendarCard}
+        unselectCancel=".CreateApptRequestModal"
+        slotMinTime="08:00"
+        slotMaxTime="18:00"
         weekends={false}
-        select={handleDateSelect}
-        eventClick={handleEventClick}
-        initialEvents={INITIAL_EVENTS}
+        eventClick={clickHandler}
+        expandRows={true}
+        businessHours={{
+          daysOfWeek: [1, 2, 3, 4, 5], // MTWHF
+          startTime: "08:00", // 8am
+          endTime: "18:00", // 6pm
+          startRecur: new Date()
+        }}
+        selectConstraint="businessHours"
+        select={(dsa: DateSelectArg) => {
+          // only open modal if this date is in the future
+          if (dsa.start.valueOf() > Date.now()) {
+            setStart(dsa.start.valueOf());
+            setDuration(dsa.end.valueOf() - dsa.start.valueOf());
+            setShowCreateApptRequestModal(true);
+          } else {
+            if (calendarRef.current != null) {
+              calendarRef.current.getApi().unselect();
+            }
+          }
+        }}
+        unselect={() => {
+          setShowCreateApptRequestModal(false);
+        }}
       />
-      <Modal
-        show={show}
-        onHide={handleClose}
-        backdrop="static"
-        keyboard={false}
-        size="lg"
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title id="modal-title">Make Appointment</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group controlId="date">
-              <Form.Label>Date</Form.Label>
-              <Form.Control type="date" value={date}
-                onChange={e => {
-                  setapptDate(e.target.value);
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group controlId="teacher">
-              <Form.Label>Teacher</Form.Label>
-              <Form.Control as="select"
-                onChange={e => {
-                  setTeacher(e.target.value);
-                }} >
-                <option>Ms. Ng</option>
-                <option>Ms. Cornejo</option>
-                <option>Ms. Dimas</option>
-
-              </Form.Control>
-            </Form.Group>
-
-            <Form.Group controlId="message">
-              <Form.Label>Message</Form.Label>
-              <Form.Control as="textarea" rows={3}
-                onChange={e => {
-                  setMessage(e.target.value);
-                }} />
-            </Form.Group>
-
-            <Button variant="primary" type="submit">Submit</Button>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
-  );
+      <CreateApptRequestModal
+        apiKey={props.apiKey}
+        show={showCreateApptRequestModal}
+        setShow={(a: boolean) => {
+          setShowCreateApptRequestModal(a)
+          if (!a && calendarRef.current != null) {
+            calendarRef.current.getApi().unselect();
+          }
+        }}
+        start={start}
+        duration={duration}
+      />
+      {apptRequest == null ? <> </> :
+        <ViewApptRequestModal
+          show={showViewApptRequestModal}
+          setShow={setShowViewApptRequestModal}
+          apptRequest={apptRequest}
+          apiKey={props.apiKey}
+        />
+      }
+      {appt == null ? <> </> :
+        <ViewApptModal
+          show={showTakeAttendanceApptModal}
+          setShow={setShowTakeAttendanceApptModal}
+          appt={appt}
+          apiKey={props.apiKey}
+        />
+      }
+      {attendance == null ? <> </> :
+        <ViewAttendanceModal
+          show={showViewAttendanceModal}
+          setShow={setShowViewAttendanceModal}
+          attendance={attendance}
+        />
+      }
+    </div>
+  )
 }
 
-function StudentCalendar(props: StudentComponentProps) {
-  const loadData = async (apiKey: ApiKey): Promise<ApptProps> => {
-    const appointments = await fetchApi('appt/?' + new URLSearchParams([
-      ['offset', '0'],
-      ['count', '0xFFFFFFFF'],
-      ['user_id', `${apiKey.creator.id}`],
-      ['approved', 'true'],
-      ['apiKey', apiKey.key]
-    ])) as Appt[];
-    return {
-      appointments,
-      apiKey
-    }
-  };
-
+function StudentDashboard(props: StudentComponentProps) {
   return (
     <StudentDashboardLayout {...props} >
       <Container fluid className="py-3 px-3">
         <CardDeck>
-          <Utility<ApptProps> title="Pending Appointments" promise={loadData(props.apiKey)} >
+          <UtilityWrapper title="Upcoming Appointments">
             <Popover id="information-tooltip">
-              This screen shows all future appointments. You can click any date to add an
-              appointment on that date, or click an existing appointment to delete it.
-            </Popover>
-            {data => <LoadEvents {...data} />}
-          </Utility>
+              This screen shows your upcoming appointments appointments.
+              You can click any appointment to learn more about it,
+              or drag your mouse to select a new one.
+           </Popover>
+            <StudentEventCalendar {...props} />
+          </UtilityWrapper>
         </CardDeck>
       </Container>
     </StudentDashboardLayout>
   )
 };
 
-export default StudentCalendar;
+export default StudentDashboard;

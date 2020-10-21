@@ -1,7 +1,6 @@
 import React from "react";
 import { EventContentArg } from "@fullcalendar/react"
 import format from 'date-fns/format';
-/*switched out attendee for host, that's all*/
 
 function ApptRequestCard(props: { apptRequest: ApptRequest, apiKey: ApiKey }) {
   const apptRequest = props.apptRequest;
