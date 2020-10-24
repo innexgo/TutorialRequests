@@ -1,5 +1,3 @@
-INSERT INTO school_info VALUES(0,'Squidward Community College','sqcc');
-
 INSERT INTO user VALUES(0,2,'root',          'root@example.com', 1,'$2a$10$kteCMggOjaT1lJWybiFwMewtFvec7QB35lo6Rjk7IjNJFVJBoyDQ.');
 INSERT INTO user VALUES(1,1,'TEACHER BOB',   'bob@example.com',  1,'$2a$10$kteCMggOjaT1lJWybiFwMewtFvec7QB35lo6Rjk7IjNJFVJBoyDQ.');
 INSERT INTO user VALUES(2,1,'TEACHER SARAH', 'sarah@example.com',1,'$2a$10$kteCMggOjaT1lJWybiFwMewtFvec7QB35lo6Rjk7IjNJFVJBoyDQ.');

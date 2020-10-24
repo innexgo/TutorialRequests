@@ -26,28 +26,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = {"/dev/"})
+@RequestMapping("/dev/")
 public class DevelopmentController {
 
-  @Autowired ApiKeyService apiKeyService;
-  @Autowired UserService userService;
-  @Autowired SchoolInfoService schoolInfoService;
-  @Autowired InnexgoService innexgoService;
-
+  @Autowired
+  ApiKeyService apiKeyService;
+  @Autowired
+  UserService userService;
+  @Autowired
+  InnexgoService innexgoService;
 
   @RequestMapping("/initializeRoot/")
-  public ResponseEntity<?> populateUsers(
-      @RequestParam("name") String name,
-      @RequestParam("domain") String domain,
-      @RequestParam("adminEmail") String adminEmail,
-      @RequestParam("adminName") String adminName,
-      @RequestParam("adminPassword") String adminPassword
+  public ResponseEntity<?> populateUsers( //
+      @RequestParam("adminEmail") String adminEmail, //
+      @RequestParam("adminName") String adminName, //
+      @RequestParam("adminPassword") String adminPassword //
   ) {
-    if (schoolInfoService.initialized()) {
+
+    if (userService.getAll().size() > 0) {
       return Errors.DATABASE_INITIALIZED.getResponse();
     }
-
-    schoolInfoService.inintialize(name, domain); 
 
     // create user
     User user = new User();

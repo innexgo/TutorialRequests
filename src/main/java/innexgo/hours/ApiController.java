@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -47,8 +48,10 @@ public class ApiController {
   ApptService apptService;
   @Autowired
   AttendanceService attendanceService;
-  @Autowired
-  SchoolInfoService schoolInfoService;
+  @Value("${SCHOOL_NAME}")
+  String schoolName;
+  @Value("${SCHOOL_DOMAIN}")
+  String schoolDomain;
 
   @Autowired
   InnexgoService innexgoService;
@@ -406,6 +409,9 @@ public class ApiController {
 
   @RequestMapping("/misc/info/school/")
   public ResponseEntity<?> viewSchool() {
-    return new ResponseEntity<>(schoolInfoService.get(), HttpStatus.OK);
+    return new ResponseEntity<>(new Object() {
+      public final String name = schoolName;
+      public final String domain = schoolDomain;
+    }, HttpStatus.OK);
   }
 }

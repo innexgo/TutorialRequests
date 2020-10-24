@@ -1,9 +1,10 @@
-drop table if exists school_info;
-create table school_info(
+drop table if exists email_ownership_challenge;
+create table email_ownership_challenge(
   id integer not null primary key,
-  name varchar(100) not null,
-  domain varchar(100) not null
-);
+  email integer not null,
+  creation_time integer not null,
+  key_hash char(64) not null
+)
 
 drop table if exists user;
 create table user(

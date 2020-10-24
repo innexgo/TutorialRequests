@@ -1,7 +1,5 @@
 declare global {
-
   type SchoolInfo = {
-    id: number,
     name: string,
     domain: string,
   }
