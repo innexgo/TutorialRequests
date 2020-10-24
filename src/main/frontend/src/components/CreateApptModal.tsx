@@ -50,25 +50,25 @@ function CreateApptModal(props: CreateApptModalProps) {
     </Modal.Header>
     <Modal.Body>
       <Form>
-        <Form.Group as={Row} controlId="startTime">
+        <Form.Group as={Row}>
           <Form.Label column sm={2}>Start Time</Form.Label>
           <Col>
             <span>{format(props.start, "MMM do, hh:mm a")} </span>
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="endTime">
+        <Form.Group as={Row}>
           <Form.Label column sm={2}>End Time</Form.Label>
           <Col>
             <span>{format(props.start + props.duration, "MMM do, hh:mm a")} </span>
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="student">
+        <Form.Group as={Row}>
           <Form.Label column sm={2}>Student ID</Form.Label>
           <Col>
             <SearchUserDropdown apiKey={props.apiKey} userKind={"STUDENT"} setFn={e => setStudentId(e)} />
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="message">
+        <Form.Group as={Row}>
           <Form.Label column sm={2}>Message</Form.Label>
           <Col>
             <Form.Control as="textarea" rows={3}

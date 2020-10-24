@@ -47,13 +47,13 @@ function ReviewApptRequestModal(props: ReviewApptRequestModalProps) {
     centered
   >
     <Modal.Header closeButton>
-      <Modal.Title id="modal-title">Review Student Request</Modal.Title>
+      <Modal.Title>Review Student Request</Modal.Title>
     </Modal.Header>
     <Modal.Body>
       <Row>
         <Col>
           <Form>
-            <Form.Group as={Row} controlId="startTime">
+            <Form.Group as={Row}>
               <Form.Label column sm={4}>Start Time</Form.Label>
               <Col>
                 <span >
@@ -61,7 +61,7 @@ function ReviewApptRequestModal(props: ReviewApptRequestModalProps) {
                 </span>
               </Col>
             </Form.Group>
-            <Form.Group as={Row} controlId="endTime">
+            <Form.Group as={Row}>
               <Form.Label column sm={4}>End Time</Form.Label>
               <Col>
                 <span>
@@ -69,7 +69,7 @@ function ReviewApptRequestModal(props: ReviewApptRequestModalProps) {
                 </span>
               </Col>
             </Form.Group>
-            <Form.Group as={Row} controlId="student">
+            <Form.Group as={Row}>
               <Form.Label column sm={4}>Student</Form.Label>
               <Col>
                 <span  >
@@ -77,7 +77,7 @@ function ReviewApptRequestModal(props: ReviewApptRequestModalProps) {
                 </span>
               </Col>
             </Form.Group>
-            <Form.Group as={Row} controlId="message">
+            <Form.Group as={Row}>
               <Form.Label column sm={4}>Message</Form.Label>
               <Col>
                 <Form.Control as="textarea" rows={3}

@@ -1,9 +1,11 @@
 drop table if exists email_ownership_challenge;
 create table email_ownership_challenge(
   id integer not null primary key,
+  name integer not null,
   email integer not null,
   creation_time integer not null,
-  key_hash char(64) not null
+  validation integer not null,
+  password_hash char(64) not null
 )
 
 drop table if exists user;

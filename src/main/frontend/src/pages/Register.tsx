@@ -2,16 +2,106 @@ import React from 'react';
 import { ArrowForward } from '@material-ui/icons';
 import transparent from "../img/innexgo_transparent_icon.png"
 import innexgo_logo from '../img/innexgo_transparent_icon.png';
-import { Nav, Navbar, } from 'react-bootstrap'
-import Login from '../components/Login';
+import { Button, Form, Nav, Navbar, } from 'react-bootstrap'
+import { fetchApi } from '../utils/utils';
 
 import SchoolName from '../components/SchoolName';
 
-interface RegisterProps {
-  setApiKey: (a:ApiKey|null) => void
+function RegisterForm() {
+  const formBoxStyle = {
+    borderLeft: '0',
+    borderTop: '0',
+    borderRight: '0',
+    borderRadius: '0',
+    borderBottom: '1px solid grey',
+  };
+
+  const [validated, setValidated] = React.useState(false);
+  const [email, setEmail] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [password1, setPassword1] = React.useState("");
+  const [password2, setPassword2] = React.useState("");
+
+
+  async function postRegister() {
+    /*
+    try {
+      const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
+        ['duration', `${5 * 60 * 60 * 1000}`], // 5 hours
+      ])) as ApiKey;
+    } catch (e) {
+      console.log(e);
+      setErrorText("Your username or password is incorrect");
+    }
+    */
+  }
+
+  function handleSubmit() {
+      /*
+      if(name != '') {
+        setErrorText("Name must be filled.");
+        return false;
+      }
+      if(email != '') {
+        setErrorText("Email must be filled.");
+        return false;
+      }
+      if(password1 != '') {
+        setErrorText("Password must be filled.");
+        return false;
+      }
+      if(password1 != password2) {
+        setErrorText("Password and password confirmation don't match.");
+        return false;
+      }
+      return true;
+      */
+  }
+
+
+  return <Form onSubmit={handleSubmit}>
+    <Form.Group>
+      <Form.Control style={formBoxStyle} placeholder="Email"
+        onChange={e => {
+          setName(e.target.value);
+        }} />
+      <Form.Control.Feedback type="invalid">
+         Please enter your real name.
+      </Form.Control.Feedback>
+    </Form.Group>
+    <Form.Group>
+      <Form.Control style={formBoxStyle} type="email" placeholder="Email"
+        onChange={e => {
+          setEmail(e.target.value);
+        }} />
+      <Form.Control.Feedback type="invalid">
+         Please enter your school email address.
+      </Form.Control.Feedback>
+    </Form.Group>
+    <Form.Group>
+      <Form.Control style={formBoxStyle} type="password" placeholder="Password"
+        onChange={e => {
+          setPassword1(e.target.value);
+        }} />
+      <Form.Control.Feedback type="invalid">
+         Please enter your school email address.
+      </Form.Control.Feedback>
+    </Form.Group>
+    <Form.Group>
+      <Form.Control style={formBoxStyle} type="password" placeholder="Confirm Password"
+        onChange={e => {
+          setPassword2(e.target.value);
+        }} />
+      <Form.Control.Feedback type="invalid">
+         Please enter your school email address.
+      </Form.Control.Feedback>
+    </Form.Group>
+    <Button type="submit" variant="dark">Register</Button>
+  </Form>
 }
 
-function Register(props: RegisterProps) {
+
+function Register() {
   return (
     <div style={{ height: '100vh' }}>
       <div className="row h-100">
@@ -21,8 +111,8 @@ function Register(props: RegisterProps) {
         }}>
           <img src={transparent} alt="Innexgo Logo" />
           <h4 className="my-3">Attendance simplified.</h4>
-          <a href="" className="text-light">
-            New? Create an account <ArrowForward />
+          <a href="/" className="text-light">
+            Already have an account?<ArrowForward />
           </a>
           <br />
           <a href="" className="text-light">
@@ -38,9 +128,9 @@ function Register(props: RegisterProps) {
           </a>
         </div>
         <div className="h-100 px-5 py-5 w-75" >
-          <h4><SchoolName /></h4>
+          <h4>Register with <SchoolName /></h4>
           <br />
-          <Login setApiKey={props.setApiKey}/>
+          <RegisterForm/>
         </div>
       </div>
 

@@ -22,31 +22,31 @@ function ViewApptModal(props: ViewApptModalProps) {
     </Modal.Header>
     <Modal.Body>
       <Form>
-        <Form.Group as={Row} controlId="startTime">
+        <Form.Group as={Row}>
           <Form.Label column sm={2}>Start Time</Form.Label>
           <Col>
             <span>{format(props.appt.startTime, "MMM do, hh:mm a")} </span>
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="endTime">
+        <Form.Group as={Row}>
           <Form.Label column sm={2}>End Time</Form.Label>
           <Col>
-            <span>{format(props.appt.startTime+ props.appt.startTime, "MMM do, hh:mm a")} </span>
+            <span>{format(props.appt.startTime + props.appt.startTime, "MMM do, hh:mm a")} </span>
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="attendee">
+        <Form.Group as={Row} >
           <Form.Label column sm={2}>Attendee</Form.Label>
           <Col>
             <span>{props.appt.apptRequest.attendee.name}</span>
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="host">
+        <Form.Group as={Row} >
           <Form.Label column sm={2}>Host</Form.Label>
           <Col>
             <span>{props.appt.apptRequest.host.name}</span>
           </Col>
         </Form.Group>
-        <Form.Group as={Row} controlId="message">
+        <Form.Group as={Row} >
           <Form.Label column sm={2}>Message</Form.Label>
           <Col>
             <span>{props.appt.message}</span>

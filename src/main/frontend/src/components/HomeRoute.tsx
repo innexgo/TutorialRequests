@@ -1,5 +1,5 @@
 import React from "react";
-import LoginInterface from "../components/LoginInterface"
+import Login from "../components/Login"
 import { RouteProps } from "react-router";
 import { Route, Redirect } from "react-router-dom";
 
@@ -19,7 +19,7 @@ function Home({
   const renderResult = () => { 
     const authenticated = apiKey != null && apiKey.creationTime + apiKey.duration > Date.now();
     if(!authenticated) {
-      return <LoginInterface setApiKey={setApiKey} />
+      return <Login setApiKey={setApiKey} />
     } else if(apiKey!.creator.kind === "STUDENT"){
       return <Redirect to="/student" /> 
     } else {

@@ -44,16 +44,16 @@ function LoginForm(props: LoginProps) {
 
   return <Form>
     <Form.Group>
-      <Form.Control style={formBoxStyle} id="username" type="email" placeholder="Email"
+      <Form.Control style={formBoxStyle} type="email" placeholder="Email"
         onChange={e => {
           setUserName(e.target.value);
         }} />
       <br />
-      <Form.Control style={formBoxStyle} id="password" type="password" placeholder="Password"
+      <Form.Control style={formBoxStyle} type="password" placeholder="Password"
         onChange={e => {
           setPassword(e.target.value);
         }} />
-      <p className="form-text text-danger" id="error"></p>
+      <p className="form-text text-danger"></p>
     </Form.Group>
     <Button variant="dark" onClick={async () => postLogin()}>Login</Button>
     <p style={errorStyle}>{errorText}</p>
