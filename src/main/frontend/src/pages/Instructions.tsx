@@ -1,7 +1,9 @@
 import React from 'react';
 import ExternalLayout from '../components/ExternalLayout';
 import { ArrowForward } from '@material-ui/icons';
-import placeholder from '../img/placeholder.png';
+
+import sample2 from '../img/sample2.mov';
+import sample3 from '../img/sample3.mov';
 
 interface Props{};
 interface State{};
@@ -40,37 +42,52 @@ class Instructions extends React.Component<Props, State> {
                     <h6>Quick links</h6>
 
                     <ul>
-                        <li>
-                            <a href="#one" style={{color: 'black'}}>
-                                Pain</a>
-                        </li>
-                        <li>
-                            <a href="#two" style={{color: 'black'}}>
-                                Pain 2</a>
-                        </li>
+                        <li><a href="#one" style={{color: 'black'}}>Create appointment</a></li>
+                        <li><a href="#two" style={{color: 'black'}}>Adjust duration</a></li>
+                        <li><a href="#three" style={{color: 'black'}}>Day/week view</a></li>
                     </ul>
                 </div>
                 <div style={content}>
                     <h3 style={{marginTop: '30px', marginBottom: '20px'}}>
-                        What can I do with Innexgo Hours?</h3>
+                        Innexgo Hours</h3>
                     <p style={{marginBottom: '20px'}}>
-                        This is an overview of Innexgo Hours and its features. If you're new to the
-                        service, reading through will give you a pretty good idea of what you can do
-                        with Innexgo Hours. If you have a specific question, the sidebar should be able
-                        to guide you to the right thing! This guide will likely answer your questions,
-                        but if your question is not listed here feel free to contact us (Contact method).
+                        Innexgo Hours is a service that helps teachers and administrators give and track
+                        office hours in a simple application. This guide walks users through the features that
+                        Hours provides and how to use them. If you're new to using Hours, reading through this
+                        guide will teach you the basics right away.
                     </p>
-                    <hr style={{marginTop: '20px', marginBottom: '20px'}}/>
+                    <hr id="one" style={{marginTop: '20px', marginBottom: '20px'}}/>
+                    <h5 style={{marginBottom: '20px'}}>Create office hour appointment</h5>
+                    <video width='80%' height='60%' autoPlay loop style={{marginBottom: '20px'}}>
+                        <source src={sample2} type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video><br/>
+                    <p>Click on the calendar to create an office hour appointment. Appointments will automatically
+                        be set to the 30minute block of time clicked on the calendar.
+                    </p>
+                    
+                    <hr id="two" style={{marginTop: '20px', marginBottom: '20px'}}/>
+                    <h5 style={{marginBottom: '20px'}}>Change duration of appointment</h5>
+                    <video width='80%' height='60%' autoPlay loop style={{marginBottom: '20px'}}>
+                        <source src={sample3} type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video><br/>
+                    <p>Click on the start time in the calendar, then continue holding down and drag up and down
+                        to adjust the duration of the office hour appointment. (A popup to choose the other details
+                        will appear once you stop holding down).
+                    </p>
+                    
+                    <hr id="three" style={{marginTop: '20px', marginBottom: '20px'}}/>
+                    <h5 style={{marginBottom: '20px'}}>Calendar day/week view</h5>
+                    <video width='80%' height='60%' autoPlay loop style={{marginBottom: '20px'}}>
+                        <source type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video><br/>
+                    <p>Use the 'day/week' buttons to change the calendar view. Use the front &amp;
+                        back arrows to see previous and future weeks. (Note: you will not be able
+                        to create, edit, or mark attendance on past appointments.) 
+                    </p>
 
-                    <h5 id="one">Pain</h5>
-                    <img src={placeholder} style={{height: '30%', width: '30%',}}/> <br/>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. In ornare quam viverra orci sagittis eu volutpat. Varius duis at consectetur lorem donec massa sapien faucibus et. Pellentesque pulvinar pellentesque habitant morbi tristique senectus et netus et. Lectus proin nibh nisl condimentum.</p>
-                    <hr style={{marginTop: '20px', marginBottom: '20px'}}/>
-
-                    <h5 id="two">Pain 2</h5>
-                    <img src={placeholder} style={{height: '30%', width: '30%',}}/> <br/>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. In ornare quam viverra orci sagittis eu volutpat. Varius duis at consectetur lorem donec massa sapien faucibus et. Pellentesque pulvinar pellentesque habitant morbi tristique senectus et netus et. Lectus proin nibh nisl condimentum.</p>
-                    <hr style={{marginTop: '20px', marginBottom: '20px'}}/>
                 </div>
             </>
         );
