@@ -62,8 +62,9 @@ class Instructions extends React.Component<Props, State> {
                         <source src={sample2} type="video/mp4" />
                         Your browser does not support the video tag.
                     </video><br/>
-                    <p>Click on the calendar to create an office hour appointment. Appointments will automatically
-                        be set to the 30minute block of time clicked on the calendar.
+                    <p>Click on the calendar to create an office hour appointment. A popup will appear
+                        that allows you to type in a student name and extra details. If not dragged, appointments will 
+                        automatically be set to the 30minute block of time clicked on the calendar.
                     </p>
                     
                     <hr id="two" style={{marginTop: '20px', marginBottom: '20px'}}/>
