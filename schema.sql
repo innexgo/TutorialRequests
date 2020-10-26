@@ -6,7 +6,7 @@ create table email_ownership_challenge(
   creation_time integer not null,
   validation integer not null,
   password_hash char(64) not null
-)
+);
 
 drop table if exists user;
 create table user(
