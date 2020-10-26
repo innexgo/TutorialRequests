@@ -6,6 +6,7 @@ import sample1 from '../img/sample1.mov';
 import sample2 from '../img/sample2.mov';
 import sample3 from '../img/sample3.mov';
 import sample4 from '../img/sample4.mov';
+import sample5 from '../img/sample5.mov';
 
 interface Props{};
 interface State{};
@@ -48,6 +49,7 @@ class Instructions extends React.Component<Props, State> {
                         <li><a href="#two" style={{color: 'black'}}>Adjust duration</a></li>
                         <li><a href="#three" style={{color: 'black'}}>Day/week view</a></li>
                         <li><a href="#four" style={{color: 'black'}}>Past/future appointments</a></li>
+                        <li><a href="#five" style={{color: 'black'}}>Mark attendance</a></li>
                     </ul>
                 </div>
                 <div style={content}>
@@ -104,7 +106,7 @@ class Instructions extends React.Component<Props, State> {
                     <hr id="five" style={{marginTop: '20px', marginBottom: '20px'}}/>
                     <h5 style={{marginBottom: '20px'}}>Mark attendance</h5>
                     <video width='80%' height='60%' autoPlay loop style={{marginBottom: '20px'}}>
-                        <source type="video/mp4" />
+                        <source src={sample5} type="video/mp4" />
                         Your browser does not support the video tag.
                     </video><br/>
                     <p>Use the present, tardy, or late buttons on a past office hour appointment 
