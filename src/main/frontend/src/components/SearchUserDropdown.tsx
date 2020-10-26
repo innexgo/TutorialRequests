@@ -29,6 +29,7 @@ export default function SearchUserDropdown(props: SearchUserDropdownProps) {
     });
   };
 
+
   const onChange = (opt:any) => {
     if(opt == null) {
       props.setFn(null);
@@ -37,5 +38,11 @@ export default function SearchUserDropdown(props: SearchUserDropdownProps) {
     }
   }
 
-  return <AsyncSelect isClearable={true} onChange={onChange} loadOptions={promiseOptions} />
+  return <AsyncSelect
+    placeholder="Type Student Name"
+    isClearable={true}
+    onChange={onChange}
+    cacheOptions={true}
+    noOptionsMessage={() => null}
+    loadOptions={promiseOptions} />
 }
