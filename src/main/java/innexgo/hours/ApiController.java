@@ -464,6 +464,12 @@ public class ApiController {
       return Errors.VERIFICATION_KEY_INVALID.getResponse();
     }
 
+    if (userService.existsByEmail(verificationUser.email)) {
+      verificationUser.valid = false;
+      emailVerificationChallengeService.update(verificationUser);
+      return Errors.USER_EXISTENT.getResponse();
+    }
+
     User u = new User();
     u.name = verificationUser.name;
     u.email = verificationUser.email;
