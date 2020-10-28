@@ -48,6 +48,8 @@ public class ApiController {
   ApptService apptService;
   @Autowired
   AttendanceService attendanceService;
+  @Autowired
+  EmailVerificationChallengeService emailVerificationChallengeService;
   @Value("${SCHOOL_NAME}")
   String schoolName;
   @Value("${SCHOOL_DOMAIN}")
@@ -413,5 +415,65 @@ public class ApiController {
       public final String name = schoolName;
       public final String domain = schoolDomain;
     }, HttpStatus.OK);
+  }
+
+  @RequestMapping("/misc/requestEmailVerification")
+  public ResponseEntity<?> newEmailVerification( //
+    @RequestParam String userName, //
+    @RequestParam String userEmail, //
+    @RequestParam String userPassword) {
+
+    if (Utils.isEmpty(userEmail)) {
+      return Errors.USER_EMAIL_EMPTY.getResponse();
+    }
+    if (Utils.isEmpty(userName)) {
+      return Errors.USER_NAME_EMPTY.getResponse();
+    }
+    if (userService.existsByEmail(userEmail)) {
+      return Errors.USER_EXISTENT.getResponse();
+    }
+
+    EmailVerificationChallenge u = new EmailVerificationChallenge();
+    u.name = userName;
+    u.email = userEmail;
+    u.creationTime = System.currentTimeMillis();
+    u.verificationKey = Utils.randomString(32);
+    u.passwordHash = Utils.encodePassword(userPassword);
+    emailVerificationChallengeService.add(u);
+
+    emailVerificationChallengeService.sendVerificationEmail(u);
+
+    return new ResponseEntity<>(innexgoService.fillEmailVerificationChallenge(u), HttpStatus.OK);
+  }
+
+  @RequestMapping("/misc/emailVerification")
+  public ResponseEntity<?> checkEmailVerification(
+    @RequestParam String verificationKey) {
+
+    if (Utils.isEmpty(verificationKey)) {
+      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
+    }
+
+    if(!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
+      return Errors.VERIFICATION_KEY_INVALID.getResponse();
+    }
+
+    EmailVerificationChallenge verificationUser = emailVerificationChallengeService.getByVerificationKey(verificationKey);
+
+    if (!verificationUser.valid) {
+      return Errors.VERIFICATION_KEY_INVALID.getResponse();
+    }
+
+    User u = new User();
+    u.name = verificationUser.name;
+    u.email = verificationUser.email;
+    u.passwordHash = verificationUser.passwordHash;
+    u.kind = UserKind.STUDENT; // TODO Defaults to student, decide how to deal with that.
+    userService.add(u);
+
+    verificationUser.valid = false;
+    emailVerificationChallengeService.update(verificationUser);
+
+    return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 }

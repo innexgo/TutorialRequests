@@ -41,6 +41,16 @@ public class InnexgoService {
   }
 
   /**
+   * Fills in jackson objects for EmailVerificationChallenge
+   *
+   * @param emailChallengeUser - EmailVerificationChallenge object
+   * @return EmailVerificationChallenge object with filled jackson objects
+   */
+  EmailVerificationChallenge fillEmailVerificationChallenge(EmailVerificationChallenge emailChallengeUser) {
+    return emailChallengeUser;
+  }
+
+  /**
    * Fills in jackson objects for ApptRequest
    *
    * @param apptRequest - ApptRequest object

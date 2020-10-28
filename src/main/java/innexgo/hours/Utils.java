@@ -27,6 +27,7 @@ import java.util.Base64;
 import java.util.Random;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import java.security.SecureRandom;
 
 public class Utils {
 
@@ -36,6 +37,10 @@ public class Utils {
   static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
   static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
   static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+  static final SecureRandom randomGenerator = new SecureRandom();
+  public static final String URL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+  private static char[] randomStringBuffer = new char[32];
+
 
   static MessageDigest getDigester() {
     try {
@@ -96,4 +101,23 @@ public class Utils {
     }
     return currentYear;
   }
+
+  private static void setRandomStringLength(int length)
+  {
+    if (length < 1) {
+      System.out.println("Length < 1 on random string generator");
+      length = 16; // at least give 16 for the bare minimum, unless otherwise specified
+    }
+    randomStringBuffer = new char[length];
+  }
+
+  public static String randomString(int length) // Requiring length here for security.
+  {
+    setRandomStringLength(length);
+
+    for (int charCount = 0; charCount < randomStringBuffer.length; ++charCount) 
+    randomStringBuffer[charCount] = URL_CHARS.charAt(randomGenerator.nextInt(URL_CHARS.length()));
+    return new String(randomStringBuffer);
+  }
+  
 }

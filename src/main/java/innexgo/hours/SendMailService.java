@@ -19,11 +19,14 @@ public class SendMailService {
   @Value("${SENDGRID_API_KEY}")
   private String sgApiKey;
 
-  @Autowired
-  UserService userService;
+  @Value("${WEBSITE_LINK}")
+  private String websiteLink;
 
-  private Mail buildAccVerificationTemplate(long ID) {
-    User user = userService.getById(ID);
+  @Autowired
+  private UserService userService;
+
+  private Mail buildAccVerificationTemplate(EmailVerificationChallenge emailVerificationChallenge) {
+    EmailVerificationChallenge user = emailVerificationChallenge;
     Mail mail = new Mail();
 
     Email fromEmail = new Email();
@@ -31,14 +34,14 @@ public class SendMailService {
     fromEmail.setEmail(emailAddr);
     mail.setFrom(fromEmail);
 
-    mail.setTemplateId("d-deadbeefdeadbeefdeadbeefdeadbeef"); // TODO set template
+    mail.setTemplateId("d-824c740e6f41484a9ce88743a300da54"); // TODO set template
 
     Personalization personalization = new Personalization();
     personalization.addDynamicTemplateData("request_name", user.name);
     personalization.addDynamicTemplateData("request_email", user.email);
-    // personalization.addDynamicTemplateData("verifLink", ); //TODO add verif link
+    personalization.addDynamicTemplateData("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey));
     // generator
-    personalization.addTo(new Email("innexgo@gmail.com")); // user.email));
+    personalization.addTo(new Email(user.email));
     mail.addPersonalization(personalization);
 
     return mail;
@@ -71,8 +74,8 @@ public class SendMailService {
     send(dynamicTemplate);
   }
 
-  public void emailVerificationTemplate(long ID) throws IOException {
-    final Mail dynamicTemplate = buildAccVerificationTemplate(ID);
+  public void emailVerificationTemplate(EmailVerificationChallenge emailVerificationChallenge) throws IOException {
+    final Mail dynamicTemplate = buildAccVerificationTemplate(emailVerificationChallenge);
     send(dynamicTemplate);
   }
 

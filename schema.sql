@@ -1,11 +1,12 @@
-drop table if exists email_ownership_challenge;
-create table email_ownership_challenge(
+drop table if exists email_verification_challenge;
+create table email_verification_challenge(
   id integer not null primary key,
   name integer not null,
   email integer not null,
   creation_time integer not null,
-  validation integer not null,
-  password_hash char(64) not null
+  verification_key char(32) not null,
+  password_hash char(64) not null,
+  valid integer not null
 );
 
 drop table if exists user;

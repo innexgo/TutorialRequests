@@ -40,6 +40,8 @@ public enum Errors {
   ATTENDANCEKIND_INVALID("must be one of ABSENT, PRESENT, or TARDY", HttpStatus.BAD_REQUEST),
   ATTENDANCE_EXISTENT("already created attendance for this appointment", HttpStatus.BAD_REQUEST),
   NEGATIVE_DURATION("specified a negative duration", HttpStatus.BAD_REQUEST),
+  VERIFICATION_KEY_NONEXISTENT("the verification key you are trying to verify with does not exist", HttpStatus.BAD_REQUEST),
+  VERIFICATION_KEY_INVALID("the verification key you are trying to verify with is invalid", HttpStatus.BAD_REQUEST),
   UNKNOWN("an unknown error has occured", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;
