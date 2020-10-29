@@ -6,7 +6,7 @@ create table email_verification_challenge(
   creation_time integer not null,
   verification_key char(32) not null,
   password_hash char(64) not null,
-  valid integer not null
+  kind integer not null
 );
 
 drop table if exists user;

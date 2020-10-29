@@ -33,9 +33,6 @@ public class EmailVerificationChallengeService {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  @Autowired
-  private SendMailService sendMailService;
-
   public List<EmailVerificationChallenge> getAll() {
     String sql =
         "SELECT id, name, email, creation_time, verification_key, password_hash, valid FROM email_verification_challenge";
@@ -85,15 +82,6 @@ public class EmailVerificationChallengeService {
         user.passwordHash,
         user.valid,
         user.id); 
-  }
-
-  public void sendVerificationEmail(EmailVerificationChallenge user) {
-    try {
-        sendMailService.emailVerificationTemplate(user);
-    }
-    catch (IOException e) {
-        System.out.println(e);
-    }
   }
 
   public EmailVerificationChallenge getByVerificationKey(String verificationKey) {

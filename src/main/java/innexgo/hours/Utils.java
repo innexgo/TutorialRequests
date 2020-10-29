@@ -20,11 +20,8 @@ package innexgo.hours;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
-import java.util.Random;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.security.SecureRandom;
@@ -38,9 +35,6 @@ public class Utils {
   static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
   static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
   static final SecureRandom randomGenerator = new SecureRandom();
-  public static final String URL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-  private static char[] randomStringBuffer = new char[32];
-
 
   static MessageDigest getDigester() {
     try {
@@ -69,7 +63,9 @@ public class Utils {
 
   // create 128 bit key
   public static String generateKey() {
-    return Long.toHexString(new Random().nextLong()) + Long.toHexString(new Random().nextLong());
+    byte[] keyBytes = new byte[16];
+    randomGenerator.nextBytes(keyBytes);
+    return base64Encoder.encodeToString(keyBytes);
   }
 
   public static boolean isEmpty(String str) {
@@ -92,32 +88,22 @@ public class Utils {
     return str.replaceAll("\'\'", "\'");
   }
 
-  public static int getCurrentGraduatingYear() {
-    LocalDateTime time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("UTC"));
-    int currentYear = time.getYear();
-    // if its the fall/winter
-    if (time.getMonth().getValue() >= 7) {
-      currentYear++;
+  public static boolean securePassword(String password) {
+    if (password.length() < 8) {
+      return false;
     }
-    return currentYear;
-  }
-
-  private static void setRandomStringLength(int length)
-  {
-    if (length < 1) {
-      System.out.println("Length < 1 on random string generator");
-      length = 16; // at least give 16 for the bare minimum, unless otherwise specified
+    int digits = 0;
+    for (int i = 0; i < password.length(); i++) {
+      if (Character.isDigit(password.charAt(i))) {
+        digits++;
+      }
     }
-    randomStringBuffer = new char[length];
+
+    if (digits == 0) {
+      return false;
+    }
+
+    return true;
   }
 
-  public static String randomString(int length) // Requiring length here for security.
-  {
-    setRandomStringLength(length);
-
-    for (int charCount = 0; charCount < randomStringBuffer.length; ++charCount) 
-    randomStringBuffer[charCount] = URL_CHARS.charAt(randomGenerator.nextInt(URL_CHARS.length()));
-    return new String(randomStringBuffer);
-  }
-  
 }

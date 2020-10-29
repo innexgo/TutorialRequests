@@ -20,6 +20,7 @@ package innexgo.hours;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,13 +51,16 @@ public class ApiController {
   AttendanceService attendanceService;
   @Autowired
   EmailVerificationChallengeService emailVerificationChallengeService;
+  @Autowired
+  SendMailService sendMailService;
+  @Autowired
+  InnexgoService innexgoService;
+
+
   @Value("${SCHOOL_NAME}")
   String schoolName;
   @Value("${SCHOOL_DOMAIN}")
   String schoolDomain;
-
-  @Autowired
-  InnexgoService innexgoService;
 
   /**
    * Create a new apiKey for a User
@@ -105,6 +109,7 @@ public class ApiController {
       @RequestParam String userEmail, //
       @RequestParam String userPassword, //
       @RequestParam UserKind userKind) {
+
     if (Utils.isEmpty(userEmail)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
@@ -114,6 +119,10 @@ public class ApiController {
     if (userService.existsByEmail(userEmail)) {
       return Errors.USER_EXISTENT.getResponse();
     }
+    if (!Utils.securePassword(userPassword)) {
+      return Errors.PASSWORD_INSECURE.getResponse();
+    }
+
     User u = new User();
     u.name = userName;
     u.email = userEmail;
@@ -385,7 +394,7 @@ public class ApiController {
   // This method updates the password for same user only
   @RequestMapping("/misc/updatePassword/")
   public ResponseEntity<?> updatePassword( //
-      @RequestParam Long userId, //
+      @RequestParam long userId, //
       @RequestParam String oldPassword, //
       @RequestParam String newPassword //
   ) {
@@ -396,11 +405,11 @@ public class ApiController {
 
     User user = userService.getById(userId);
 
-    if (!Utils.isEmpty(oldPassword) && Utils.matchesPassword(oldPassword, user.passwordHash)) {
+    if (!Utils.matchesPassword(oldPassword, user.passwordHash)) {
       return Errors.PASSWORD_INCORRECT.getResponse();
     }
 
-    if (Utils.isEmpty(newPassword)) {
+    if (!Utils.securePassword(newPassword)) {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
 
@@ -417,11 +426,11 @@ public class ApiController {
     }, HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/requestEmailVerification")
+  @RequestMapping("/misc/emailVerificationChallenge/")
   public ResponseEntity<?> newEmailVerification( //
-    @RequestParam String userName, //
-    @RequestParam String userEmail, //
-    @RequestParam String userPassword) {
+      @RequestParam String userName, //
+      @RequestParam String userEmail, //
+      @RequestParam String userPassword) throws IOException {
 
     if (Utils.isEmpty(userEmail)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
@@ -432,39 +441,41 @@ public class ApiController {
     if (userService.existsByEmail(userEmail)) {
       return Errors.USER_EXISTENT.getResponse();
     }
+    if (!Utils.securePassword(userPassword)) {
+      return Errors.PASSWORD_INSECURE.getResponse();
+    }
 
     EmailVerificationChallenge u = new EmailVerificationChallenge();
     u.name = userName;
     u.email = userEmail;
     u.creationTime = System.currentTimeMillis();
-    u.verificationKey = Utils.randomString(32);
+    u.verificationKey = Utils.generateKey();
     u.passwordHash = Utils.encodePassword(userPassword);
     emailVerificationChallengeService.add(u);
+    sendMailService.emailVerificationTemplate(u);
 
-    emailVerificationChallengeService.sendVerificationEmail(u);
-
-    return new ResponseEntity<>(innexgoService.fillEmailVerificationChallenge(u), HttpStatus.OK);
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/emailVerification")
-  public ResponseEntity<?> checkEmailVerification(
-    @RequestParam String verificationKey) {
+  @RequestMapping("/misc/register")
+  public ResponseEntity<?> checkEmailVerification(@RequestParam String verificationKey) {
 
     if (Utils.isEmpty(verificationKey)) {
       return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
     }
 
-    if(!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
+    if (!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
       return Errors.VERIFICATION_KEY_INVALID.getResponse();
     }
 
-    EmailVerificationChallenge verificationUser = emailVerificationChallengeService.getByVerificationKey(verificationKey);
+    EmailVerificationChallenge verificationUser = emailVerificationChallengeService
+        .getByVerificationKey(verificationKey);
 
     if (!verificationUser.valid) {
       return Errors.VERIFICATION_KEY_INVALID.getResponse();
     }
 
-    if (verificationUser.creationTime > System.currentTimeMillis() + 15*60*1000) {
+    if (verificationUser.creationTime > System.currentTimeMillis() + 15 * 60 * 1000) {
       verificationUser.valid = false;
       emailVerificationChallengeService.update(verificationUser);
       return Errors.VERIFICATION_KEY_INVALID.getResponse();

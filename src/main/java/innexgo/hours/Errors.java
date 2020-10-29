@@ -36,12 +36,13 @@ public enum Errors {
   USER_NAME_EMPTY("user name must not be empty", HttpStatus.BAD_REQUEST),
   USER_EMAIL_EMPTY("user email must not be empty", HttpStatus.BAD_REQUEST),
   USER_EMAIL_INVALIDATED("this user has not finished account setup", HttpStatus.BAD_REQUEST),
-  USERKIND_INVALID("must be one of STUDENT, USER, or ADMIN", HttpStatus.BAD_REQUEST),
-  ATTENDANCEKIND_INVALID("must be one of ABSENT, PRESENT, or TARDY", HttpStatus.BAD_REQUEST),
+  USERKIND_INVALID("userKind must be one of STUDENT, USER, or ADMIN", HttpStatus.BAD_REQUEST),
+  ATTENDANCEKIND_INVALID("attendanceKind must be one of ABSENT, PRESENT, or TARDY", HttpStatus.BAD_REQUEST),
   ATTENDANCE_EXISTENT("already created attendance for this appointment", HttpStatus.BAD_REQUEST),
   NEGATIVE_DURATION("specified a negative duration", HttpStatus.BAD_REQUEST),
-  VERIFICATION_KEY_NONEXISTENT("the verification key you are trying to verify with does not exist", HttpStatus.BAD_REQUEST),
-  VERIFICATION_KEY_INVALID("the verification key you are trying to verify with is invalid", HttpStatus.BAD_REQUEST),
+  VERIFICATION_KEY_NONEXISTENT("verification key does not exist", HttpStatus.BAD_REQUEST),
+  VERIFICATION_KEY_INVALID("verification key is invalid", HttpStatus.BAD_REQUEST),
+  VERIFICATION_KEY_TIMED_OUT("verification key has timed out", HttpStatus.BAD_REQUEST),
   UNKNOWN("an unknown error has occured", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;
