@@ -17,6 +17,9 @@ repositories {
 }
 
 dependencies {
+  implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.890')
+  implementation 'com.amazonaws:aws-java-sdk-ses'
+  implementation 'com.amazonaws:aws-java-sdk-sts'
   implementation 'org.springframework.boot:spring-boot-starter-jdbc'
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.springframework.boot:spring-boot-starter-tomcat'

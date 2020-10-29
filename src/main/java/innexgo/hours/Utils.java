@@ -63,7 +63,7 @@ public class Utils {
 
   // create 128 bit key
   public static String generateKey() {
-    byte[] keyBytes = new byte[16];
+    byte[] keyBytes = new byte[32];
     randomGenerator.nextBytes(keyBytes);
     return base64Encoder.encodeToString(keyBytes);
   }

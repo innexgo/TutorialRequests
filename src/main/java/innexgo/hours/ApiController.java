@@ -54,6 +54,8 @@ public class ApiController {
   @Autowired
   SendMailService sendMailService;
   @Autowired
+  SendMailSESService sendMailSESService;
+  @Autowired
   InnexgoService innexgoService;
 
 
@@ -452,12 +454,12 @@ public class ApiController {
     u.verificationKey = Utils.generateKey();
     u.passwordHash = Utils.encodePassword(userPassword);
     emailVerificationChallengeService.add(u);
-    sendMailService.emailVerificationTemplate(u);
+    sendMailSESService.emailVerification(u);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/register")
+  @RequestMapping("/misc/emailVerification")
   public ResponseEntity<?> checkEmailVerification(@RequestParam String verificationKey) {
 
     if (Utils.isEmpty(verificationKey)) {
