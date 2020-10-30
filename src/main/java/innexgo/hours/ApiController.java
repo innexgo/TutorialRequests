@@ -477,7 +477,7 @@ public class ApiController {
       return Errors.VERIFICATION_KEY_INVALID.getResponse();
     }
 
-    if (verificationUser.creationTime > System.currentTimeMillis() + 15 * 60 * 1000) {
+    if (verificationUser.creationTime > (System.currentTimeMillis() + 15 * 60 * 1000)) {
       verificationUser.valid = false;
       emailVerificationChallengeService.update(verificationUser);
       return Errors.VERIFICATION_KEY_INVALID.getResponse();

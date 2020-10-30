@@ -43,71 +43,64 @@ public class SendMailSESService {
             .withCredentials(new AWSStaticCredentialsProvider(awsCredentialProvider.getCredentials()))
             .withRegion(Regions.US_WEST_1).build();
 
-  private final String emailVerificationSubject = "Innexgo Hours Email Verification";
+  private final String emailVerificationSubject = "Innexgo Hours: Email Verification";
+  private final String forgotPasswordSubject = "Innexgo Hours: Reset Password";
 
-  private final String emailVerificationHTMLBlankBody = "<p>Email verification service requested under the name: request_name</p>"
+  private final String emailVerificationHTMLBlankBody = "<p>Required email verification requested under the name: request_name</p>"
   + "<p>If you did not make this request, then feel free to ignore.</p>"
   + "<p>This link is valid for up to 15 minutes.</p>"
   + "<p>Verification link: verification_link</p>";
 
-  private final String emailVerificationTextBlankBody = "Email verification service requested under the name: request_name"
+  private final String emailVerificationTextBlankBody = "Required email verification requested under the name: request_name"
   + "If you did not make this request, then feel free to ignore."
   + "This link is valid for up to 15 minutes."
   + "Verification link: verification_link";
 
-  private Mail buildForgotPasswordTemplate(long ID) {
-    User user = userService.getById(ID);
-    Mail mail = new Mail();
+  private final String forgotPasswordHTMLBlankBody = "<p>Requested password reset service.</p>"
+  + "<p>If you did not make this request, then feel free to ignore.</p>"
+  + "<p>This link is valid for up to 15 minutes.</p>"
+  + "<p>Password Change link: forgot_password_link</p>";
 
-    Email fromEmail = new Email();
-    fromEmail.setName("Reset Password");
-    fromEmail.setEmail(emailAddr);
-    mail.setFrom(fromEmail);
+  private final String forgotPasswordTextBlankBody = "Requested password reset service."
+  + "If you did not make this request, then feel free to ignore."
+  + "This link is valid for up to 15 minutes."
+  + "Password Change link: forgot_password_link";
 
-    mail.setTemplateId("d-62e6fcdd178349ad88646755822224a2"); // TODO make this template actually look nice.
+  public void emailForgotPassword(User user) throws IOException {
+    String forgotPasswordHTMLString = emailVerificationHTMLBlankBody
+        .replace("forgot_password_link", (websiteLink+"/api/misc/changePassword?authKey="+user.verificationKey));
 
-    Personalization personalization = new Personalization();
-    personalization.addDynamicTemplateData("request_name", user.name);
-    personalization.addDynamicTemplateData("request_email", user.email);
-    // personalization.addDynamicTemplateData("resetLink", ); //TODO add verif link
-    // generator
-    personalization.addTo(new Email("innexgo@gmail.com")); // user.email));
-    mail.addPersonalization(personalization);
+    String forgotPasswordTextString = emailVerificationTextBlankBody
+        .replace("forgot_password_link", (websiteLink+"/api/misc/changePassword?authKey="+user.verificationKey));
 
-    return mail;
+    send(user.email, forgotPasswordHTMLString, forgotPasswordTextString, forgotPasswordSubject);
   }
 
-  public void emailResetPasswordTemplate(long ID) throws IOException {
-    final Mail dynamicTemplate = buildForgotPasswordTemplate(ID);
-    send(dynamicTemplate);
-  }
-
-  public void emailVerificationTemplate(EmailVerificationChallenge emailVerificationChallenge) throws IOException {
-    final Mail dynamicTemplate = buildAccVerificationTemplate(emailVerificationChallenge);
-    send(dynamicTemplate);
-  }
-
-  public void emailVerification(EmailVerificationChallenge emailVerificationChallenge) throws IOException {
-    EmailVerificationChallenge user = emailVerificationChallenge;
-
-    String emailVerificationHTMLString = emailVerificationHTMLBlankBody.replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
+  public void emailVerification(EmailVerificationChallenge user) throws IOException {
+    String emailVerificationHTMLString = emailVerificationHTMLBlankBody
+        .replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
         .replace("request_name", user.name);
 
-    String emailVerificationTextString = emailVerificationTextBlankBody.replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
+    String emailVerificationTextString = emailVerificationTextBlankBody
+        .replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
         .replace("request_name", user.name);
 
+        send(user.email, emailVerificationHTMLString, emailVerificationTextString, emailVerificationSubject);
+  }
+
+  private void send(String toEmail, String emailHTMLString, String emailTextString, String emailSubject) throws IOException {
     try {
         SendEmailRequest request = new SendEmailRequest()
             .withDestination(
-                new Destination().withToAddresses(user.email))
+                new Destination().withToAddresses(email))
             .withMessage(new Message()
                 .withBody(new Body()
                     .withHtml(new Content()
-                        .withCharset("UTF-8").withData(emailVerificationHTMLString))
+                        .withCharset("UTF-8").withData(emailHTMLString))
                     .withText(new Content()
-                        .withCharset("UTF-8").withData(emailVerificationTextString)))
+                        .withCharset("UTF-8").withData(emailTextString)))
                 .withSubject(new Content()
-                    .withCharset("UTF-8").withData(emailVerificationSubject)))
+                    .withCharset("UTF-8").withData(emailSubject)))
             .withSource(emailAddr);
         amazonSESClient.sendEmail(request);
     } catch (IOException ex) {
