@@ -4,7 +4,7 @@ create table email_verification_challenge(
   name integer not null,
   email integer not null,
   creation_time integer not null,
-  verification_key char(32) not null,
+  verification_key char(44) not null,
   password_hash char(64) not null,
   kind integer not null
 );
