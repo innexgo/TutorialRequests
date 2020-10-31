@@ -65,30 +65,30 @@ public class SendMailSESService {
             
   public void emailForgotPassword(ForgotPassword user) throws IOException {
       String forgotPasswordHTMLString = SendMailStrings.forgotPasswordHTMLBlankBody
-      .replace("forgot_password_link", (websiteLink+"/api/misc/resetPassword?accessKey="+user.accessKey));
+      .replace("forgot_password_link", (websiteLink+"/api/misc/resetPassword/?accessKey="+user.accessKey));
       
       String forgotPasswordTextString = SendMailStrings.forgotPasswordTextBlankBody
-      .replace("forgot_password_link", (websiteLink+"/api/misc/resetPassword?accessKey="+user.accessKey));
+      .replace("forgot_password_link", (websiteLink+"/api/misc/resetPassword/?accessKey="+user.accessKey));
       
       send(user.email, forgotPasswordHTMLString, forgotPasswordTextString, SendMailStrings.forgotPasswordSubject);
   }
             
   public void emailChangedPassword(User user) throws IOException {
       String changedPasswordHTMLString = SendMailStrings.changedPasswordHTMLBlankBody
-          .replace("change_password_link", (websiteLink+"/api/misc/requestResetPassword?userEmail="+user.email));
+          .replace("change_password_link", (websiteLink+"/api/misc/requestResetPassword/?userEmail="+user.email));
       String changedPasswordTextString = SendMailStrings.changedPasswordTextBlankBody
-          .replace("change_password_link", (websiteLink+"/api/misc/requestResetPassword?userEmail="+user.email));
+          .replace("change_password_link", (websiteLink+"/api/misc/requestResetPassword/?userEmail="+user.email));
 
       send(user.email, changedPasswordHTMLString, changedPasswordTextString, SendMailStrings.changedPasswordSubject);
   }
 
   public void emailVerification(EmailVerificationChallenge user) throws IOException {
     String emailVerificationHTMLString = SendMailStrings.emailVerificationHTMLBlankBody
-        .replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
+        .replace("verification_link", (websiteLink+"/api/misc/emailVerification/?verificationKey="+user.verificationKey))
         .replace("request_name", user.name);
 
     String emailVerificationTextString = SendMailStrings.emailVerificationTextBlankBody
-        .replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
+        .replace("verification_link", (websiteLink+"/api/misc/emailVerification/?verificationKey="+user.verificationKey))
         .replace("request_name", user.name);
 
         send(user.email, emailVerificationHTMLString, emailVerificationTextString, SendMailStrings.emailVerificationSubject);

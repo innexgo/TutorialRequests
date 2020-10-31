@@ -398,8 +398,7 @@ public class ApiController {
   public ResponseEntity<?> updatePassword( //
       @RequestParam long userId, //
       @RequestParam String oldPassword, //
-      @RequestParam String newPassword //
-  ) {
+      @RequestParam String newPassword) throws IOException {
 
     if (!userService.existsById(userId)) {
       return Errors.USER_NONEXISTENT.getResponse();
@@ -417,6 +416,7 @@ public class ApiController {
 
     user.passwordHash = Utils.encodePassword(newPassword);
     userService.update(user);
+    sendMailSESService.emailChangedPassword(user);
     return new ResponseEntity<>(innexgoService.fillUser(user), HttpStatus.OK);
   }
 
@@ -428,7 +428,7 @@ public class ApiController {
     }, HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/emailVerificationChallenge")
+  @RequestMapping("/misc/emailVerificationChallenge/")
   public ResponseEntity<?> newEmailVerification( //
       @RequestParam String userName, //
       @RequestParam String userEmail, //
@@ -459,7 +459,7 @@ public class ApiController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/emailVerification")
+  @RequestMapping("/misc/emailVerification/")
   public ResponseEntity<?> checkEmailVerification(@RequestParam String verificationKey) {
 
     if (Utils.isEmpty(verificationKey)) {
@@ -477,7 +477,7 @@ public class ApiController {
       return Errors.VERIFICATION_KEY_INVALID.getResponse();
     }
 
-    if (verificationUser.creationTime > (System.currentTimeMillis() + 15 * 60 * 1000)) {
+    if (System.currentTimeMillis() > (verificationUser.creationTime + 15 * 60 * 1000)) {
       verificationUser.valid = false;
       emailVerificationChallengeService.update(verificationUser);
       return Errors.VERIFICATION_KEY_TIMED_OUT.getResponse();
@@ -502,7 +502,7 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/requestResetPassword")
+  @RequestMapping("/misc/requestResetPassword/")
   public ResponseEntity<?> forgotPasswordEmail (@RequestParam String userEmail) throws IOException {
 
     if (!userService.existsByEmail(userEmail)) {
@@ -519,10 +519,10 @@ public class ApiController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/resetPassword")
+  @RequestMapping("/misc/resetPassword/")
   public ResponseEntity<?> checkResetPassword (
     @RequestParam String accessKey,
-    @RequestParam(required=false) String userPassword) {
+    @RequestParam(required=false) String userPassword) throws IOException {
 
     if (Utils.isEmpty(accessKey)) {
       return Errors.ACCESS_KEY_INVALID.getResponse();
@@ -539,7 +539,7 @@ public class ApiController {
       return Errors.ACCESS_KEY_INVALID.getResponse();
     }
 
-    if (forgotPasswordUser.creationTime > (System.currentTimeMillis() + 15 * 60 * 1000)) {
+    if (System.currentTimeMillis() > (forgotPasswordUser.creationTime + 15 * 60 * 1000)) {
       forgotPasswordUser.valid = false;
       forgotPasswordService.update(forgotPasswordUser);
       return Errors.ACCESS_KEY_TIMED_OUT.getResponse();
@@ -549,6 +549,7 @@ public class ApiController {
       User u = userService.getByEmail(forgotPasswordUser.email);
       u.passwordHash = Utils.encodePassword(userPassword);
       userService.update(u);
+      sendMailSESService.emailChangedPassword(u);
       forgotPasswordUser.valid = false;
       forgotPasswordService.update(forgotPasswordUser);
     }
