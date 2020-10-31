@@ -43,6 +43,9 @@ public enum Errors {
   VERIFICATION_KEY_NONEXISTENT("verification key does not exist", HttpStatus.BAD_REQUEST),
   VERIFICATION_KEY_INVALID("verification key is invalid", HttpStatus.BAD_REQUEST),
   VERIFICATION_KEY_TIMED_OUT("verification key has timed out", HttpStatus.BAD_REQUEST),
+  ACCESS_KEY_NONEXISTENT("access key does not exist", HttpStatus.BAD_REQUEST),
+  ACCESS_KEY_INVALID("access key is invalid", HttpStatus.BAD_REQUEST),
+  ACCESS_KEY_TIMED_OUT("access key has timed out", HttpStatus.BAD_REQUEST),
   UNKNOWN("an unknown error has occured", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;

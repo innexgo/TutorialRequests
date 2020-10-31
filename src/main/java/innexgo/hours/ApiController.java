@@ -52,9 +52,9 @@ public class ApiController {
   @Autowired
   EmailVerificationChallengeService emailVerificationChallengeService;
   @Autowired
-  SendMailService sendMailService;
-  @Autowired
   SendMailSESService sendMailSESService;
+  @Autowired
+  ForgotPasswordService forgotPasswordService;
   @Autowired
   InnexgoService innexgoService;
 
@@ -428,7 +428,7 @@ public class ApiController {
     }, HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/emailVerificationChallenge/")
+  @RequestMapping("/misc/emailVerificationChallenge")
   public ResponseEntity<?> newEmailVerification( //
       @RequestParam String userName, //
       @RequestParam String userEmail, //
@@ -467,7 +467,7 @@ public class ApiController {
     }
 
     if (!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
-      return Errors.VERIFICATION_KEY_INVALID.getResponse();
+      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
     }
 
     EmailVerificationChallenge verificationUser = emailVerificationChallengeService
@@ -480,7 +480,7 @@ public class ApiController {
     if (verificationUser.creationTime > (System.currentTimeMillis() + 15 * 60 * 1000)) {
       verificationUser.valid = false;
       emailVerificationChallengeService.update(verificationUser);
-      return Errors.VERIFICATION_KEY_INVALID.getResponse();
+      return Errors.VERIFICATION_KEY_TIMED_OUT.getResponse();
     }
 
     if (userService.existsByEmail(verificationUser.email)) {
@@ -500,5 +500,59 @@ public class ApiController {
     emailVerificationChallengeService.update(verificationUser);
 
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
+  }
+
+  @RequestMapping("/misc/requestResetPassword")
+  public ResponseEntity<?> forgotPasswordEmail (@RequestParam String userEmail) throws IOException {
+
+    if (!userService.existsByEmail(userEmail)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    ForgotPassword u = new ForgotPassword();
+    u.email = userEmail;
+    u.creationTime = System.currentTimeMillis();
+    u.accessKey = Utils.generateKey();
+    forgotPasswordService.add(u);
+    sendMailSESService.emailForgotPassword(u);
+
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @RequestMapping("/misc/resetPassword")
+  public ResponseEntity<?> checkResetPassword (
+    @RequestParam String accessKey,
+    @RequestParam(required=false) String userPassword) {
+
+    if (Utils.isEmpty(accessKey)) {
+      return Errors.ACCESS_KEY_INVALID.getResponse();
+    }
+
+    if (!forgotPasswordService.existsByAccessKey(accessKey)) {
+      return Errors.ACCESS_KEY_NONEXISTENT.getResponse();
+    }
+
+    ForgotPassword forgotPasswordUser = forgotPasswordService
+        .getByAccessKey(accessKey);
+
+    if (!forgotPasswordUser.valid) {
+      return Errors.ACCESS_KEY_INVALID.getResponse();
+    }
+
+    if (forgotPasswordUser.creationTime > (System.currentTimeMillis() + 15 * 60 * 1000)) {
+      forgotPasswordUser.valid = false;
+      forgotPasswordService.update(forgotPasswordUser);
+      return Errors.ACCESS_KEY_TIMED_OUT.getResponse();
+    }
+
+    if (userPassword != null) {
+      User u = userService.getByEmail(forgotPasswordUser.email);
+      u.passwordHash = Utils.encodePassword(userPassword);
+      userService.update(u);
+      forgotPasswordUser.valid = false;
+      forgotPasswordService.update(forgotPasswordUser);
+    }
+
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 }

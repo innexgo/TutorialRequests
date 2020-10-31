@@ -1,3 +1,21 @@
+/*
+ * Innexgo Website
+ * Copyright (C) 2020 Innexgo LLC
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package innexgo.hours;
 
 import com.sendgrid.*;
@@ -19,7 +37,7 @@ import com.amazonaws.services.simpleemail.model.Body;
 import com.amazonaws.services.simpleemail.model.Content;
 import com.amazonaws.services.simpleemail.model.Destination;
 import com.amazonaws.services.simpleemail.model.Message;
-import com.amazonaws.services.simpleemail.model.SendEmailRequest; 
+import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 
 @Service
 public class SendMailSESService {
@@ -39,60 +57,48 @@ public class SendMailSESService {
   private EnvironmentVariableCredentialsProvider awsCredentialProvider = new EnvironmentVariableCredentialsProvider();
 
   private AmazonSimpleEmailService amazonSESClient = 
-            AmazonSimpleEmailServiceClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(awsCredentialProvider.getCredentials()))
-            .withRegion(Regions.US_WEST_1).build();
+      AmazonSimpleEmailServiceClientBuilder.standard()
+      .withCredentials(new AWSStaticCredentialsProvider(awsCredentialProvider.getCredentials()))
+      .withRegion(Regions.US_WEST_1).build();
 
-  private final String emailVerificationSubject = "Innexgo Hours: Email Verification";
-  private final String forgotPasswordSubject = "Innexgo Hours: Reset Password";
 
-  private final String emailVerificationHTMLBlankBody = "<p>Required email verification requested under the name: request_name</p>"
-  + "<p>If you did not make this request, then feel free to ignore.</p>"
-  + "<p>This link is valid for up to 15 minutes.</p>"
-  + "<p>Verification link: verification_link</p>";
+            
+  public void emailForgotPassword(ForgotPassword user) throws IOException {
+      String forgotPasswordHTMLString = SendMailStrings.forgotPasswordHTMLBlankBody
+      .replace("forgot_password_link", (websiteLink+"/api/misc/resetPassword?accessKey="+user.accessKey));
+      
+      String forgotPasswordTextString = SendMailStrings.forgotPasswordTextBlankBody
+      .replace("forgot_password_link", (websiteLink+"/api/misc/resetPassword?accessKey="+user.accessKey));
+      
+      send(user.email, forgotPasswordHTMLString, forgotPasswordTextString, SendMailStrings.forgotPasswordSubject);
+  }
+            
+  public void emailChangedPassword(User user) throws IOException {
+      String changedPasswordHTMLString = SendMailStrings.changedPasswordHTMLBlankBody
+          .replace("change_password_link", (websiteLink+"/api/misc/requestResetPassword?userEmail="+user.email));
+      String changedPasswordTextString = SendMailStrings.changedPasswordTextBlankBody
+          .replace("change_password_link", (websiteLink+"/api/misc/requestResetPassword?userEmail="+user.email));
 
-  private final String emailVerificationTextBlankBody = "Required email verification requested under the name: request_name"
-  + "If you did not make this request, then feel free to ignore."
-  + "This link is valid for up to 15 minutes."
-  + "Verification link: verification_link";
-
-  private final String forgotPasswordHTMLBlankBody = "<p>Requested password reset service.</p>"
-  + "<p>If you did not make this request, then feel free to ignore.</p>"
-  + "<p>This link is valid for up to 15 minutes.</p>"
-  + "<p>Password Change link: forgot_password_link</p>";
-
-  private final String forgotPasswordTextBlankBody = "Requested password reset service."
-  + "If you did not make this request, then feel free to ignore."
-  + "This link is valid for up to 15 minutes."
-  + "Password Change link: forgot_password_link";
-
-  public void emailForgotPassword(User user) throws IOException {
-    String forgotPasswordHTMLString = emailVerificationHTMLBlankBody
-        .replace("forgot_password_link", (websiteLink+"/api/misc/changePassword?authKey="+user.verificationKey));
-
-    String forgotPasswordTextString = emailVerificationTextBlankBody
-        .replace("forgot_password_link", (websiteLink+"/api/misc/changePassword?authKey="+user.verificationKey));
-
-    send(user.email, forgotPasswordHTMLString, forgotPasswordTextString, forgotPasswordSubject);
+      send(user.email, changedPasswordHTMLString, changedPasswordTextString, SendMailStrings.changedPasswordSubject);
   }
 
   public void emailVerification(EmailVerificationChallenge user) throws IOException {
-    String emailVerificationHTMLString = emailVerificationHTMLBlankBody
+    String emailVerificationHTMLString = SendMailStrings.emailVerificationHTMLBlankBody
         .replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
         .replace("request_name", user.name);
 
-    String emailVerificationTextString = emailVerificationTextBlankBody
+    String emailVerificationTextString = SendMailStrings.emailVerificationTextBlankBody
         .replace("verification_link", (websiteLink+"/api/misc/emailVerification?verificationKey="+user.verificationKey))
         .replace("request_name", user.name);
 
-        send(user.email, emailVerificationHTMLString, emailVerificationTextString, emailVerificationSubject);
+        send(user.email, emailVerificationHTMLString, emailVerificationTextString, SendMailStrings.emailVerificationSubject);
   }
 
   private void send(String toEmail, String emailHTMLString, String emailTextString, String emailSubject) throws IOException {
     try {
         SendEmailRequest request = new SendEmailRequest()
             .withDestination(
-                new Destination().withToAddresses(email))
+                new Destination().withToAddresses(toEmail))
             .withMessage(new Message()
                 .withBody(new Body()
                     .withHtml(new Content()
@@ -103,7 +109,7 @@ public class SendMailSESService {
                     .withCharset("UTF-8").withData(emailSubject)))
             .withSource(emailAddr);
         amazonSESClient.sendEmail(request);
-    } catch (IOException ex) {
+    } catch (Exception ex) {
         System.out.println("The email was not sent. Error message: " 
             + ex.getMessage());
     }
