@@ -23,7 +23,7 @@ public class EmailVerificationChallenge {
     public String name;
     public String email;
     public long creationTime;
-    public boolean valid;
+    public UserKind kind;
     
     // not public so it doesn't get serialized to jackson
     String verificationKey;

@@ -24,8 +24,8 @@ create table user(
   kind integer not null,
   name varchar(100) not null,
   email varchar(100) not null unique,
-  last_email_delivered_time integer not null,
-  password_hash char(64) not null
+  password_set_time integer not null,
+  password_hash char(64) not null unique
 );
 
 drop table if exists api_key;
@@ -34,7 +34,7 @@ create table api_key(
   creator_id integer not null,
   creation_time integer not null,
   duration integer not null,
-  key_hash char(64) not null
+  key_hash char(64) not null unique
 );
 
 drop table if exists appt_request;

@@ -33,7 +33,7 @@ public class EmailVerificationChallengeRowMapper implements RowMapper<EmailVerif
     u.creationTime = row.getLong("creation_time");
     u.verificationKey = row.getString("verification_key");
     u.passwordHash = row.getString("password_hash");
-    u.valid = row.getBoolean("valid");
+    u.kind = UserKind.from(row.getInt("valid"));
     return u;
   }
 }

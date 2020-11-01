@@ -18,7 +18,6 @@
 
 package innexgo.hours;
 
-import java.io.IOException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -92,9 +91,9 @@ public class EmailVerificationChallengeService {
     return emailVerificationChallenge;
   }
 
-  public long getLastEmailCreationTimeByEmail(String userEmail){
+  public Long getLastEmailCreationTimeByEmail(String userEmail){
     String sql =  "SELECT max(creation_time) FROM email_verification_challenge WHERE email=? ";
-    long creationTime = jdbcTemplate.queryForObject(sql, Long.class, userEmail);
+    Long creationTime = jdbcTemplate.queryForObject(sql, Long.class, userEmail);
     return creationTime;
   }
 
