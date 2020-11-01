@@ -33,7 +33,7 @@ public class UserService {
 
   public User getById(long id) {
     String sql =
-        "SELECT id, kind, name, email, validated, password_hash FROM user WHERE id=?";
+        "SELECT id, kind, name, email, last_email_delivered_time, password_hash FROM user WHERE id=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return user;
@@ -41,7 +41,7 @@ public class UserService {
 
   public User getByEmail(String email) {
     String sql =
-        "SELECT id, kind, name, email, validated, password_hash FROM user WHERE email=?";
+        "SELECT id, kind, name, email, last_email_delivered_time, password_hash FROM user WHERE email=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, email);
     return user;
@@ -49,7 +49,7 @@ public class UserService {
 
   public List<User> getAll() {
     String sql =
-        "SELECT id, kind, name, email, validated, password_hash FROM user";
+        "SELECT id, kind, name, email, last_email_delivered_time, password_hash FROM user";
     RowMapper<User> rowMapper = new UserRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
@@ -70,31 +70,32 @@ public class UserService {
     user.id = nextId();
     // Add user
     String sql =
-        "INSERT INTO user (id, kind, name, email, validated, password_hash) values (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO user (id, kind, name, email, last_email_delivered_time, password_hash) values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         user.id,
         user.kind.value,
         user.name,
         user.email,
-        user.validated,
+        user.lastEmailDeliveredTime,
         user.passwordHash);
 
   }
 
   public void update(User user) {
     String sql =
-        "UPDATE user SET id=?, name=?, kind=?, email=?, validated=?, password_hash=? WHERE id=?";
+        "UPDATE user SET id=?, name=?, kind=?, email=?, last_email_delivered_time=?, password_hash=? WHERE id=?";
     jdbcTemplate.update(
         sql,
         user.id,
         user.name,
         user.kind.value,
         user.email,
-        user.validated,
+        user.lastEmailDeliveredTime,
         user.passwordHash,
         user.id);
   }
+  
   public boolean existsById(long id) {
     String sql = "SELECT count(*) FROM user WHERE id=?";
     long count = jdbcTemplate.queryForObject(sql, Long.class, id);
@@ -113,17 +114,17 @@ public class UserService {
       String name,
       String partialUserName,
       String email,
-      Boolean validated,
+      Long lastEmailDeliveredTime,
       long offset,
       long count) {
     String sql =
-        "SELECT u.id, u.kind, u.name, u.email, u.validated, u.password_hash FROM user u"
+        "SELECT u.id, u.kind, u.name, u.email, u.last_email_delivered_time, u.password_hash FROM user u"
             + " WHERE 1=1 "
             + (id == null ? "" : " AND u.id = " + id)
             + (name == null ? "" : " AND u.name = " + Utils.escape(name))
             + (partialUserName== null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
             + (kind == null ? "" : " AND u.kind = " + kind.value)
-            + (validated == null ? "" : " AND u.validated = " + validated)
+            + (lastEmailDeliveredTime == null ? "" : " AND u.last_email_delivered_time = " + lastEmailDeliveredTime)
             + (email == null ? "" : " AND u.email = " + Utils.escape(email))
             + (" ORDER BY u.id")
             + (" LIMIT " + offset + ", " + count)

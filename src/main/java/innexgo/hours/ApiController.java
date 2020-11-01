@@ -64,6 +64,9 @@ public class ApiController {
   @Value("${SCHOOL_DOMAIN}")
   String schoolDomain;
 
+  final static int fiveMinutesInMillis = 5 * 60 * 1000;
+  final static int fifteenMinutesInMillis = 5 * 60 * 1000;
+
   /**
    * Create a new apiKey for a User
    *
@@ -233,7 +236,7 @@ public class ApiController {
       @RequestParam(required = false) String userName, //
       @RequestParam(required = false) String partialUserName, //
       @RequestParam(required = false) String userEmail, //
-      @RequestParam(required = false) Boolean validated, //
+      @RequestParam(required = false) long lastEmailDeliveredTime, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -250,7 +253,7 @@ public class ApiController {
         userName, //
         partialUserName, //
         userEmail, //
-        validated, //
+        lastEmailDeliveredTime, //
         offset, //
         count //
     ).stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
@@ -415,6 +418,7 @@ public class ApiController {
     }
 
     user.passwordHash = Utils.encodePassword(newPassword);
+    user.lastEmailDeliveredTime = System.currentTimeMillis(); // Not actually but saves one call to userService.
     userService.update(user);
     sendMailSESService.emailChangedPassword(user);
     return new ResponseEntity<>(innexgoService.fillUser(user), HttpStatus.OK);
@@ -447,6 +451,12 @@ public class ApiController {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
 
+    if (emailVerificationChallengeService.existsByEmail(userEmail)) {
+      if (System.currentTimeMillis() < (emailVerificationChallengeService.getLastEmailCreationTimeByEmail(userEmail) + fiveMinutesInMillis)) {
+        return Errors.EMAIL_RATELIMIT.getResponse();
+      }
+    }
+
     EmailVerificationChallenge u = new EmailVerificationChallenge();
     u.name = userName;
     u.email = userEmail;
@@ -477,7 +487,7 @@ public class ApiController {
       return Errors.VERIFICATION_KEY_INVALID.getResponse();
     }
 
-    if (System.currentTimeMillis() > (verificationUser.creationTime + 15 * 60 * 1000)) {
+    if (System.currentTimeMillis() > (verificationUser.creationTime + fifteenMinutesInMillis)) {
       verificationUser.valid = false;
       emailVerificationChallengeService.update(verificationUser);
       return Errors.VERIFICATION_KEY_TIMED_OUT.getResponse();
@@ -493,6 +503,7 @@ public class ApiController {
     u.name = verificationUser.name;
     u.email = verificationUser.email;
     u.passwordHash = verificationUser.passwordHash;
+    u.lastEmailDeliveredTime = verificationUser.creationTime;
     u.kind = UserKind.STUDENT; // TODO Defaults to student, decide how to deal with that.
     userService.add(u);
 
@@ -503,10 +514,16 @@ public class ApiController {
   }
 
   @RequestMapping("/misc/requestResetPassword/")
-  public ResponseEntity<?> forgotPasswordEmail (@RequestParam String userEmail) throws IOException {
+  public ResponseEntity<?> forgotPasswordEmail(@RequestParam String userEmail) throws IOException {
 
     if (!userService.existsByEmail(userEmail)) {
       return Errors.USER_NONEXISTENT.getResponse();
+    }
+    
+    User user = userService.getByEmail(userEmail);
+
+    if (System.currentTimeMillis() < (user.lastEmailDeliveredTime + fiveMinutesInMillis)) {
+      return Errors.EMAIL_RATELIMIT.getResponse();
     }
 
     ForgotPassword u = new ForgotPassword();
@@ -515,6 +532,9 @@ public class ApiController {
     u.accessKey = Utils.generateKey();
     forgotPasswordService.add(u);
     sendMailSESService.emailForgotPassword(u);
+
+    user.lastEmailDeliveredTime = u.creationTime;
+    userService.update(user);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -539,7 +559,7 @@ public class ApiController {
       return Errors.ACCESS_KEY_INVALID.getResponse();
     }
 
-    if (System.currentTimeMillis() > (forgotPasswordUser.creationTime + 15 * 60 * 1000)) {
+    if (System.currentTimeMillis() > (forgotPasswordUser.creationTime + fifteenMinutesInMillis)) {
       forgotPasswordUser.valid = false;
       forgotPasswordService.update(forgotPasswordUser);
       return Errors.ACCESS_KEY_TIMED_OUT.getResponse();
@@ -548,10 +568,12 @@ public class ApiController {
     if (userPassword != null) {
       User u = userService.getByEmail(forgotPasswordUser.email);
       u.passwordHash = Utils.encodePassword(userPassword);
+      u.lastEmailDeliveredTime = System.currentTimeMillis(); // not actually but saves one call to userService.
       userService.update(u);
       sendMailSESService.emailChangedPassword(u);
       forgotPasswordUser.valid = false;
       forgotPasswordService.update(forgotPasswordUser);
+
     }
 
     return new ResponseEntity<>(HttpStatus.OK);

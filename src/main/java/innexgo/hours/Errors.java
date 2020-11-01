@@ -46,6 +46,7 @@ public enum Errors {
   ACCESS_KEY_NONEXISTENT("access key does not exist", HttpStatus.BAD_REQUEST),
   ACCESS_KEY_INVALID("access key is invalid", HttpStatus.BAD_REQUEST),
   ACCESS_KEY_TIMED_OUT("access key has timed out", HttpStatus.BAD_REQUEST),
+  EMAIL_RATELIMIT("this email is being ratelimited", HttpStatus.TOO_MANY_REQUESTS),
   UNKNOWN("an unknown error has occured", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;

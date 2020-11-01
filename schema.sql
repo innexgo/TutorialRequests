@@ -24,7 +24,7 @@ create table user(
   kind integer not null,
   name varchar(100) not null,
   email varchar(100) not null unique,
-  validated integer not null,
+  last_email_delivered_time integer not null,
   password_hash char(64) not null
 );
 

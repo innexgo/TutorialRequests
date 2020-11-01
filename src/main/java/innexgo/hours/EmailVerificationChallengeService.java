@@ -92,9 +92,21 @@ public class EmailVerificationChallengeService {
     return emailVerificationChallenge;
   }
 
+  public long getLastEmailCreationTimeByEmail(String userEmail){
+    String sql =  "SELECT max(creation_time) FROM email_verification_challenge WHERE email=? ";
+    long creationTime = jdbcTemplate.queryForObject(sql, Long.class, userEmail);
+    return creationTime;
+  }
+
   public boolean existsByVerificationKey(String verificationKey) {
     String sql = "SELECT count(*) FROM email_verification_challenge WHERE verification_key=?";
     long count = jdbcTemplate.queryForObject(sql, Long.class, verificationKey);
+    return count != 0;
+  }
+
+  public boolean existsByEmail(String userEmail) {
+    String sql = "SELECT count(*) FROM email_verification_challenge WHERE email=?";
+    long count = jdbcTemplate.queryForObject(sql, Long.class, userEmail);
     return count != 0;
   }
 }

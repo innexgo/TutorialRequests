@@ -23,7 +23,7 @@ public class User {
   public UserKind kind;
   public String name;
   public String email;
-  public boolean validated;
+  public long lastEmailDeliveredTime;
   // not public so it doesn't get serialized to jackson
   String passwordHash;
 }
