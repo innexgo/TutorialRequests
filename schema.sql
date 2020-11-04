@@ -3,7 +3,7 @@ create table forgot_password(
   id integer not null primary key,
   email varchar(100) not null,
   creation_time integer not null,
-  access_key char(44) not null unique,
+  access_key char(64) not null unique,
   valid integer not null
 );
 
@@ -13,9 +13,9 @@ create table email_verification_challenge(
   name integer not null,
   email varchar(100) not null,
   creation_time integer not null,
-  verification_key char(44) not null unique,
+  verification_key char(64) not null unique,
   password_hash char(64) not null,
-  valid integer not null
+  kind integer not null
 );
 
 drop table if exists user;

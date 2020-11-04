@@ -50,37 +50,36 @@ public class EmailVerificationChallengeService {
   }
 
 
-  public void add(EmailVerificationChallenge user) {
+  public void add(EmailVerificationChallenge emailVerificationChallenge ) {
     // Set user id
-    user.id = nextId();
-    user.valid = true;
+    emailVerificationChallenge.id = nextId();
     // Add user
     String sql =
         "INSERT INTO email_verification_challenge (id, name, email, creation_time, verification_key, password_hash, valid) values (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
-        user.id,
-        user.name,
-        user.email,
-        user.creationTime,
-        user.verificationKey,
-        user.passwordHash,
-        user.valid);
+        emailVerificationChallenge.id,
+        emailVerificationChallenge.name,
+        emailVerificationChallenge.email,
+        emailVerificationChallenge.creationTime,
+        emailVerificationChallenge.verificationKey,
+        emailVerificationChallenge.passwordHash,
+        emailVerificationChallenge.kind.name());
   }
 
-  public void update(EmailVerificationChallenge user) {
+  public void update(EmailVerificationChallenge emailVerificationChallenge) {
     String sql =
     "UPDATE email_verification_challenge SET id=?, name=?, email=?, creation_time=?, verification_key=?, password_hash=?, valid=? WHERE id=?";
     jdbcTemplate.update(
         sql,
-        user.id,
-        user.name,
-        user.email,
-        user.creationTime,
-        user.verificationKey,
-        user.passwordHash,
-        user.valid,
-        user.id); 
+        emailVerificationChallenge.id,
+        emailVerificationChallenge.name,
+        emailVerificationChallenge.email,
+        emailVerificationChallenge.creationTime,
+        emailVerificationChallenge.verificationKey,
+        emailVerificationChallenge.passwordHash,
+        emailVerificationChallenge.kind.value,
+        emailVerificationChallenge.id); 
   }
 
   public EmailVerificationChallenge getByVerificationKey(String verificationKey) {
@@ -103,9 +102,9 @@ public class EmailVerificationChallengeService {
     return count != 0;
   }
 
-  public boolean existsByEmail(String userEmail) {
+  public boolean existsByEmail(String email) {
     String sql = "SELECT count(*) FROM email_verification_challenge WHERE email=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, userEmail);
+    long count = jdbcTemplate.queryForObject(sql, Long.class, email);
     return count != 0;
   }
 }

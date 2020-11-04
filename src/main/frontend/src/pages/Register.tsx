@@ -58,7 +58,6 @@ function RegisterForm() {
       */
   }
 
-
   return <Form onSubmit={handleSubmit}>
     <Form.Group>
       <Form.Control style={formBoxStyle} placeholder="Email"

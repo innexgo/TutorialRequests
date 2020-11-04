@@ -74,8 +74,8 @@ public class ApiController {
   @Value("${INNEXGO_HOURS_SITE}")
   String innexgoHoursSite;
 
-  final static int fiveMinutesInMillis = 5 * 60 * 1000;
-  final static int fifteenMinutesInMillis = 5 * 60 * 1000;
+  final static int fiveMinutes = 5 * 60 * 1000;
+  final static int fifteenMinutes = 5 * 60 * 1000;
 
   /**
    * Create a new apiKey for a User
@@ -118,12 +118,11 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
   }
 
-  @RequestMapping("/user/new/")
-  public ResponseEntity<?> newUser( //
+  @RequestMapping("/emailVerificationChallenge/new/")
+  public ResponseEntity<?> newEmailVerificationChallenge( //
       @RequestParam String userName, //
       @RequestParam String userEmail, //
-      @RequestParam String userPassword, //
-      @RequestParam UserKind userKind) {
+      @RequestParam String userPassword) {
 
     if (Utils.isEmpty(userEmail)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
@@ -131,6 +130,7 @@ public class ApiController {
     if (Utils.isEmpty(userName)) {
       return Errors.USER_NAME_EMPTY.getResponse();
     }
+
     if (userService.existsByEmail(userEmail)) {
       return Errors.USER_EXISTENT.getResponse();
     }
@@ -138,13 +138,93 @@ public class ApiController {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
 
+    Long lastEmailSent = emailVerificationChallengeService.getLastEmailCreationTimeByEmail(userEmail);
+    if (lastEmailSent != null && System.currentTimeMillis() < (lastEmailSent + fiveMinutes)) {
+      return Errors.EMAIL_RATELIMIT.getResponse();
+    }
+
+    EmailVerificationChallenge evc = new EmailVerificationChallenge();
+    evc.name = userName;
+    evc.email = userEmail;
+    evc.creationTime = System.currentTimeMillis();
+    evc.verificationKey = Utils.generateKey();
+    evc.passwordHash = Utils.encodePassword(userPassword);
+    emailVerificationChallengeService.add(evc);
+    mailService.send(userEmail, "Verify Email for Innexgo",
+        "<p>Requested password reset service.</p>"
+      + "<p>If you did not make this request, then feel free to ignore.</p>"
+      + "<p>This link is valid for up to 15 minutes.</p>"
+      + "<p>Do not share this link with others.</p>"
+      + "<p>Password Change link: %s/newaccount/?</p>");
+
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+
+
+  @RequestMapping("/user/new/")
+  public ResponseEntity<?> checkEmailVerification(@RequestParam String verificationKey) {
+
+    if (Utils.isEmpty(verificationKey)) {
+      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
+    }
+
+    if (!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
+      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
+    }
+
+    EmailVerificationChallenge evc = emailVerificationChallengeService.getByVerificationKey(verificationKey);
+
+    final long now = System.currentTimeMillis();
+
+    if ((evc.creationTime + fifteenMinutes) > now) {
+      return Errors.VERIFICATION_KEY_TIMED_OUT.getResponse();
+    }
+
+    if (userService.existsByEmail(evc.email)) {
+      return Errors.USER_EXISTENT.getResponse();
+    }
+
     User u = new User();
-    u.name = userName;
-    u.email = userEmail;
-    u.passwordHash = Utils.encodePassword(userPassword);
-    u.kind = userKind;
+    u.name = evc.name;
+    u.email = evc.email;
+    u.passwordHash = evc.passwordHash;
+    u.passwordSetTime = now;
+    u.kind = evc.kind;
+
     userService.add(u);
+
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
+  }
+
+  @RequestMapping("/forgotPassword/new")
+  public ResponseEntity<?> forgotPasswordEmail(@RequestParam String userEmail) {
+
+    if (!userService.existsByEmail(userEmail)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    User user = userService.getByEmail(userEmail);
+
+    final long now = System.currentTimeMillis();
+
+    if ((user.passwordSetTime + fiveMinutes) > now) {
+      return Errors.EMAIL_RATELIMIT.getResponse();
+    }
+
+    ForgotPassword fp = new ForgotPassword();
+    fp.email = userEmail;
+    fp.creationTime = now;
+    fp.accessKey = Utils.generateKey();
+
+    forgotPasswordService.add(fp);
+
+    userService.update(user);
+
+    mailService.send(fp);
+
+
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @RequestMapping("/apptRequest/new/")
@@ -449,116 +529,7 @@ public class ApiController {
     }, HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/emailVerificationChallenge/")
-  public ResponseEntity<?> newEmailVerification( //
-      @RequestParam String userName, //
-      @RequestParam String userEmail, //
-      @RequestParam String userPassword) throws IOException {
-
-    if (Utils.isEmpty(userEmail)) {
-      return Errors.USER_EMAIL_EMPTY.getResponse();
-    }
-    if (Utils.isEmpty(userName)) {
-      return Errors.USER_NAME_EMPTY.getResponse();
-    }
-    if (userService.existsByEmail(userEmail)) {
-      return Errors.USER_EXISTENT.getResponse();
-    }
-    if (!Utils.securePassword(userPassword)) {
-      return Errors.PASSWORD_INSECURE.getResponse();
-    }
-
-    Long lastEmailSent = emailVerificationChallengeService.getLastEmailCreationTimeByEmail(userEmail);
-    if (lastEmailSent != null && System.currentTimeMillis() < (lastEmailSent + fiveMinutesInMillis)) {
-      return Errors.EMAIL_RATELIMIT.getResponse();
-    }
-
-    EmailVerificationChallenge evc = new EmailVerificationChallenge();
-    evc.name = userName;
-    evc.email = userEmail;
-    evc.creationTime = System.currentTimeMillis();
-    evc.verificationKey = Utils.generateKey();
-    evc.passwordHash = Utils.encodePassword(userPassword);
-    emailVerificationChallengeService.add(evc);
-    mailService.send(userEmail, "Verify Email for Innexgo",
-        "<p>Requested password reset service.</p>"
-      + "<p>If you did not make this request, then feel free to ignore.</p>"
-      + "<p>This link is valid for up to 15 minutes.</p>"
-      + "<p>Do not share this link with others.</p>"
-      + "<p>Password Change link: %s/newaccount/?</p>");
-
-    return new ResponseEntity<>(HttpStatus.OK);
-  }
-
-  @RequestMapping("/misc/emailVerification/")
-  public ResponseEntity<?> checkEmailVerification(@RequestParam String verificationKey) {
-
-    if (Utils.isEmpty(verificationKey)) {
-      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
-    }
-
-    if (!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
-      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
-    }
-
-    EmailVerificationChallenge verificationUser = emailVerificationChallengeService
-        .getByVerificationKey(verificationKey);
-
-    if (!verificationUser.valid) {
-      return Errors.VERIFICATION_KEY_INVALID.getResponse();
-    }
-
-    if (System.currentTimeMillis() > (verificationUser.creationTime + fifteenMinutesInMillis)) {
-      verificationUser.valid = false;
-      emailVerificationChallengeService.update(verificationUser);
-      return Errors.VERIFICATION_KEY_TIMED_OUT.getResponse();
-    }
-
-    if (userService.existsByEmail(verificationUser.email)) {
-      verificationUser.valid = false;
-      emailVerificationChallengeService.update(verificationUser);
-      return Errors.USER_EXISTENT.getResponse();
-    }
-
-    User u = new User();
-    u.name = verificationUser.name;
-    u.email = verificationUser.email;
-    u.passwordHash = verificationUser.passwordHash;
-    u.lastEmailDeliveredTime = verificationUser.creationTime;
-    u.kind = UserKind.STUDENT; // TODO Defaults to student, decide how to deal with that.
-    userService.add(u);
-
-    verificationUser.valid = false;
-    emailVerificationChallengeService.update(verificationUser);
-
-    return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
-  }
-
-  @RequestMapping("/misc/requestResetPassword/")
-  public ResponseEntity<?> forgotPasswordEmail(@RequestParam String userEmail) throws IOException {
-
-    if (!userService.existsByEmail(userEmail)) {
-      return Errors.USER_NONEXISTENT.getResponse();
-    }
-
-    User user = userService.getByEmail(userEmail);
-
-    if (System.currentTimeMillis() < (user.lastEmailDeliveredTime + fiveMinutesInMillis)) {
-      return Errors.EMAIL_RATELIMIT.getResponse();
-    }
-
-    ForgotPassword u = new ForgotPassword();
-    u.email = userEmail;
-    u.creationTime = System.currentTimeMillis();
-    u.accessKey = Utils.generateKey();
-    forgotPasswordService.add(u);
-    sendMailSESService.emailForgotPassword(u);
-
-    user.lastEmailDeliveredTime = u.creationTime;
-    userService.update(user);
-
-    return new ResponseEntity<>(HttpStatus.OK);
-  }
+  
 
   @RequestMapping("/misc/resetPassword/")
   public ResponseEntity<?> checkResetPassword(@RequestParam String accessKey,
@@ -578,7 +549,7 @@ public class ApiController {
       return Errors.ACCESS_KEY_INVALID.getResponse();
     }
 
-    if (System.currentTimeMillis() > (forgotPasswordUser.creationTime + fifteenMinutesInMillis)) {
+    if (System.currentTimeMillis() > (forgotPasswordUser.creationTime + fifteenMinutes)) {
       forgotPasswordUser.valid = false;
       forgotPasswordService.update(forgotPasswordUser);
       return Errors.ACCESS_KEY_TIMED_OUT.getResponse();
