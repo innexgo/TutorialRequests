@@ -75,7 +75,7 @@ public class ApiController {
   String innexgoHoursSite;
 
   final static int fiveMinutes = 5 * 60 * 1000;
-  final static int fifteenMinutes = 5 * 60 * 1000;
+  final static int fifteenMinutes = 15 * 60 * 1000;
 
   /**
    * Create a new apiKey for a User
@@ -143,19 +143,27 @@ public class ApiController {
       return Errors.EMAIL_RATELIMIT.getResponse();
     }
 
+    if (mailService.emailExistsInBlacklist(userEmail)) {
+      return Errors.EMAIL_BLACKLISTED.getResponse();
+    }
+
     EmailVerificationChallenge evc = new EmailVerificationChallenge();
     evc.name = userName;
     evc.email = userEmail;
     evc.creationTime = System.currentTimeMillis();
     evc.verificationKey = Utils.generateKey();
     evc.passwordHash = Utils.encodePassword(userPassword);
+    evc.kind = UserKind.STUDENT;
     emailVerificationChallengeService.add(evc);
-    mailService.send(userEmail, "Verify Email for Innexgo",
-        "<p>Requested password reset service.</p>"
+    mailService.send(userEmail, "Innexgo Hours: Email Verification",
+      "<p>Required email verification requested under the name: " + evc.name
+      + "</p>"
       + "<p>If you did not make this request, then feel free to ignore.</p>"
       + "<p>This link is valid for up to 15 minutes.</p>"
       + "<p>Do not share this link with others.</p>"
-      + "<p>Password Change link: %s/newaccount/?</p>");
+      + "<p>Verification link: "
+      + innexgoHoursSite + "/api/user/new/?verificationKey=" + evc.verificationKey
+      + "</p>");
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -177,7 +185,7 @@ public class ApiController {
 
     final long now = System.currentTimeMillis();
 
-    if ((evc.creationTime + fifteenMinutes) > now) {
+    if ((evc.creationTime + fifteenMinutes) < now) {
       return Errors.VERIFICATION_KEY_TIMED_OUT.getResponse();
     }
 
@@ -212,6 +220,10 @@ public class ApiController {
       return Errors.EMAIL_RATELIMIT.getResponse();
     }
 
+    if (mailService.emailExistsInBlacklist(userEmail)) {
+      return Errors.EMAIL_BLACKLISTED.getResponse();
+    }
+
     ForgotPassword fp = new ForgotPassword();
     fp.email = userEmail;
     fp.creationTime = now;
@@ -221,8 +233,16 @@ public class ApiController {
 
     userService.update(user);
 
-    mailService.send(fp);
-
+    mailService.send(
+      fp.email,
+      "Innexgo Hours: Password Reset",
+      "<p>Requested password reset service.</p>"
+      + "<p>If you did not make this request, then feel free to ignore.</p>"
+      + "<p>This link is valid for up to 15 minutes.</p>"
+      + "<p>Do not share this link with others.</p>"
+      + "<p>Password Change link: "
+      + innexgoHoursSite + "/misc/resetPassword/?accessKey=" + fp.accessKey 
+      + "</p>");
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -508,14 +528,18 @@ public class ApiController {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
 
+    if (mailService.emailExistsInBlacklist(user.email)) {
+      return Errors.EMAIL_BLACKLISTED.getResponse();
+    }
+
     user.passwordHash = Utils.encodePassword(newPassword);
     user.passwordSetTime = System.currentTimeMillis();
     userService.update(user);
 
-    mailService.send( //
-        user.email, //
-        "Your password has been changed.", //
-        "Your password on Innexgo Hours was changed. If you did not change this password, please secure your account." //
+    mailService.send(
+        user.email,
+        "Innexgo Hours: Password Changed",
+        "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
     );
 
     return new ResponseEntity<>(innexgoService.fillUser(user), HttpStatus.OK);
@@ -553,17 +577,26 @@ public class ApiController {
       forgotPasswordUser.valid = false;
       forgotPasswordService.update(forgotPasswordUser);
       return Errors.ACCESS_KEY_TIMED_OUT.getResponse();
+    } 
+    
+    if (mailService.emailExistsInBlacklist(forgotPasswordUser.email)) {
+      return Errors.EMAIL_BLACKLISTED.getResponse();
     }
 
     if (userPassword != null) {
       User u = userService.getByEmail(forgotPasswordUser.email);
       u.passwordHash = Utils.encodePassword(userPassword);
-      u.lastEmailDeliveredTime = System.currentTimeMillis(); // not actually but saves one call to userService.
+      u.passwordSetTime = System.currentTimeMillis();
       userService.update(u);
-      sendMailSESService.emailChangedPassword(u);
+      
+      mailService.send(
+        u.email,
+        "Innexgo Hours: Password Changed",
+        "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
+      );
+
       forgotPasswordUser.valid = false;
       forgotPasswordService.update(forgotPasswordUser);
-
     }
 
     return new ResponseEntity<>(HttpStatus.OK);

@@ -34,7 +34,7 @@ public class EmailVerificationChallengeService {
 
   public List<EmailVerificationChallenge> getAll() {
     String sql =
-        "SELECT id, name, email, creation_time, verification_key, password_hash, valid FROM email_verification_challenge";
+        "SELECT id, name, email, creation_time, verification_key, password_hash, kind FROM email_verification_challenge";
     RowMapper<EmailVerificationChallenge> rowMapper = new EmailVerificationChallengeRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
@@ -50,12 +50,12 @@ public class EmailVerificationChallengeService {
   }
 
 
-  public void add(EmailVerificationChallenge emailVerificationChallenge ) {
+  public void add(EmailVerificationChallenge emailVerificationChallenge) {
     // Set user id
     emailVerificationChallenge.id = nextId();
     // Add user
     String sql =
-        "INSERT INTO email_verification_challenge (id, name, email, creation_time, verification_key, password_hash, valid) values (?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO email_verification_challenge (id, name, email, creation_time, verification_key, password_hash, kind) values (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         emailVerificationChallenge.id,
@@ -64,12 +64,12 @@ public class EmailVerificationChallengeService {
         emailVerificationChallenge.creationTime,
         emailVerificationChallenge.verificationKey,
         emailVerificationChallenge.passwordHash,
-        emailVerificationChallenge.kind.name());
+        emailVerificationChallenge.kind.value);
   }
 
   public void update(EmailVerificationChallenge emailVerificationChallenge) {
     String sql =
-    "UPDATE email_verification_challenge SET id=?, name=?, email=?, creation_time=?, verification_key=?, password_hash=?, valid=? WHERE id=?";
+    "UPDATE email_verification_challenge SET id=?, name=?, email=?, creation_time=?, verification_key=?, password_hash=?, kind=? WHERE id=?";
     jdbcTemplate.update(
         sql,
         emailVerificationChallenge.id,
@@ -79,19 +79,19 @@ public class EmailVerificationChallengeService {
         emailVerificationChallenge.verificationKey,
         emailVerificationChallenge.passwordHash,
         emailVerificationChallenge.kind.value,
-        emailVerificationChallenge.id); 
+        emailVerificationChallenge.id);
   }
 
   public EmailVerificationChallenge getByVerificationKey(String verificationKey) {
     String sql =
-        "SELECT id, name, email, creation_time, verification_key, password_hash, valid FROM email_verification_challenge WHERE verification_key=?";
+        "SELECT id, name, email, creation_time, verification_key, password_hash, kind FROM email_verification_challenge WHERE verification_key=?";
     RowMapper<EmailVerificationChallenge> rowMapper = new EmailVerificationChallengeRowMapper();
     EmailVerificationChallenge emailVerificationChallenge = jdbcTemplate.queryForObject(sql, rowMapper, verificationKey);
     return emailVerificationChallenge;
   }
 
   public Long getLastEmailCreationTimeByEmail(String userEmail){
-    String sql =  "SELECT max(creation_time) FROM email_verification_challenge WHERE email=? ";
+    String sql =  "SELECT max(creation_time) FROM email_verification_challenge WHERE email=?";
     Long creationTime = jdbcTemplate.queryForObject(sql, Long.class, userEmail);
     return creationTime;
   }
