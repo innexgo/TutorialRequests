@@ -1,3 +1,11 @@
+drop table if exists email_blacklist;
+create table email_blacklist(
+  id integer not null primary key,
+  email varchar(100) not null,
+  reason varchar(10) not null,
+  last_update_time integer not null
+);
+
 drop table if exists forgot_password;
 create table forgot_password(
   id integer not null primary key,
@@ -25,7 +33,7 @@ create table user(
   name varchar(100) not null,
   email varchar(100) not null unique,
   password_set_time integer not null,
-  password_hash char(64) not null unique
+  password_hash char(64) not null
 );
 
 drop table if exists api_key;
