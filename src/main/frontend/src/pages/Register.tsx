@@ -16,14 +16,16 @@ function RegisterForm() {
     borderBottom: '1px solid grey',
   };
 
-  const [validated, setValidated] = React.useState(false);
+  const [errorText, setErrorText] = React.useState("OOF");
   const [email, setEmail] = React.useState("");
   const [name, setName] = React.useState("");
   const [password1, setPassword1] = React.useState("");
   const [password2, setPassword2] = React.useState("");
 
 
+
   async function postRegister() {
+
     /*
     try {
       const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
@@ -36,36 +38,33 @@ function RegisterForm() {
     */
   }
 
-  function handleSubmit() {
-      /*
-      if(name != '') {
-        setErrorText("Name must be filled.");
-        return false;
-      }
-      if(email != '') {
-        setErrorText("Email must be filled.");
-        return false;
-      }
-      if(password1 != '') {
-        setErrorText("Password must be filled.");
-        return false;
-      }
-      if(password1 != password2) {
-        setErrorText("Password and password confirmation don't match.");
-        return false;
-      }
-      return true;
-      */
+  async function handleSubmit() {
+    if (name != '') {
+      setErrorText("Name must be filled.");
+      return;
+    }
+    if (email != '') {
+      setErrorText("Email must be filled.");
+      return;
+    }
+    if (password1 != '') {
+      setErrorText("Password must be filled.");
+      return;
+    }
+    if (password1 != password2) {
+      setErrorText("Password and password confirmation don't match.");
+      return;
+    }
   }
 
-  return <Form onSubmit={handleSubmit}>
+  return <Form>
     <Form.Group>
-      <Form.Control style={formBoxStyle} placeholder="Email"
+      <Form.Control style={formBoxStyle} placeholder="Name"
         onChange={e => {
           setName(e.target.value);
         }} />
       <Form.Control.Feedback type="invalid">
-         Please enter your real name.
+        Please enter your real name.
       </Form.Control.Feedback>
     </Form.Group>
     <Form.Group>
@@ -74,7 +73,7 @@ function RegisterForm() {
           setEmail(e.target.value);
         }} />
       <Form.Control.Feedback type="invalid">
-         Please enter your school email address.
+        Please enter your school email address.
       </Form.Control.Feedback>
     </Form.Group>
     <Form.Group>
@@ -83,7 +82,7 @@ function RegisterForm() {
           setPassword1(e.target.value);
         }} />
       <Form.Control.Feedback type="invalid">
-         Please enter your school email address.
+        Please enter your school email address.
       </Form.Control.Feedback>
     </Form.Group>
     <Form.Group>
@@ -92,10 +91,11 @@ function RegisterForm() {
           setPassword2(e.target.value);
         }} />
       <Form.Control.Feedback type="invalid">
-         Please enter your school email address.
+        Please enter your school email address.
       </Form.Control.Feedback>
     </Form.Group>
-    <Button type="submit" variant="dark">Register</Button>
+    <Button variant="dark" onClick={async () => handleSubmit()}>Register</Button>
+    <p style={{ color: "#DC143C" }}>{errorText}</p>
   </Form>
 }
 
@@ -129,7 +129,7 @@ function Register() {
         <div className="h-100 px-5 py-5 w-75" >
           <h4>Register with <SchoolName /></h4>
           <br />
-          <RegisterForm/>
+          <RegisterForm />
         </div>
       </div>
 
