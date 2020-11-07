@@ -20,7 +20,6 @@ function RegisterForm() {
 
   const isPasswordValid = (pass: string) => pass.length >= 8 && /\d/.test(pass);
 
-
   const onSubmit = (values: RegistrationValue, { setErrors }: FormikHelpers<RegistrationValue>) => {
     // Validate input
     let errors: FormikErrors<RegistrationValue> = {};
@@ -55,6 +54,19 @@ function RegisterForm() {
     }
 
     // Now send request
+    try {
+      const apiKey = await fetchApi(`verificationChallenge/new/?` + new URLSearchParams([
+        ['userName', `${values.firstName.trim()} ${values.lastName.trim()}`],
+        ['userEmail', values.email],
+        ['userPassword', values.password1],
+      ])) as ApiKey;
+      props.setApiKey(apiKey);
+    } catch (e) {
+      console.log(e);
+      setErrors({
+          password:"Your username or password is incorrect."
+      });
+    }
 
   }
 

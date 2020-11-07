@@ -6,6 +6,21 @@ declare global {
 
   type UserKind = "STUDENT" | "USER" | "ADMIN"
 
+  type EmailVerificationChallenge = {
+    id: number,
+    name: string,
+    email: string,
+    creationTime: number,
+    kind: UserKind,
+  }
+
+  type ForgotPassword = {
+    id: number,
+    email: String,
+    creationTime: number,
+    valid: boolean,
+  }
+
   type User = {
     id: number,
     kind: UserKind,
@@ -61,4 +76,4 @@ declare global {
     setApiKey: (data: ApiKey | null) => void
   }
 }
-export {}
+export { }
