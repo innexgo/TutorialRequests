@@ -1,156 +1,222 @@
 import React from 'react';
+import { Formik, FormikHelpers, FormikErrors } from 'formik'
 import { ArrowForward } from '@material-ui/icons';
 import transparent from "../img/innexgo_transparent_icon.png"
 import innexgo_logo from '../img/innexgo_transparent_icon.png';
-import { Button, Form, Nav, Navbar, } from 'react-bootstrap'
+import { Container, Button, Row, Col, Form, Nav, Navbar, } from 'react-bootstrap'
 import { fetchApi } from '../utils/utils';
 
 import SchoolName from '../components/SchoolName';
 
 function RegisterForm() {
-  const formBoxStyle = {
-    borderLeft: '0',
-    borderTop: '0',
-    borderRight: '0',
-    borderRadius: '0',
-    borderBottom: '1px solid grey',
-  };
 
-  const [errorText, setErrorText] = React.useState("OOF");
-  const [email, setEmail] = React.useState("");
-  const [name, setName] = React.useState("");
-  const [password1, setPassword1] = React.useState("");
-  const [password2, setPassword2] = React.useState("");
-
-
-
-  async function postRegister() {
-
-    /*
-    try {
-      const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
-        ['duration', `${5 * 60 * 60 * 1000}`], // 5 hours
-      ])) as ApiKey;
-    } catch (e) {
-      console.log(e);
-      setErrorText("Your username or password is incorrect");
-    }
-    */
+  type RegistrationValue = {
+    firstName: string,
+    lastName: string,
+    email: string,
+    password1: string,
+    password2: string,
+    terms: boolean,
   }
 
-  async function handleSubmit() {
-    if (name != '') {
-      setErrorText("Name must be filled.");
-      return;
+  const isPasswordValid = (pass: string) => pass.length >= 8 && /\d/.test(pass);
+
+
+  const onSubmit = (values: RegistrationValue, { setErrors }: FormikHelpers<RegistrationValue>) => {
+    // Validate input
+    let errors: FormikErrors<RegistrationValue> = {};
+    let hasError = false;
+    if (values.firstName === "") {
+      errors.firstName = "Please enter your first name";
+      hasError = true;
     }
-    if (email != '') {
-      setErrorText("Email must be filled.");
-      return;
+    if (values.lastName === "") {
+      errors.lastName = "Please enter your last name";
+      hasError = true;
     }
-    if (password1 != '') {
-      setErrorText("Password must be filled.");
-      return;
+    if (values.email === "") {
+      errors.email = "Please enter your email";
+      hasError = true;
     }
-    if (password1 != password2) {
-      setErrorText("Password and password confirmation don't match.");
-      return;
+    if (!isPasswordValid(values.password1)) {
+      errors.password1 = "Password must have at least 8 chars and 1 number";
+      hasError = true;
     }
+    if (values.password2 !== values.password1) {
+      errors.password2 = "Password does not match";
+      hasError = true;
+    }
+    if (!values.terms) {
+      errors.terms = "You must agree to the terms and conditions";
+      hasError = true;
+    }
+    setErrors(errors);
+    if(hasError) {
+        return;
+    }
+
+    // Now send request
+
   }
 
-  return <Form>
-    <Form.Group>
-      <Form.Control style={formBoxStyle} placeholder="Name"
-        onChange={e => {
-          setName(e.target.value);
-        }} />
-      <Form.Control.Feedback type="invalid">
-        Please enter your real name.
-      </Form.Control.Feedback>
-    </Form.Group>
-    <Form.Group>
-      <Form.Control style={formBoxStyle} type="email" placeholder="Email"
-        onChange={e => {
-          setEmail(e.target.value);
-        }} />
-      <Form.Control.Feedback type="invalid">
-        Please enter your school email address.
-      </Form.Control.Feedback>
-    </Form.Group>
-    <Form.Group>
-      <Form.Control style={formBoxStyle} type="password" placeholder="Password"
-        onChange={e => {
-          setPassword1(e.target.value);
-        }} />
-      <Form.Control.Feedback type="invalid">
-        Please enter your school email address.
-      </Form.Control.Feedback>
-    </Form.Group>
-    <Form.Group>
-      <Form.Control style={formBoxStyle} type="password" placeholder="Confirm Password"
-        onChange={e => {
-          setPassword2(e.target.value);
-        }} />
-      <Form.Control.Feedback type="invalid">
-        Please enter your school email address.
-      </Form.Control.Feedback>
-    </Form.Group>
-    <Button variant="dark" onClick={async () => handleSubmit()}>Register</Button>
-    <p style={{ color: "#DC143C" }}>{errorText}</p>
-  </Form>
+  return (
+    <Formik
+      onSubmit={onSubmit}
+      initialValues={{
+        firstName: "A",
+        lastName: "B",
+        email: "C",
+        password1: "Boolean500",
+        password2: "Boolean500",
+        terms: true,
+      }}
+    >
+      {(props) => (
+        <Form
+          noValidate
+          onSubmit={props.handleSubmit} >
+          <Form.Group as={Row} >
+            <Form.Label column md={2}>First name</Form.Label>
+            <Col md={5}>
+              <Form.Control
+                name="firstName"
+                type="text"
+                placeholder="First Name"
+                value={props.values.firstName}
+                onChange={props.handleChange}
+                isInvalid={!!props.errors.firstName}
+              />
+              <Form.Control.Feedback type="invalid">{props.errors.firstName}</Form.Control.Feedback>
+            </Col>
+          </Form.Group>
+          <Form.Group as={Row} >
+            <Form.Label column md={2}>Last name</Form.Label>
+            <Col md={5}>
+              <Form.Control
+                name="lastName"
+                type="text"
+                placeholder="Last Name"
+                value={props.values.lastName}
+                onChange={props.handleChange}
+                isInvalid={!!props.errors.lastName}
+              />
+              <Form.Control.Feedback type="invalid">{props.errors.lastName}</Form.Control.Feedback>
+            </Col>
+          </Form.Group>
+          <Form.Group as={Row} >
+            <Form.Label column md={2}>Email</Form.Label>
+            <Col md={5}>
+              <Form.Control
+                name="email"
+                type="email"
+                placeholder="Email"
+                value={props.values.email}
+                onChange={props.handleChange}
+                isInvalid={!!props.errors.email}
+              />
+              <Form.Control.Feedback type="invalid"> {props.errors.email} </Form.Control.Feedback>
+            </Col>
+          </Form.Group>
+          <Form.Group as={Row} >
+            <Form.Label column md={2}>Password</Form.Label>
+            <Col md={5}>
+              <Form.Control
+                name="password1"
+                type="password"
+                placeholder="Password"
+                value={props.values.password1}
+                onChange={props.handleChange}
+                isInvalid={!!props.errors.password1}
+              />
+              <Form.Control.Feedback type="invalid">{props.errors.password1}</Form.Control.Feedback>
+            </Col>
+          </Form.Group>
+          <Form.Group as={Row} >
+            <Form.Label column md={2}>Confirm Password</Form.Label>
+            <Col md={5}>
+              <Form.Control
+                name="password2"
+                type="password"
+                placeholder="Confirm Password"
+                value={props.values.password2}
+                onChange={props.handleChange}
+                isInvalid={!!props.errors.password2}
+              />
+              <Form.Control.Feedback type="invalid">{props.errors.password2}</Form.Control.Feedback>
+            </Col>
+          </Form.Group>
+          <Form.Group>
+            <Form.Check
+              name="terms"
+              required
+              label="Agree to terms and conditions"
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.terms}
+              feedback={props.errors.terms}
+            />
+          </Form.Group>
+          <Button type="submit">Submit form</Button>
+        </Form>
+      )}
+    </Formik>
+  );
 }
 
 
 function Register() {
   return (
-    <div style={{ height: '100vh' }}>
-      <div className="row h-100">
-        <div className="h-100 px-5 py-5 w-25 text-light" style={{
-          minWidth: "5rem",
-          backgroundColor: '#990000ff',
-        }}>
-          <img src={transparent} alt="Innexgo Logo" />
-          <h4 className="my-3">Attendance simplified.</h4>
+    <Container fluid style={{ height: "100vh" }}>
+      <Row className="h-100">
+        <Col md="auto" className="px-3 py-3" style={{ backgroundColor: '#990000ff', }}>
+          <Row md={4} className="my-2 text-light">
+            <Col >
+              <img src={transparent} alt="Innexgo Logo" />
+            </Col>
+            <Col>
+              <h4>Attendance simplified.</h4>
+            </Col>
+          </Row>
           <a href="/" className="text-light">
-            Already have an account?<ArrowForward />
-          </a>
-          <br />
-          <a href="" className="text-light">
-            Forgot password?<ArrowForward />
-          </a>
-          <br />
-          <a href="https://hours.innexgo.com" className="text-light">
-            Not your school?<ArrowForward />
+            <ArrowForward />Log In
           </a>
           <br />
           <a href="/instructions" className="text-light">
-            Instructions<ArrowForward />
+            <ArrowForward />Instructions
           </a>
-        </div>
-        <div className="h-100 px-5 py-5 w-75" >
-          <h4>Register with <SchoolName /></h4>
           <br />
+          <a href="/register" className="text-light">
+            <ArrowForward />Register
+          </a>
+          <br />
+          <a href="https://hours.innexgo.com" className="text-light">
+            <ArrowForward />Not your school?
+          </a>
+        </Col>
+        <Col className="px-3 py-3">
+          <h4>Register with <SchoolName /></h4>
           <RegisterForm />
-        </div>
-      </div>
-
-      <Navbar bg="dark" variant="dark">
-        <Navbar.Brand href="#home">
-          <img
-            alt="Innexgo Logo"
-            src={innexgo_logo}
-            width="30"
-            height="30"
-            className="d-inline-block align-top"
-          />{' '}
+        </Col>
+      </Row>
+      <Row>
+        <Navbar bg="dark" variant="dark">
+          <Navbar.Brand href="#home">
+            <img
+              alt="Innexgo Logo"
+              src={innexgo_logo}
+              width="30"
+              height="30"
+              className="d-inline-block align-top"
+            />{' '}
               Innexgo
           </Navbar.Brand>
-        <Nav>
-          <Nav.Link>&copy; Innexgo LLC, 2020</Nav.Link>
-          <Nav.Link href="/terms_of_service">Terms of Service</Nav.Link>
-          <Nav.Link href="/terms_of_service#cookie_policy">Cookie Policy</Nav.Link>
-        </Nav>
-      </Navbar>
-    </div>
+          <Nav>
+            <Nav.Link>&copy; Innexgo LLC, 2020</Nav.Link>
+            <Nav.Link href="/terms_of_service">Terms of Service</Nav.Link>
+            <Nav.Link href="/terms_of_service#cookie_policy">Cookie Policy</Nav.Link>
+          </Nav>
+        </Navbar>
+      </Row>
+    </Container>
   )
 }
 
