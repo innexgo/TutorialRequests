@@ -257,7 +257,7 @@ public class ApiController {
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.APIKEY_NONEXISTENT.getResponse();
     }
 
     if (!userService.existsById(targetId)) {
@@ -297,14 +297,21 @@ public class ApiController {
       @RequestParam long startTime, //
       @RequestParam long duration, //
       @RequestParam String apiKey) {
-    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.APIKEY_NONEXISTENT.getResponse();
+    }
 
-    if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    if(keyCreator.kind == UserKind.STUDENT) {
+        return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
     if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();
+    }
+
+    if(apptService.existsByApptRequestId(apptRequestId)) {
+      return Errors.APPT_EXISTENT.getResponse();
     }
 
     Appt a = new Appt();
@@ -322,9 +329,13 @@ public class ApiController {
       @RequestParam long apptId, //
       @RequestParam AttendanceKind attendanceKind, //
       @RequestParam String apiKey) {
-    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.APIKEY_NONEXISTENT.getResponse();
+    }
+
+    if(keyCreator.kind == UserKind.STUDENT) {
+        return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
     if (attendanceService.existsById(apptId)) {

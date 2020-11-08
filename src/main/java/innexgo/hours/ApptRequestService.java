@@ -31,11 +31,11 @@ public class ApptRequestService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public ApptRequest getById(long id) {
+  public ApptRequest getByApptRequestId(long apptRequestId) {
     String sql =
         "SELECT apr.appt_request_id, apr.creator_id, apr.attendee_id, apr.host_id, apr.message, apr.creation_time, apr.start_time, apr.duration FROM appt_request apr WHERE apr.appt_request_id=?";
     RowMapper<ApptRequest> rowMapper = new ApptRequestRowMapper();
-    ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, id);
+    ApptRequest apptRequest = jdbcTemplate.queryForObject(sql, rowMapper, apptRequestId);
     return apptRequest;
   }
 
@@ -85,16 +85,16 @@ public class ApptRequestService {
     );
   }
 
-  public ApptRequest deleteById(long id) {
-    ApptRequest apptRequest = getById(id);
+  public ApptRequest deleteByApptRequestId(long apptRequestId) {
+    ApptRequest apptRequest = getByApptRequestId(apptRequestId);
     String sql = "DELETE FROM appt_request apr WHERE apr.appt_request_id=?";
-    jdbcTemplate.update(sql, id);
+    jdbcTemplate.update(sql, apptRequestId);
     return apptRequest;
   }
 
-  public boolean existsById(long id) {
+  public boolean existsByApptRequestId(long apptRequestId) {
     String sql = "SELECT count(*) FROM appt_request apr WHERE apr.appt_request_id=?";
-    int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+    int count = jdbcTemplate.queryForObject(sql, Integer.class, apptRequestId);
     return count != 0;
   }
 

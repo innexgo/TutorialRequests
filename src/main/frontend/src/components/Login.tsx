@@ -17,7 +17,7 @@ function LoginForm(props: LoginProps) {
     password: string,
   }
 
-  const onSubmit = async (values: LoginValue, { setErrors }: FormikHelpers<LoginValue>) => {
+  const onSubmit = async (values: LoginValue, { setStatus, setErrors }: FormikHelpers<LoginValue>) => {
     // Validate input
     let errors: FormikErrors<LoginValue> = {};
     let hasError = false;
@@ -59,9 +59,7 @@ function LoginForm(props: LoginProps) {
           break;
         }
         default: {
-          setErrors({
-            password: "An unknown or network error has occured while trying to log you in"
-          });
+          setStatus("An unknown or network error has occured while trying to log you in");
           break;
         }
       }
@@ -70,8 +68,9 @@ function LoginForm(props: LoginProps) {
   }
 
   return (
-    <Formik
+    <Formik<LoginValue>
       onSubmit={onSubmit}
+      initialStatus=""
       initialValues={{
         email: "",
         password: "",
@@ -110,6 +109,8 @@ function LoginForm(props: LoginProps) {
             </Col>
           </Form.Group>
           <Button type="submit">Login</Button>
+          <br />
+          <Form.Control.Feedback type="invalid">{props.status}</Form.Control.Feedback>
           <br />
           <Form.Text className="text-muted">
             <a href="/forgotpassword">Forgot Password?</a>

@@ -31,11 +31,11 @@ public class ApptService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public Appt getById(long id) {
+  public Appt getByApptRequestId(long apptRequestId) {
     String sql =
         "SELECT ap.appt_request_id, ap.message, ap.creation_time, ap.start_time, ap.duration FROM appt ap WHERE ap.appt_request_id=?";
     RowMapper<Appt> rowMapper = new ApptRowMapper();
-    Appt appt = jdbcTemplate.queryForObject(sql, rowMapper, id);
+    Appt appt = jdbcTemplate.queryForObject(sql, rowMapper, apptRequestId);
     return appt;
   }
 
@@ -51,9 +51,9 @@ public class ApptService {
         appt.duration);
   }
 
-  public boolean existsById(long id) {
+  public boolean existsByApptRequestId(long apptRequestId) {
     String sql = "SELECT count(*) FROM appt ap WHERE ap.appt_request_id=?";
-    int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+    int count = jdbcTemplate.queryForObject(sql, Integer.class, apptRequestId);
     return count != 0;
   }
 

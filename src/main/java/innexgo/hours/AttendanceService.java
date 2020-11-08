@@ -31,11 +31,11 @@ public class AttendanceService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public Attendance getById(long id) {
+  public Attendance getByApptId(long apptId) {
     String sql =
         "SELECT at.appt_id, at.creation_time, at.kind FROM attendance at WHERE appt_id=?";
     RowMapper<Attendance> rowMapper = new AttendanceRowMapper();
-    Attendance attendance = jdbcTemplate.queryForObject(sql, rowMapper, id);
+    Attendance attendance = jdbcTemplate.queryForObject(sql, rowMapper, apptId);
     return attendance;
   }
 
