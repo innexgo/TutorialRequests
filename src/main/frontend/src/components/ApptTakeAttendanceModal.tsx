@@ -1,8 +1,7 @@
 import React from 'react'
-import SearchUserDropdown from '../components/SearchUserDropdown';
 
 import { Row, Col, Modal, Button, Form } from 'react-bootstrap';
-import { fetchApi } from '../utils/utils';
+import { newAttendance } from '../utils/utils';
 import format from 'date-fns/format';
 
 type ApptTakeAttendanceModalProps = {
@@ -13,17 +12,16 @@ type ApptTakeAttendanceModalProps = {
 }
 
 function ApptTakeAttendanceModal(props: ApptTakeAttendanceModalProps) {
-  const [studentId, setStudentId] = React.useState<number | null>(null);
-  const [message, setMessage] = React.useState("");
-
   async function submitAttendance(kind: AttendanceKind) {
-    const attendance = await fetchApi(`attendance/new/?` + new URLSearchParams([
-      ['apptId', `${props.appt.apptRequest.apptRequestId}`],
-      ['attendanceKind', kind],
-      ['apiKey', props.apiKey.key],
-    ])) as Attendance;
+    await newAttendance({
+      apptId:  props.appt.apptRequest.apptRequestId,
+      attendanceKind:  kind,
+      apiKey:  props.apiKey.key,
+    });
     props.setShow(false);
   }
+
+  // TODO add FORMIK here
 
   const past = Date.now() > props.appt.startTime;
 

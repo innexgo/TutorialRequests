@@ -2,7 +2,7 @@ import React from 'react'
 import SearchUserDropdown from '../components/SearchUserDropdown';
 
 import { Row, Col, Modal, Button, Form } from 'react-bootstrap';
-import { fetchApi } from '../utils/utils';
+import { newApptRequest, newAppt, isApiErrorCode } from '../utils/utils';
 import format from 'date-fns/format';
 
 type CreateApptModalProps = {
@@ -17,14 +17,17 @@ function CreateApptModal(props: CreateApptModalProps) {
   const [studentId, setStudentId] = React.useState<number | null>(null);
   const [message, setMessage] = React.useState("");
 
+  // TODO add FORMIK here
+
   const submit = async () => {
-    const apptRequest = await fetchApi(`apptRequest/new/?` + new URLSearchParams([
-      ['targetId', `${studentId}`],
-      ["attending", 'false'],
-      ['message', message],
-      ['startTime', `${props.start}`],
-      ['duration', `${props.duration}`],
-      ['apiKey', `${props.apiKey.key}`],
+
+    const maybeApptRequest = await newApptRequest({
+      targetId:  studentId,
+      attending:  false,
+      message:  message,
+      startTime:  props.start,
+      duration:  props.duration,
+      apiKey:  props.apiKey.key,
     ])) as ApptRequest;
 
     await fetchApi('appt/new/?' + new URLSearchParams([

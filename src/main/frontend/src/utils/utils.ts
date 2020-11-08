@@ -237,27 +237,28 @@ export async function viewAttendance(props: ViewAttendanceProps): Promise<Attend
 
 
 type UpdatePasswordProps = {
-      userId:number,
-      oldPassword:string,
-      newPassword:string,
-      apiKey:string,
+  userId: number,
+  oldPassword: string,
+  newPassword: string,
+  apiKey: string,
 }
 
 export async function updatePassword(props: UpdatePasswordProps): Promise<null | ApiErrorCode> {
   return await fetchApi("misc/updatePassword/", props);
 }
 
-export async function schoolInfo():Promise<SchoolInfo | ApiErrorCode> {
+export async function schoolInfo(): Promise<SchoolInfo | ApiErrorCode> {
   return await fetchApi("misc/info/school/", {});
 }
 
 type ResetPasswordProps = {
-      resetKey : String,
-      newUserPassword : String,
+  resetKey: String,
+  newUserPassword: String,
 }
 
 export async function resetPassword(props: ResetPasswordProps): Promise<null | ApiErrorCode> {
   return await fetchApi("misc/resetPassword/", props);
 }
+
 
 
