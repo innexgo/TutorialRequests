@@ -1,4 +1,34 @@
 declare global {
+
+  type ApiErrorCode =
+    "OK"|
+    "NO_CAPABILITY"|
+    "APIKEY_UNAUTHORIZED"|
+    "DATABASE_INITIALIZED"|
+    "PASSWORD_INCORRECT"|
+    "PASSWORD_INSECURE"|
+    "USER_NONEXISTENT"|
+    "APIKEY_NONEXISTENT"|
+    "USER_EXISTENT"|
+    "APPT_REQUEST_NONEXISTENT"|
+    "USER_NAME_EMPTY"|
+    "USER_EMAIL_EMPTY"|
+    "USER_EMAIL_INVALIDATED"|
+    "USERKIND_INVALID"|
+    "ATTENDANCEKIND_INVALID"|
+    "ATTENDANCE_EXISTENT"|
+    "NEGATIVE_DURATION"|
+    "VERIFICATION_KEY_NONEXISTENT"|
+    "VERIFICATION_KEY_INVALID"|
+    "VERIFICATION_KEY_TIMED_OUT"|
+    "ACCESS_KEY_NONEXISTENT"|
+    "ACCESS_KEY_INVALID"|
+    "ACCESS_KEY_TIMED_OUT"|
+    "EMAIL_RATELIMIT"|
+    "EMAIL_BLACKLISTED"|
+    "UNKNOWN"|
+    "NETWORK";
+
   type SchoolInfo = {
     name: string,
     domain: string,
@@ -16,7 +46,7 @@ declare global {
 
   type ForgotPassword = {
     id: number,
-    email: String,
+    email: string,
     creationTime: number,
     valid: boolean,
   }

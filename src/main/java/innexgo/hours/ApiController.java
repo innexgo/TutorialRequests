@@ -122,18 +122,18 @@ public class ApiController {
   public ResponseEntity<?> newEmailVerificationChallenge( //
       @RequestParam String userName, //
       @RequestParam String userEmail, //
+      @RequestParam UserKind userKind, //
       @RequestParam String userPassword) {
-
     if (Utils.isEmpty(userEmail)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
     if (Utils.isEmpty(userName)) {
       return Errors.USER_NAME_EMPTY.getResponse();
     }
-
     if (userService.existsByEmail(userEmail)) {
       return Errors.USER_EXISTENT.getResponse();
     }
+
     if (!Utils.securePassword(userPassword)) {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
@@ -153,7 +153,7 @@ public class ApiController {
     evc.creationTime = System.currentTimeMillis();
     evc.verificationKey = Utils.generateKey();
     evc.passwordHash = Utils.encodePassword(userPassword);
-    evc.kind = UserKind.STUDENT;
+    evc.kind = userKind;
     emailVerificationChallengeService.add(evc);
     mailService.send(userEmail, "Innexgo Hours: Email Verification",
       "<p>Required email verification requested under the name: " + evc.name
@@ -205,7 +205,7 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
-  @RequestMapping("/forgotPassword/new")
+  @RequestMapping("/forgotPassword/new/")
   public ResponseEntity<?> forgotPasswordEmail(@RequestParam String userEmail) {
 
     if (!userService.existsByEmail(userEmail)) {

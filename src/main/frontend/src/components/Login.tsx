@@ -1,7 +1,7 @@
 import React from 'react';
 import { Formik, FormikHelpers, FormikErrors } from 'formik'
 import { Button, Row, Col, Form, } from 'react-bootstrap'
-import { fetchApi } from '../utils/utils';
+import { newApiKey, isApiErrorCode } from '../utils/utils';
 
 import SimpleLayout from '../components/SimpleLayout';
 import SchoolName from '../components/SchoolName';
@@ -34,21 +34,39 @@ function LoginForm(props: LoginProps) {
       return;
     }
 
-    // Now send request
-    try {
-      const apiKey = await fetchApi(`apiKey/new/?` + new URLSearchParams([
-        ['userEmail', values.email],
-        ['userPassword', values.password],
-        ['duration', `${5 * 60 * 60 * 1000}`], // 5 hours
-      ])) as ApiKey;
-      props.setApiKey(apiKey);
-    } catch (e) {
-      console.log(e);
-      setErrors({
-          password:"Your username or password is incorrect."
-      });
-    }
+    const maybeApiKey = await newApiKey({
+      userEmail: values.email,
+      userPassword: values.password,
+      duration: 5 * 60 * 60 * 1000
+    });
 
+    if (!isApiErrorCode(maybeApiKey)) {
+      // on success set the api key
+      props.setApiKey(maybeApiKey);
+    } else {
+      // otherwise display errors
+      switch (maybeApiKey) {
+        case "USER_NONEXISTENT": {
+          setErrors({
+            email: "No such user exists"
+          });
+          break;
+        }
+        case "PASSWORD_INCORRECT": {
+          setErrors({
+            password: "Your password is incorrect"
+          });
+          break;
+        }
+        default: {
+          setErrors({
+            password: "An unknown or network error has occured while trying to log you in"
+          });
+          break;
+        }
+      }
+      return;
+    }
   }
 
   return (
@@ -92,6 +110,10 @@ function LoginForm(props: LoginProps) {
             </Col>
           </Form.Group>
           <Button type="submit">Login</Button>
+          <br />
+          <Form.Text className="text-muted">
+            <a href="/forgotpassword">Forgot Password?</a>
+          </Form.Text>
         </Form>
       )}
     </Formik>

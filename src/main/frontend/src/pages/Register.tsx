@@ -2,7 +2,7 @@ import React from 'react';
 import { Formik, FormikHelpers, FormikErrors } from 'formik'
 import { Button, Row, Col, Form, } from 'react-bootstrap'
 
-import { fetchApi } from '../utils/utils';
+import { newEmailVerificationChallenge, isApiErrorCode} from '../utils/utils';
 
 import SimpleLayout from '../components/SimpleLayout';
 import SchoolName from '../components/SchoolName';
@@ -20,7 +20,7 @@ function RegisterForm() {
 
   const isPasswordValid = (pass: string) => pass.length >= 8 && /\d/.test(pass);
 
-  const onSubmit = (values: RegistrationValue, { setErrors }: FormikHelpers<RegistrationValue>) => {
+  const onSubmit = async (values: RegistrationValue, props:FormikHelpers<RegistrationValue>) => {
     // Validate input
     let errors: FormikErrors<RegistrationValue> = {};
     let hasError = false;
@@ -48,31 +48,75 @@ function RegisterForm() {
       errors.terms = "You must agree to the terms and conditions";
       hasError = true;
     }
-    setErrors(errors);
+    props.setErrors(errors);
     if (hasError) {
       return;
     }
 
-    // Now send request
-    try {
-      const apiKey = await fetchApi(`verificationChallenge/new/?` + new URLSearchParams([
-        ['userName', `${values.firstName.trim()} ${values.lastName.trim()}`],
-        ['userEmail', values.email],
-        ['userPassword', values.password1],
-      ])) as ApiKey;
-      props.setApiKey(apiKey);
-    } catch (e) {
-      console.log(e);
-      setErrors({
-          password:"Your username or password is incorrect."
-      });
-    }
+    const maybeEmailVerificationChallenge = newEmailVerificationChallenge({
+        userName:`${values.firstName.trim()} ${values.lastName.trim()}`,
+        userEmail: values.email,
+        userPassword:values.password1
+    });
 
+    if(!isApiErrorCode(maybeEmailVerificationChallenge)) {
+      // On success set status to successful
+      props.setStatus("Success! Check your email to continue the registration process.");
+    } else {
+      // otherwise display errors
+      switch (maybeEmailVerificationChallenge) {
+        case "USER_EMAIL_EMPTY": {
+          props.setErrors({
+            email: "No such user exists"
+          });
+          break;
+        }
+        case "USER_NAME_EMPTY": {
+          props.setErrors({
+            firstName: "Please enter your first name",
+            lastName: "Please enter your last name"
+          });
+          break;
+        }
+        case "USER_EXISTENT": {
+            props.setErrors({
+                email: "A user with this email already exists."
+            });
+            break;
+        }
+        case "PASSWORD_INSECURE": {
+            props.setErrors({
+                password1: "Password is of insufficient complexity"
+            });
+            break;
+        }
+        case "EMAIL_RATELIMIT": {
+            props.setErrors({
+                email: "This email address is being ratelimited. Try again in 15 minutes."
+            });
+            break;
+        }
+        case "EMAIL_BLACKLISTED": {
+            props.setErrors({
+                email: "This email address has been blacklisted."
+            });
+            break;
+        }
+        default: {
+          props.setErrors({
+            terms: "An unknown or network error has occured while trying to log you in"
+          });
+          break;
+        }
+      }
+      return;
+    }
   }
 
   return (
     <Formik
       onSubmit={onSubmit}
+      initialStatus=""
       initialValues={{
         firstName: "A",
         lastName: "B",
