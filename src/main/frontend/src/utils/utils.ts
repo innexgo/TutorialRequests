@@ -243,12 +243,21 @@ type UpdatePasswordProps = {
       apiKey:string,
 }
 
-export async function updatePassword(props: UpdatePasswordProps): Promise<Attendance[] | ApiErrorCode> {
+export async function updatePassword(props: UpdatePasswordProps): Promise<null | ApiErrorCode> {
   return await fetchApi("misc/updatePassword/", props);
 }
 
 export async function schoolInfo():Promise<SchoolInfo | ApiErrorCode> {
   return await fetchApi("misc/info/school/", {});
+}
+
+type ResetPasswordProps = {
+      resetKey : String,
+      newUserPassword : String,
+}
+
+export async function resetPassword(props: ResetPasswordProps): Promise<null | ApiErrorCode> {
+  return await fetchApi("misc/resetPassword/", props);
 }
 
 

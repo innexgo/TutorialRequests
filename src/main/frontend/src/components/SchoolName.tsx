@@ -1,9 +1,17 @@
 import React from 'react'
-import { fetchApi } from '../utils/utils'
+import { schoolInfo, isApiErrorCode } from '../utils/utils'
 import { Async } from 'react-async';
 
-const SchoolName = () =>
-  <Async promise={fetchApi('')}>
+const SchoolName = () => {
+  const getSchoolInfo = async () => {
+      const maybeSchoolInfo = await schoolInfo();
+      if(isApiErrorCode(maybeSchoolInfo)) {
+          throw null;
+      } else {
+          return maybeSchoolInfo;
+      }
+  }
+  return <Async promise={getSchoolInfo()}>
     <Async.Pending>
       Innexgo Hours
     </Async.Pending>
@@ -14,5 +22,6 @@ const SchoolName = () =>
       {schoolInfo => `Innexgo Hours: ${schoolInfo.name}`}
     </Async.Fulfilled>
   </Async>
+}
 
 export default SchoolName

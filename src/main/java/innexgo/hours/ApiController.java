@@ -206,7 +206,7 @@ public class ApiController {
   }
 
   @RequestMapping("/forgotPassword/new/")
-  public ResponseEntity<?> forgotPasswordEmail(@RequestParam String userEmail) {
+  public ResponseEntity<?> newForgotPassword(@RequestParam String userEmail) {
 
     if (!userService.existsByEmail(userEmail)) {
       return Errors.USER_NONEXISTENT.getResponse();
@@ -227,11 +227,11 @@ public class ApiController {
     ForgotPassword fp = new ForgotPassword();
     fp.email = userEmail;
     fp.creationTime = now;
-    fp.accessKey = Utils.generateKey();
+    fp.used = false;
+    fp.resetKey = Utils.generateKey();
 
     forgotPasswordService.add(fp);
 
-    userService.update(user);
 
     mailService.send(
       fp.email,
@@ -241,7 +241,7 @@ public class ApiController {
       + "<p>This link is valid for up to 15 minutes.</p>"
       + "<p>Do not share this link with others.</p>"
       + "<p>Password Change link: "
-      + innexgoHoursSite + "/misc/resetPassword/?accessKey=" + fp.accessKey 
+      + innexgoHoursSite + "/misc/resetPassword/?resetKey=" + fp.resetKey 
       + "</p>");
 
     return new ResponseEntity<>(HttpStatus.OK);
@@ -563,49 +563,48 @@ public class ApiController {
 
   @RequestMapping("/misc/resetPassword/")
   public ResponseEntity<?> checkResetPassword( //
-      @RequestParam String accessKey, //
+      @RequestParam String resetKey, //
       @RequestParam String newUserPassword //
   ) throws IOException {
 
-    if (Utils.isEmpty(accessKey)) {
+    if (Utils.isEmpty(resetKey)) {
       return Errors.RESETKEY_INVALID.getResponse();
     }
 
-    if (!forgotPasswordService.existsByAccessKey(accessKey)) {
+    if (!forgotPasswordService.existsByResetKey(resetKey)) {
       return Errors.RESETKEY_NONEXISTENT.getResponse();
     }
 
-    ForgotPassword forgotPassword = forgotPasswordService.getByAccessKey(accessKey);
+    ForgotPassword forgotPassword = forgotPasswordService.getByResetKey(resetKey);
 
+    // deny if timed out
+    if (System.currentTimeMillis() > (forgotPassword.creationTime + fifteenMinutes)) {
+      return Errors.RESETKEY_TIMED_OUT.getResponse();
+    } 
 
-
-    if (!forgotPassword.valid) {
+    // deny if already used
+    if (forgotPassword.used) {
       return Errors.RESETKEY_INVALID.getResponse();
     }
 
-    if (System.currentTimeMillis() > (forgotPassword.creationTime + fifteenMinutes)) {
-      forgotPassword.valid = false;
-      forgotPasswordService.update(forgotPassword);
-      return Errors.RESETKEY_TIMED_OUT.getResponse();
-    } 
-    
+    // deny if email blacklisted
     if (mailService.emailExistsInBlacklist(forgotPassword.email)) {
       return Errors.EMAIL_BLACKLISTED.getResponse();
     }
 
-      User u = userService.getByEmail(forgotPassword.email);
-      u.passwordHash = Utils.encodePassword(newUserPassword);
-      u.passwordSetTime = System.currentTimeMillis();
-      userService.update(u);
-      
-      mailService.send(
-        u.email,
-        "Innexgo Hours: Password Changed",
-        "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
-      );
+    User u = userService.getByEmail(forgotPassword.email);
+    u.passwordHash = Utils.encodePassword(newUserPassword);
+    u.passwordSetTime = System.currentTimeMillis();
+    userService.update(u);
+    
+    mailService.send(
+      u.email,
+      "Innexgo Hours: Password Changed",
+      "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
+    );
 
-      forgotPassword.valid = false;
-      forgotPasswordService.update(forgotPassword);
+    forgotPassword.used = true;
+    forgotPasswordService.update(forgotPassword);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }

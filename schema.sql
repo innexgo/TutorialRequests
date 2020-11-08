@@ -11,8 +11,8 @@ create table forgot_password(
   id integer not null primary key,
   email varchar(100) not null,
   creation_time integer not null,
-  access_key char(64) not null unique,
-  valid integer not null
+  reset_key char(64) not null unique,
+  used integer not null
 );
 
 drop table if exists email_verification_challenge;

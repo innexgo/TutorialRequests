@@ -34,7 +34,7 @@ public class ForgotPasswordService {
 
   public List<ForgotPassword> getAll() {
     String sql =
-        "SELECT id, name, email, creation_time, access_key, password_hash, valid FROM forgot_password";
+        "SELECT id, name, email, creation_time, reset_key, password_hash, used FROM forgot_password";
     RowMapper<ForgotPassword> rowMapper = new ForgotPasswordRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
@@ -52,43 +52,43 @@ public class ForgotPasswordService {
   public void add(ForgotPassword user) {
     // Set user id
     user.id = nextId();
-    user.valid = true;
+    user.used = true;
     // Add user
     String sql =
-        "INSERT INTO forgot_password (id, email, creation_time, access_key, valid) values (?, ?, ?, ?, ?)";
+        "INSERT INTO forgot_password (id, email, creation_time, reset_key, used) values (?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         user.id,
         user.email,
         user.creationTime,
-        user.accessKey,
-        user.valid);
+        user.resetKey,
+        user.used);
   }
 
   public void update(ForgotPassword user) {
     String sql =
-    "UPDATE forgot_password SET id=?, email=?, creation_time=?, access_key=?, valid=? WHERE id=?";
+    "UPDATE forgot_password SET id=?, email=?, creation_time=?, reset_key=?, used=? WHERE id=?";
     jdbcTemplate.update(
         sql,
         user.id,
         user.email,
         user.creationTime,
-        user.accessKey,
-        user.valid,
+        user.resetKey,
+        user.used,
         user.id); 
   }
 
-  public ForgotPassword getByAccessKey(String accessKey) {
+  public ForgotPassword getByResetKey(String resetKey) {
     String sql =
-        "SELECT id, email, creation_time, access_key, valid FROM forgot_password WHERE access_key=?";
+        "SELECT id, email, creation_time, reset_key, used FROM forgot_password WHERE reset_key=?";
     RowMapper<ForgotPassword> rowMapper = new ForgotPasswordRowMapper();
-    ForgotPassword forgotPassword = jdbcTemplate.queryForObject(sql, rowMapper, accessKey);
+    ForgotPassword forgotPassword = jdbcTemplate.queryForObject(sql, rowMapper, resetKey);
     return forgotPassword;
   }
 
-  public boolean existsByAccessKey(String accessKey) {
-    String sql = "SELECT count(*) FROM forgot_password WHERE access_key=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, accessKey);
+  public boolean existsByResetKey(String resetKey) {
+    String sql = "SELECT count(*) FROM forgot_password WHERE reset_key=?";
+    long count = jdbcTemplate.queryForObject(sql, Long.class, resetKey);
     return count != 0;
   }
 }

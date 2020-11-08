@@ -22,8 +22,8 @@ public class ForgotPassword {
     public long id;
     public String email;
     public long creationTime;
-    public boolean valid;
+    public boolean used;
     
     // not public so it doesn't get serialized to jackson
-    String accessKey;
+    String resetKey;
 }

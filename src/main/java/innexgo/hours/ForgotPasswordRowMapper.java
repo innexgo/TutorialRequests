@@ -30,8 +30,8 @@ public class ForgotPasswordRowMapper implements RowMapper<ForgotPassword> {
     u.id = row.getLong("id");
     u.email = row.getString("email");
     u.creationTime = row.getLong("creation_time");
-    u.accessKey = row.getString("access_key");
-    u.valid = row.getBoolean("valid");
+    u.resetKey = row.getString("reset_key");
+    u.used = row.getBoolean("used");
     return u;
   }
 }
