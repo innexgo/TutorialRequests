@@ -76,44 +76,44 @@ export async function fetchApi(url: string, data: any) {
   }
 }
 
-type newApiKeyProps = {
+type NewApiKeyProps = {
   userEmail: string,
   userPassword: string,
   duration: number
 };
 
-export async function newApiKey(props: newApiKeyProps): Promise<ApiKey | ApiErrorCode> {
+export async function newApiKey(props: NewApiKeyProps): Promise<ApiKey | ApiErrorCode> {
   return await fetchApi("apiKey/new/", props);
 }
 
-type newEmailVerificationChallengeProps = {
+type NewEmailVerificationChallengeProps = {
   userName: string,
   userEmail: string,
   userKind: UserKind,
   userPassword: string,
 };
 
-export async function newEmailVerificationChallenge(props: newEmailVerificationChallengeProps): Promise<EmailVerificationChallenge | ApiErrorCode> {
+export async function newEmailVerificationChallenge(props: NewEmailVerificationChallengeProps): Promise<EmailVerificationChallenge | ApiErrorCode> {
   return await fetchApi("emailVerificationChallenge/new/", props);
 }
 
-type newUserProps = {
+type NewUserProps = {
   verificationKey: string,
 };
 
-export async function newUser(props: newUserProps): Promise<User | ApiErrorCode> {
+export async function newUser(props: NewUserProps): Promise<User | ApiErrorCode> {
   return await fetchApi("user/new/", props);
 }
 
-type newForgotPasswordProps = {
+type NewForgotPasswordProps = {
   verificationKey: string,
 };
 
-export async function newForgotPassword(props: newForgotPasswordProps): Promise<ForgotPassword | ApiErrorCode> {
+export async function newForgotPassword(props: NewForgotPasswordProps): Promise<ForgotPassword | ApiErrorCode> {
   return await fetchApi("forgotPassword/new/", props);
 }
 
-type newApptRequestProps = {
+type NewApptRequestProps = {
   targetId: number,
   attending: boolean,
   message: string,
@@ -122,11 +122,11 @@ type newApptRequestProps = {
   apiKey: string,
 };
 
-export async function newApptRequest(props: newApptRequestProps): Promise<ApptRequest | ApiErrorCode> {
+export async function newApptRequest(props: NewApptRequestProps): Promise<ApptRequest | ApiErrorCode> {
   return await fetchApi("apptRequest/new/", props);
 }
 
-type newApptProps = {
+type NewApptProps = {
   apptRequestId: number,
   message: string,
   startTime: number,
@@ -134,24 +134,36 @@ type newApptProps = {
   apiKey: string,
 };
 
-export async function newAppt(props: newApptProps): Promise<Appt | ApiErrorCode> {
+export async function newAppt(props: NewApptProps): Promise<Appt | ApiErrorCode> {
   return await fetchApi("appt/new/", props);
 }
 
-type newAttendanceProps = {
+type NewAttendanceProps = {
   apptId: number,
   attendanceKind: AttendanceKind,
   apiKey: string,
 };
 
-export async function newAttendance(props: newAttendanceProps): Promise<Attendance | ApiErrorCode> {
+export async function newAttendance(props: NewAttendanceProps): Promise<Attendance | ApiErrorCode> {
   return await fetchApi("attendance/new/", props);
 }
 
+type ViewUserProps = {
+  userId?: number,
+  userKind?: UserKind,
+  userName?: string,
+  partialUserName?: string,
+  userEmail?: string,
+  offset?: number,
+  count?: number,
+  apiKey: string
+}
 
+export async function viewUser(props: ViewUserProps): Promise<User[] | ApiErrorCode> {
+  return await fetchApi("user/", props);
+}
 
-
-type viewApptRequestsProps = {
+type ViewApptRequestProps = {
   apptRequestId?: number,
   creatorId?: number,
   attendeeId?: number,
@@ -169,27 +181,74 @@ type viewApptRequestsProps = {
   confirmed?: boolean,
   offset?: number,
   count?: number,
-  apiKey?: string
+  apiKey: string
 };
 
-export async function viewApptRequests(props: viewApptRequestsProps): Promise<ApptRequest[] | ApiErrorCode> {
+export async function viewApptRequest(props: ViewApptRequestProps): Promise<ApptRequest[] | ApiErrorCode> {
   return await fetchApi("apptRequest/", props);
 }
 
 
-type viewUserProps = {
-  userId: number,
-  userKind: UserKind,
-  userName: string,
-  partialUserName: string,
-  userEmail: string,
-  offset: number,
-  count: number,
+type ViewApptProps = {
+  apptRequestId?: number,
+  creatorId?: number,
+  attendeeId?: number,
+  hostId?: number,
+  message?: string,
+  creationTime?: number,
+  minCreationTime?: number,
+  maxCreationTime?: number,
+  startTime?: number,
+  minStartTime?: number,
+  maxStartTime?: number,
+  duration?: number,
+  minDuration?: number,
+  maxDuration?: number,
+  attended?: boolean,
+  offset?: number,
+  count?: number,
   apiKey: string
 }
 
-export async function viewUser(props: viewUserProps): Promise<User[] | ApiErrorCode> {
-  return await fetchApi("user/", props);
+
+export async function viewAppt(props: ViewApptProps): Promise<Appt[] | ApiErrorCode> {
+  return await fetchApi("appt/", props);
+}
+
+type ViewAttendanceProps = {
+  apptId?: number,
+  attendeeId?: number,
+  hostId?: number,
+  creationTime?: number,
+  minCreationTime?: number,
+  maxCreationTime?: number,
+  startTime?: number,
+  minStartTime?: number,
+  maxStartTime?: number,
+  kind?: AttendanceKind,
+  offset?: number,
+  count?: number,
+  apiKey: string
+}
+
+export async function viewAttendance(props: ViewAttendanceProps): Promise<Attendance[] | ApiErrorCode> {
+  return await fetchApi("attendance/", props);
+}
+
+
+type UpdatePasswordProps = {
+      userId:number,
+      oldPassword:string,
+      newPassword:string,
+      apiKey:string,
+}
+
+export async function updatePassword(props: UpdatePasswordProps): Promise<Attendance[] | ApiErrorCode> {
+  return await fetchApi("misc/updatePassword/", props);
+}
+
+export async function schoolInfo():Promise<SchoolInfo | ApiErrorCode> {
+  return await fetchApi("misc/info/school/", {});
 }
 
 

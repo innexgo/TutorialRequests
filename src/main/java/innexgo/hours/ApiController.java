@@ -174,11 +174,11 @@ public class ApiController {
   public ResponseEntity<?> checkEmailVerification(@RequestParam String verificationKey) {
 
     if (Utils.isEmpty(verificationKey)) {
-      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
+      return Errors.VERIFICATIONKEY_NONEXISTENT.getResponse();
     }
 
     if (!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
-      return Errors.VERIFICATION_KEY_NONEXISTENT.getResponse();
+      return Errors.VERIFICATIONKEY_NONEXISTENT.getResponse();
     }
 
     EmailVerificationChallenge evc = emailVerificationChallengeService.getByVerificationKey(verificationKey);
@@ -186,7 +186,7 @@ public class ApiController {
     final long now = System.currentTimeMillis();
 
     if ((evc.creationTime + fifteenMinutes) < now) {
-      return Errors.VERIFICATION_KEY_TIMED_OUT.getResponse();
+      return Errors.VERIFICATIONKEY_TIMED_OUT.getResponse();
     }
 
     if (userService.existsByEmail(evc.email)) {
@@ -512,7 +512,13 @@ public class ApiController {
   public ResponseEntity<?> updatePassword( //
       @RequestParam long userId, //
       @RequestParam String oldPassword, //
-      @RequestParam String newPassword) throws IOException {
+      @RequestParam String newPassword, // 
+      @RequestParam String apiKey  // 
+  ) throws IOException {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    }
 
     if (!userService.existsById(userId)) {
       return Errors.USER_NONEXISTENT.getResponse();
@@ -556,36 +562,39 @@ public class ApiController {
   
 
   @RequestMapping("/misc/resetPassword/")
-  public ResponseEntity<?> checkResetPassword(@RequestParam String accessKey,
-      @RequestParam(required = false) String userPassword) throws IOException {
+  public ResponseEntity<?> checkResetPassword( //
+      @RequestParam String accessKey, //
+      @RequestParam String newUserPassword //
+  ) throws IOException {
 
     if (Utils.isEmpty(accessKey)) {
-      return Errors.ACCESS_KEY_INVALID.getResponse();
+      return Errors.RESETKEY_INVALID.getResponse();
     }
 
     if (!forgotPasswordService.existsByAccessKey(accessKey)) {
-      return Errors.ACCESS_KEY_NONEXISTENT.getResponse();
+      return Errors.RESETKEY_NONEXISTENT.getResponse();
     }
 
-    ForgotPassword forgotPasswordUser = forgotPasswordService.getByAccessKey(accessKey);
+    ForgotPassword forgotPassword = forgotPasswordService.getByAccessKey(accessKey);
 
-    if (!forgotPasswordUser.valid) {
-      return Errors.ACCESS_KEY_INVALID.getResponse();
+
+
+    if (!forgotPassword.valid) {
+      return Errors.RESETKEY_INVALID.getResponse();
     }
 
-    if (System.currentTimeMillis() > (forgotPasswordUser.creationTime + fifteenMinutes)) {
-      forgotPasswordUser.valid = false;
-      forgotPasswordService.update(forgotPasswordUser);
-      return Errors.ACCESS_KEY_TIMED_OUT.getResponse();
+    if (System.currentTimeMillis() > (forgotPassword.creationTime + fifteenMinutes)) {
+      forgotPassword.valid = false;
+      forgotPasswordService.update(forgotPassword);
+      return Errors.RESETKEY_TIMED_OUT.getResponse();
     } 
     
-    if (mailService.emailExistsInBlacklist(forgotPasswordUser.email)) {
+    if (mailService.emailExistsInBlacklist(forgotPassword.email)) {
       return Errors.EMAIL_BLACKLISTED.getResponse();
     }
 
-    if (userPassword != null) {
-      User u = userService.getByEmail(forgotPasswordUser.email);
-      u.passwordHash = Utils.encodePassword(userPassword);
+      User u = userService.getByEmail(forgotPassword.email);
+      u.passwordHash = Utils.encodePassword(newUserPassword);
       u.passwordSetTime = System.currentTimeMillis();
       userService.update(u);
       
@@ -595,9 +604,8 @@ public class ApiController {
         "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
       );
 
-      forgotPasswordUser.valid = false;
-      forgotPasswordService.update(forgotPasswordUser);
-    }
+      forgotPassword.valid = false;
+      forgotPasswordService.update(forgotPassword);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }

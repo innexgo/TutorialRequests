@@ -3,7 +3,7 @@ import { fetchApi } from '../utils/utils'
 import { Async } from 'react-async';
 
 const SchoolName = () =>
-  <Async promise={fetchApi('misc/info/school/')}>
+  <Async promise={fetchApi('')}>
     <Async.Pending>
       Innexgo Hours
     </Async.Pending>
