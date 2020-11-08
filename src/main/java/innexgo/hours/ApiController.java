@@ -338,7 +338,7 @@ public class ApiController {
         return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
-    if (attendanceService.existsById(apptId)) {
+    if (attendanceService.existsByApptId(apptId)) {
       return Errors.ATTENDANCE_EXISTENT.getResponse();
     }
 

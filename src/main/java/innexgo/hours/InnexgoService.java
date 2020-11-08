@@ -70,7 +70,7 @@ public class InnexgoService {
    * @return Appt object with recursively filled jackson objects
    */
   Appt fillAppt(Appt appt) {
-    appt.apptRequest = fillApptRequest(apptRequestService.getById(appt.apptRequestId));
+    appt.apptRequest = fillApptRequest(apptRequestService.getByApptRequestId(appt.apptRequestId));
     return appt;
   }
 
@@ -81,7 +81,7 @@ public class InnexgoService {
    * @return Attendance object with recursively filled jackson objects
    */
   Attendance fillAttendance(Attendance attendance) {
-    attendance.appt = fillAppt(apptService.getById(attendance.apptId));
+    attendance.appt = fillAppt(apptService.getByApptRequestId(attendance.apptId));
     return attendance;
   }
 

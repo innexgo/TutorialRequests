@@ -50,9 +50,9 @@ public class AttendanceService {
         attendance.kind.value);
   }
 
-  public boolean existsById(long id) {
+  public boolean existsByApptId(long apptId) {
     String sql = "SELECT count(*) FROM attendance at WHERE at.appt_id=?";
-    int count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+    int count = jdbcTemplate.queryForObject(sql, Integer.class, apptId);
     return count != 0;
   }
 
