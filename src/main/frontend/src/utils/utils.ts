@@ -1,38 +1,3 @@
-export function isApiErrorCode(maybeApiErrorCode: any): maybeApiErrorCode is ApiErrorCode {
-  return typeof maybeApiErrorCode === 'string' &&
-    maybeApiErrorCode in [
-      "OK",
-      "NO_CAPABILITY",
-      "APIKEY_UNAUTHORIZED",
-      "DATABASE_INITIALIZED",
-      "PASSWORD_INCORRECT",
-      "PASSWORD_INSECURE",
-      "USER_NONEXISTENT",
-      "APIKEY_NONEXISTENT",
-      "USER_EXISTENT",
-      "APPT_REQUEST_NONEXISTENT",
-      "USER_NAME_EMPTY",
-      "USER_EMAIL_EMPTY",
-      "USER_EMAIL_INVALIDATED",
-      "USERKIND_INVALID",
-      "APPT_EXISTENT",
-      "ATTENDANCEKIND_INVALID",
-      "ATTENDANCE_EXISTENT",
-      "NEGATIVE_DURATION",
-      "VERIFICATIONKEY_NONEXISTENT",
-      "VERIFICATIONKEY_INVALID",
-      "VERIFICATIONKEY_TIMED_OUT",
-      "RESETKEY_NONEXISTENT",
-      "RESETKEY_INVALID",
-      "RESETKEY_TIMED_OUT",
-      "EMAIL_RATELIMIT",
-      "EMAIL_BLACKLISTED",
-      "UNKNOWN",
-      "NETWORK"
-    ];
-
-}
-
 /**
  * Returns a promise that will be resolved in some milliseconds
  * use await sleep(some milliseconds)
@@ -51,10 +16,10 @@ export function apiUrl() {
   return staticUrl() + '/api';
 }
 
-function getFormData(data:object) {
-    const formData = new FormData();
-    Object.keys(data).forEach(key => formData.append(key, (data as any)[key]));
-    return formData;
+function getFormData(data: object) {
+  const formData = new FormData();
+  Object.keys(data).forEach(key => formData.append(key, (data as any)[key]));
+  return formData;
 }
 
 // This function is guaranteed to only return ApiErrorCode | object
@@ -78,6 +43,41 @@ export async function fetchApi(url: string, data: FormData) {
     return "UNKNOWN";
   }
 }
+
+const ApiErrorCodes = [
+  "OK",
+  "NO_CAPABILITY",
+  "APIKEY_UNAUTHORIZED",
+  "DATABASE_INITIALIZED",
+  "PASSWORD_INCORRECT",
+  "PASSWORD_INSECURE",
+  "USER_NONEXISTENT",
+  "APIKEY_NONEXISTENT",
+  "USER_EXISTENT",
+  "APPT_REQUEST_NONEXISTENT",
+  "USER_NAME_EMPTY",
+  "USER_EMAIL_EMPTY",
+  "USER_EMAIL_INVALIDATED",
+  "USERKIND_INVALID",
+  "APPT_EXISTENT",
+  "ATTENDANCEKIND_INVALID",
+  "ATTENDANCE_EXISTENT",
+  "NEGATIVE_DURATION",
+  "VERIFICATIONKEY_NONEXISTENT",
+  "VERIFICATIONKEY_INVALID",
+  "VERIFICATIONKEY_TIMED_OUT",
+  "RESETKEY_NONEXISTENT",
+  "RESETKEY_INVALID",
+  "RESETKEY_TIMED_OUT",
+  "EMAIL_RATELIMIT",
+  "EMAIL_BLACKLISTED",
+  "UNKNOWN",
+  "NOT_FOUND",
+  "NETWORK"
+] as const;
+
+// Creates a union type
+type ApiErrorCode = typeof ApiErrorCodes[number];
 
 type NewApiKeyProps = {
   userEmail: string,
@@ -246,7 +246,7 @@ type UpdatePasswordProps = {
   apiKey: string,
 }
 
-export async function updatePassword(props: UpdatePasswordProps): Promise<null | ApiErrorCode> {
+export async function updatePassword(props: UpdatePasswordProps): Promise<ApiErrorCode> {
   return await fetchApi("misc/updatePassword/", getFormData(props));
 }
 
@@ -259,9 +259,12 @@ type ResetPasswordProps = {
   newUserPassword: String,
 }
 
-export async function resetPassword(props: ResetPasswordProps): Promise<null | ApiErrorCode> {
+export async function resetPassword(props: ResetPasswordProps): Promise<ApiErrorCode> {
   return await fetchApi("misc/resetPassword/", getFormData(props));
 }
 
+export function isApiErrorCode(maybeApiErrorCode: any): maybeApiErrorCode is ApiErrorCode {
+  return typeof maybeApiErrorCode === 'string' && ApiErrorCodes.includes(maybeApiErrorCode as any);
+}
 
 

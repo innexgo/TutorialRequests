@@ -43,7 +43,7 @@ export default function SearchUserDropdown(props: SearchUserDropdownProps) {
   }
 
   return <AsyncSelect
-    placeholder="Type Student Name"
+    placeholder="Start typing to search"
     isClearable={true}
     onChange={onChange}
     cacheOptions={true}

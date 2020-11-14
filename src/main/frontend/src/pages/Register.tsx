@@ -209,20 +209,19 @@ function RegisterForm() {
               <Form.Control.Feedback type="invalid">{props.errors.password2}</Form.Control.Feedback>
             </Col>
           </Form.Group>
-          <Form.Group>
-            <Form.Check
+          <Form.Check>
+            <Form.Check.Input
               name="terms"
-              required
-              label="Agree to terms and conditions"
               onChange={props.handleChange}
               isInvalid={!!props.errors.terms}
-              feedback={props.errors.terms}
             />
-          </Form.Group>
+            <Form.Check.Label> Agree to <a href="/terms_of_service">terms of service</a></Form.Check.Label>
+            <Form.Control.Feedback type="invalid">{props.errors.terms}</Form.Control.Feedback>
+          </Form.Check>
           <Button type="submit">Submit form</Button>
           <br />
-          <Form.Control.Feedback type="invalid">{props.status.failureMessage}</Form.Control.Feedback>
-          <Form.Control.Feedback>{props.status.successMessage}</Form.Control.Feedback>
+          <Form.Text className="text-danger">{props.status.failureMessage}</Form.Text>
+          <Form.Text className="text-success">{props.status.successMessage}</Form.Text>
         </Form>
       )}
     </Formik>

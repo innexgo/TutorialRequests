@@ -559,7 +559,7 @@ public class ApiController {
         "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
     );
 
-    return new ResponseEntity<>(innexgoService.fillUser(user), HttpStatus.OK);
+    return Errors.OK.getResponse();
   }
 
   @RequestMapping("/misc/info/school/")
@@ -617,6 +617,6 @@ public class ApiController {
     forgotPassword.used = true;
     forgotPasswordService.update(forgotPassword);
 
-    return new ResponseEntity<>(HttpStatus.OK);
+    return Errors.OK.getResponse();
   }
 }

@@ -88,7 +88,9 @@ function ReviewApptRequestModal(props: ReviewApptRequestModalProps) {
             initialStatus=""
           >
             {(fprops) => (
-              <Form>
+              <Form
+                noValidate
+                onSubmit={fprops.handleSubmit} >
                 <Form.Group as={Row}>
                   <Form.Label column sm={4}>Start Time</Form.Label>
                   <Col>

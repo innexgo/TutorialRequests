@@ -81,7 +81,9 @@ function CreateApptRequestModal(props: CreateApptRequestModalProps) {
         initialStatus=""
       >
         {(fprops) => (
-          <Form>
+          <Form
+            noValidate
+            onSubmit={fprops.handleSubmit} >
             <Form.Group as={Row} controlId="startTime">
               <Form.Label column sm={2}>Start Time</Form.Label>
               <Col>

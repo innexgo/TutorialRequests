@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 
 public enum Errors {
   OK(HttpStatus.OK),
+  NOT_FOUND(HttpStatus.NOT_FOUND),
   NO_CAPABILITY(HttpStatus.UNAUTHORIZED),
   APIKEY_UNAUTHORIZED(HttpStatus.UNAUTHORIZED),
   DATABASE_INITIALIZED(HttpStatus.UNAUTHORIZED),
@@ -57,6 +58,6 @@ public enum Errors {
   }
 
   public ResponseEntity<?> getResponse() {
-    return new ResponseEntity<>(this.name(), httpStatus);
+    return new ResponseEntity<>("\"" + this.name() + "\"", httpStatus);
   }
 }

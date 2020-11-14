@@ -59,6 +59,7 @@ function LoginForm(props: LoginProps) {
           break;
         }
         default: {
+          console.log(maybeApiKey);
           setStatus("An unknown or network error has occured while trying to log you in");
           break;
         }
@@ -110,7 +111,7 @@ function LoginForm(props: LoginProps) {
           </Form.Group>
           <Button type="submit">Login</Button>
           <br />
-          <Form.Control.Feedback type="invalid">{props.status}</Form.Control.Feedback>
+          <Form.Text className="text-danger">{props.status}</Form.Text>
           <br />
           <Form.Text className="text-muted">
             <a href="/forgotpassword">Forgot Password?</a>

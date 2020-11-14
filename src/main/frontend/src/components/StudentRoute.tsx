@@ -18,7 +18,8 @@ function StudentRoute({
 }: StudentRouteProps) {
 
   const isAuthenticated = apiKey != null &&
-    apiKey.creationTime + apiKey.duration > Date.now() && apiKey.creator.kind === "STUDENT";
+    apiKey.creationTime + apiKey.duration > Date.now() &&
+    apiKey.creator.kind === "STUDENT";
 
   return (
     <Route {...rest} >

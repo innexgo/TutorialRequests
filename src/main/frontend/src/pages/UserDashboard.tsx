@@ -68,7 +68,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     }) => {
 
     const maybeApptRequests = await viewApptRequest({
-      attendeeId: props.apiKey.creator.id,
+      hostId: props.apiKey.creator.id,
       minStartTime: args.start.valueOf(),
       maxStartTime: args.end.valueOf(),
       confirmed: false,
@@ -76,7 +76,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     });
 
     const maybeAppts = await viewAppt({
-      attendeeId: props.apiKey.creator.id,
+      hostId: props.apiKey.creator.id,
       minStartTime: args.start.valueOf(),
       maxStartTime: args.end.valueOf(),
       attended: false,
@@ -84,7 +84,7 @@ function EventCalendar(props: AuthenticatedComponentProps) {
     });
 
     const maybeAttendances = await viewAttendance({
-      attendeeId: props.apiKey.creator.id,
+      hostId: props.apiKey.creator.id,
       minStartTime: args.start.valueOf(),
       maxStartTime: args.end.valueOf(),
       apiKey: props.apiKey.key

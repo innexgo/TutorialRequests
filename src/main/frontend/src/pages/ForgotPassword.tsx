@@ -1,5 +1,5 @@
 import React from 'react';
-import { Formik, FormikHelpers, FormikErrors } from 'formik'
+import { Formik, FormikHelpers } from 'formik'
 import { Button, Row, Col, Form, } from 'react-bootstrap'
 import { newForgotPassword, isApiErrorCode } from '../utils/utils';
 
@@ -15,6 +15,7 @@ function ForgotPasswordForm() {
     // Validate input
     if (values.email === "") {
       setErrors({ email: "Please enter your email" });
+      return;
     }
 
     // Now send request
@@ -84,8 +85,8 @@ function ForgotPasswordForm() {
           </Form.Group>
           <Button type="submit">Submit</Button>
           <br />
-          <Form.Control.Feedback type="invalid">{props.status.failureMessage}</Form.Control.Feedback>
-          <Form.Control.Feedback>{props.status.successMessage}</Form.Control.Feedback>
+          <Form.Text className="text-danger">{props.status.failureMessage}</Form.Text>
+          <Form.Text className="text-success">{props.status.successMessage}</Form.Text>
         </Form>
       )}
     </Formik>

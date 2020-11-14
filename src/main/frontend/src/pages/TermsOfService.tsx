@@ -1,11 +1,11 @@
 import React from 'react';
 import { Container } from 'react-bootstrap';
 
-import ExternalLayout from '../components/ExternalLayout';
+import SimpleLayout from '../components/SimpleLayout';
 
 function TermsOfService() {
   return (
-    <ExternalLayout fixed={false} transparentTop={false}>
+    <SimpleLayout>
       <section>
         <Container>
           <h2>Our Terms of Service</h2>
@@ -227,7 +227,7 @@ function TermsOfService() {
           </p>
         </Container>
       </section>
-    </ExternalLayout>)
+    </SimpleLayout>)
 }
 
 export default TermsOfService;
