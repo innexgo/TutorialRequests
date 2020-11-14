@@ -107,7 +107,7 @@ export async function newUser(props: NewUserProps): Promise<User | ApiErrorCode>
 }
 
 type NewForgotPasswordProps = {
-  verificationKey: string,
+  userEmail: string,
 };
 
 export async function newForgotPassword(props: NewForgotPasswordProps): Promise<ForgotPassword | ApiErrorCode> {

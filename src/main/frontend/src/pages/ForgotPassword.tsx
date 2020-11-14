@@ -1,7 +1,7 @@
 import React from 'react';
 import { Formik, FormikHelpers, FormikErrors } from 'formik'
 import { Button, Row, Col, Form, } from 'react-bootstrap'
-import { fetchApi } from '../utils/utils';
+import { newForgotPassword, isApiErrorCode } from '../utils/utils';
 
 import SimpleLayout from '../components/SimpleLayout';
 
@@ -11,33 +11,46 @@ function ForgotPasswordForm() {
     email: string,
   }
 
-  const onSubmit = async (values: ForgotPasswordValue, { setErrors }: FormikHelpers<ForgotPasswordValue>) => {
+  const onSubmit = async (values: ForgotPasswordValue, { setErrors, setStatus }: FormikHelpers<ForgotPasswordValue>) => {
     // Validate input
-    let errors: FormikErrors<ForgotPasswordValue> = {};
-    let hasError = false;
     if (values.email === "") {
-      errors.email = "Please enter your email";
-      hasError = true;
-    }
-
-    setErrors(errors);
-    if (hasError) {
-      return;
+      setErrors({ email: "Please enter your email" });
     }
 
     // Now send request
-    try {
-      const apiKey = await fetchApi(`forgotPassword/new/?` + new URLSearchParams([
-        ['userEmail', values.email],
-        ['duration', `${5 * 60 * 60 * 1000}`], // 5 hours
-      ])) as ApiKey;
-    } catch (e) {
-      console.log(e);
-      setErrors({
-        email: "Your username or password is incorrect."
+    const maybeForgotPassword = await newForgotPassword({
+      userEmail: values.email
+    });
+
+    if (isApiErrorCode(maybeForgotPassword)) {
+      switch (maybeForgotPassword) {
+        case "USER_NONEXISTENT": {
+          setErrors({ email: "No such user exists." });
+          break;
+        }
+        case "EMAIL_RATELIMIT": {
+          setErrors({ email: "Please wait 5 minutes before sending another email." });
+          break;
+        }
+        case "EMAIL_BLACKLISTED": {
+          setErrors({ email: "This email address has been blacklisted." });
+          break;
+        }
+        default: {
+          setStatus({
+            failureMessage: "An unknown or network error has occured while trying to log you in",
+            successMessage: ""
+          });
+          break;
+        }
+      }
+      return;
+    } else {
+      setStatus({
+        failureMessage: "",
+        successMessage: "A reset email has been sent."
       });
     }
-
   }
 
   return (
@@ -45,6 +58,10 @@ function ForgotPasswordForm() {
       onSubmit={onSubmit}
       initialValues={{
         email: "",
+      }}
+      initialStatus={{
+        failureMessage: "",
+        successMessage: ""
       }}
     >
       {(props) => (
@@ -66,6 +83,9 @@ function ForgotPasswordForm() {
             </Col>
           </Form.Group>
           <Button type="submit">Submit</Button>
+          <br />
+          <Form.Control.Feedback type="invalid">{props.status.failureMessage}</Form.Control.Feedback>
+          <Form.Control.Feedback>{props.status.successMessage}</Form.Control.Feedback>
         </Form>
       )}
     </Formik>

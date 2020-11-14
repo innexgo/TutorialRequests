@@ -56,7 +56,8 @@ function RegisterForm() {
     const maybeEmailVerificationChallenge = newEmailVerificationChallenge({
         userName:`${values.firstName.trim()} ${values.lastName.trim()}`,
         userEmail: values.email,
-        userPassword:values.password1
+        userPassword:values.password1,
+        userKind: "STUDENT"
     });
 
     if(!isApiErrorCode(maybeEmailVerificationChallenge)) {
@@ -92,7 +93,7 @@ function RegisterForm() {
         }
         case "EMAIL_RATELIMIT": {
             props.setErrors({
-                email: "This email address is being ratelimited. Try again in 15 minutes."
+                email: "Please wait 5 minutes before sending another email."
             });
             break;
         }
@@ -103,20 +104,28 @@ function RegisterForm() {
             break;
         }
         default: {
-          props.setErrors({
-            terms: "An unknown or network error has occured while trying to log you in"
+          props.setStatus({
+              failureMessage:"An unknown or network error has occured while trying to log you in",
+              successMessage:""
           });
           break;
         }
       }
       return;
     }
+    props.setStatus({
+        failureMessage:"",
+        successMessage:"We've sent an email to verify your address."
+    });
   }
 
   return (
     <Formik
       onSubmit={onSubmit}
-      initialStatus=""
+      initialStatus={{
+          failureMessage: "",
+          successMessage: "",
+      }}
       initialValues={{
         firstName: "A",
         lastName: "B",
@@ -211,6 +220,9 @@ function RegisterForm() {
             />
           </Form.Group>
           <Button type="submit">Submit form</Button>
+          <br />
+          <Form.Control.Feedback type="invalid">{props.status.failureMessage}</Form.Control.Feedback>
+          <Form.Control.Feedback>{props.status.successMessage}</Form.Control.Feedback>
         </Form>
       )}
     </Formik>

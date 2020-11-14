@@ -6,7 +6,7 @@ import UserDashboardLayout from '../components/UserDashboardLayout';
 import UserCalendarCard from '../components/UserCalendarCard';
 
 import { Popover, Container, CardDeck } from 'react-bootstrap';
-import { fetchApi } from '../utils/utils';
+import { viewApptRequest, viewAttendance, viewAppt, isApiErrorCode } from '../utils/utils';
 import UtilityWrapper from '../components/UtilityWrapper';
 
 import CreateApptModal from '../components/CreateApptModal';
@@ -67,35 +67,33 @@ function EventCalendar(props: AuthenticatedComponentProps) {
       timeZone: string;
     }) => {
 
-    console.log("nice");
+    const maybeApptRequests = await viewApptRequest({
+      attendeeId: props.apiKey.creator.id,
+      minStartTime: args.start.valueOf(),
+      maxStartTime: args.end.valueOf(),
+      confirmed: false,
+      apiKey: props.apiKey.key
+    });
 
-    const localApptRequests = await fetchApi(`apptRequest/?` + new URLSearchParams([
-      ['hostId', `${props.apiKey.creator.id}`],
-      ['minStartTime', `${args.start.valueOf()}`],
-      ['maxStartTime', `${args.end.valueOf()}`],
-      ['confirmed', 'false'],
-      ['apiKey', `${props.apiKey.key}`],
-    ])) as ApptRequest[];
+    const maybeAppts = await viewAppt({
+      attendeeId: props.apiKey.creator.id,
+      minStartTime: args.start.valueOf(),
+      maxStartTime: args.end.valueOf(),
+      attended: false,
+      apiKey: props.apiKey.key
+    });
 
-    const localAppts = await fetchApi('appt/?' + new URLSearchParams([
-      ["hostId", `${props.apiKey.creator.id}`],
-      ['minStartTime', `${args.start.valueOf()}`],
-      ['maxStartTime', `${args.end.valueOf()}`],
-      ['attended', 'false'],
-      ["apiKey", `${props.apiKey.key}`]
-    ])) as Appt[];
-
-    const localAttendances = await fetchApi('attendance/?' + new URLSearchParams([
-      ["hostId", `${props.apiKey.creator.id}`],
-      ['minStartTime', `${args.start.valueOf()}`],
-      ['maxStartTime', `${args.end.valueOf()}`],
-      ["apiKey", `${props.apiKey.key}`]
-    ])) as Attendance[];
+    const maybeAttendances = await viewAttendance({
+      attendeeId: props.apiKey.creator.id,
+      minStartTime: args.start.valueOf(),
+      maxStartTime: args.end.valueOf(),
+      apiKey: props.apiKey.key
+    });
 
     return [
-      ...localApptRequests.map(apptRequestToEvent),
-      ...localAppts.map(apptToEvent),
-      ...localAttendances.map(attendanceToEvent),
+      ...isApiErrorCode(maybeApptRequests) ? [] : maybeApptRequests.map(apptRequestToEvent),
+      ...isApiErrorCode(maybeAppts) ? [] : maybeAppts.map(apptToEvent),
+      ...isApiErrorCode(maybeAttendances) ? [] : maybeAttendances.map(attendanceToEvent),
     ];
   }
 
