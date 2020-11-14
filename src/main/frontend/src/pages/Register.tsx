@@ -2,7 +2,7 @@ import React from 'react';
 import { Formik, FormikHelpers, FormikErrors } from 'formik'
 import { Button, Row, Col, Form, } from 'react-bootstrap'
 
-import { newEmailVerificationChallenge, isApiErrorCode} from '../utils/utils';
+import { newEmailVerificationChallenge, isApiErrorCode } from '../utils/utils';
 
 import SimpleLayout from '../components/SimpleLayout';
 import SchoolName from '../components/SchoolName';
@@ -20,7 +20,7 @@ function RegisterForm() {
 
   const isPasswordValid = (pass: string) => pass.length >= 8 && /\d/.test(pass);
 
-  const onSubmit = async (values: RegistrationValue, props:FormikHelpers<RegistrationValue>) => {
+  const onSubmit = async (values: RegistrationValue, props: FormikHelpers<RegistrationValue>) => {
     // Validate input
     let errors: FormikErrors<RegistrationValue> = {};
     let hasError = false;
@@ -54,13 +54,13 @@ function RegisterForm() {
     }
 
     const maybeEmailVerificationChallenge = newEmailVerificationChallenge({
-        userName:`${values.firstName.trim()} ${values.lastName.trim()}`,
-        userEmail: values.email,
-        userPassword:values.password1,
-        userKind: "STUDENT"
+      userName: `${values.firstName.trim()} ${values.lastName.trim()}`,
+      userEmail: values.email,
+      userPassword: values.password1,
+      userKind: "STUDENT"
     });
 
-    if(!isApiErrorCode(maybeEmailVerificationChallenge)) {
+    if (!isApiErrorCode(maybeEmailVerificationChallenge)) {
       // On success set status to successful
       props.setStatus("Success! Check your email to continue the registration process.");
     } else {
@@ -80,33 +80,33 @@ function RegisterForm() {
           break;
         }
         case "USER_EXISTENT": {
-            props.setErrors({
-                email: "A user with this email already exists."
-            });
-            break;
+          props.setErrors({
+            email: "A user with this email already exists."
+          });
+          break;
         }
         case "PASSWORD_INSECURE": {
-            props.setErrors({
-                password1: "Password is of insufficient complexity"
-            });
-            break;
+          props.setErrors({
+            password1: "Password is of insufficient complexity"
+          });
+          break;
         }
         case "EMAIL_RATELIMIT": {
-            props.setErrors({
-                email: "Please wait 5 minutes before sending another email."
-            });
-            break;
+          props.setErrors({
+            email: "Please wait 5 minutes before sending another email."
+          });
+          break;
         }
         case "EMAIL_BLACKLISTED": {
-            props.setErrors({
-                email: "This email address has been blacklisted."
-            });
-            break;
+          props.setErrors({
+            email: "This email address has been blacklisted."
+          });
+          break;
         }
         default: {
           props.setStatus({
-              failureMessage:"An unknown or network error has occured while trying to log you in",
-              successMessage:""
+            failureMessage: "An unknown or network error has occured while trying to log you in",
+            successMessage: ""
           });
           break;
         }
@@ -114,8 +114,8 @@ function RegisterForm() {
       return;
     }
     props.setStatus({
-        failureMessage:"",
-        successMessage:"We've sent an email to verify your address."
+      failureMessage: "",
+      successMessage: "We've sent an email to verify your address."
     });
   }
 
@@ -123,16 +123,16 @@ function RegisterForm() {
     <Formik
       onSubmit={onSubmit}
       initialStatus={{
-          failureMessage: "",
-          successMessage: "",
+        failureMessage: "",
+        successMessage: "",
       }}
       initialValues={{
-        firstName: "A",
-        lastName: "B",
-        email: "C",
-        password1: "Boolean500",
-        password2: "Boolean500",
-        terms: true,
+        firstName: "",
+        lastName: "",
+        email: "",
+        password1: "",
+        password2: "",
+        terms: false,
       }}
     >
       {(props) => (

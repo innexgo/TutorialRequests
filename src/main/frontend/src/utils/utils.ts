@@ -51,18 +51,20 @@ export function apiUrl() {
   return staticUrl() + '/api';
 }
 
+function getFormData(data:object) {
+    const formData = new FormData();
+    Object.keys(data).forEach(key => formData.append(key, (data as any)[key]));
+    return formData;
+}
+
 // This function is guaranteed to only return ApiErrorCode | object
-export async function fetchApi(url: string, data: any) {
+export async function fetchApi(url: string, data: FormData) {
   // Catch all errors and always return a response
   const resp = await (async () => {
     try {
       return await fetch(`${apiUrl()}/${url}`, {
         method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+        body: data
       });
     } catch (e) {
       return new Response('"NETWORK"', { status: 400 })
@@ -84,7 +86,7 @@ type NewApiKeyProps = {
 };
 
 export async function newApiKey(props: NewApiKeyProps): Promise<ApiKey | ApiErrorCode> {
-  return await fetchApi("apiKey/new/", props);
+  return await fetchApi("apiKey/new/", getFormData(props));
 }
 
 type NewEmailVerificationChallengeProps = {
@@ -95,7 +97,7 @@ type NewEmailVerificationChallengeProps = {
 };
 
 export async function newEmailVerificationChallenge(props: NewEmailVerificationChallengeProps): Promise<EmailVerificationChallenge | ApiErrorCode> {
-  return await fetchApi("emailVerificationChallenge/new/", props);
+  return await fetchApi("emailVerificationChallenge/new/", getFormData(props));
 }
 
 type NewUserProps = {
@@ -103,7 +105,7 @@ type NewUserProps = {
 };
 
 export async function newUser(props: NewUserProps): Promise<User | ApiErrorCode> {
-  return await fetchApi("user/new/", props);
+  return await fetchApi("user/new/", getFormData(props));
 }
 
 type NewForgotPasswordProps = {
@@ -111,7 +113,7 @@ type NewForgotPasswordProps = {
 };
 
 export async function newForgotPassword(props: NewForgotPasswordProps): Promise<ForgotPassword | ApiErrorCode> {
-  return await fetchApi("forgotPassword/new/", props);
+  return await fetchApi("forgotPassword/new/", getFormData(props));
 }
 
 type NewApptRequestProps = {
@@ -124,7 +126,7 @@ type NewApptRequestProps = {
 };
 
 export async function newApptRequest(props: NewApptRequestProps): Promise<ApptRequest | ApiErrorCode> {
-  return await fetchApi("apptRequest/new/", props);
+  return await fetchApi("apptRequest/new/", getFormData(props));
 }
 
 type NewApptProps = {
@@ -136,7 +138,7 @@ type NewApptProps = {
 };
 
 export async function newAppt(props: NewApptProps): Promise<Appt | ApiErrorCode> {
-  return await fetchApi("appt/new/", props);
+  return await fetchApi("appt/new/", getFormData(props));
 }
 
 type NewAttendanceProps = {
@@ -146,7 +148,7 @@ type NewAttendanceProps = {
 };
 
 export async function newAttendance(props: NewAttendanceProps): Promise<Attendance | ApiErrorCode> {
-  return await fetchApi("attendance/new/", props);
+  return await fetchApi("attendance/new/", getFormData(props));
 }
 
 type ViewUserProps = {
@@ -161,7 +163,7 @@ type ViewUserProps = {
 }
 
 export async function viewUser(props: ViewUserProps): Promise<User[] | ApiErrorCode> {
-  return await fetchApi("user/", props);
+  return await fetchApi("user/", getFormData(props));
 }
 
 type ViewApptRequestProps = {
@@ -186,7 +188,7 @@ type ViewApptRequestProps = {
 };
 
 export async function viewApptRequest(props: ViewApptRequestProps): Promise<ApptRequest[] | ApiErrorCode> {
-  return await fetchApi("apptRequest/", props);
+  return await fetchApi("apptRequest/", getFormData(props));
 }
 
 
@@ -213,7 +215,7 @@ type ViewApptProps = {
 
 
 export async function viewAppt(props: ViewApptProps): Promise<Appt[] | ApiErrorCode> {
-  return await fetchApi("appt/", props);
+  return await fetchApi("appt/", getFormData(props));
 }
 
 type ViewAttendanceProps = {
@@ -233,7 +235,7 @@ type ViewAttendanceProps = {
 }
 
 export async function viewAttendance(props: ViewAttendanceProps): Promise<Attendance[] | ApiErrorCode> {
-  return await fetchApi("attendance/", props);
+  return await fetchApi("attendance/", getFormData(props));
 }
 
 
@@ -245,11 +247,11 @@ type UpdatePasswordProps = {
 }
 
 export async function updatePassword(props: UpdatePasswordProps): Promise<null | ApiErrorCode> {
-  return await fetchApi("misc/updatePassword/", props);
+  return await fetchApi("misc/updatePassword/", getFormData(props));
 }
 
 export async function schoolInfo(): Promise<SchoolInfo | ApiErrorCode> {
-  return await fetchApi("misc/info/school/", {});
+  return await fetchApi("misc/info/school/", getFormData({}));
 }
 
 type ResetPasswordProps = {
@@ -258,7 +260,7 @@ type ResetPasswordProps = {
 }
 
 export async function resetPassword(props: ResetPasswordProps): Promise<null | ApiErrorCode> {
-  return await fetchApi("misc/resetPassword/", props);
+  return await fetchApi("misc/resetPassword/", getFormData(props));
 }
 
 
