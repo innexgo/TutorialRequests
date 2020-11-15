@@ -39,7 +39,7 @@ function ForgotPasswordForm() {
         }
         default: {
           setStatus({
-            failureMessage: "An unknown or network error has occured while trying to log you in",
+            failureMessage: "An unknown or network error has occured while trying to reset the password.",
             successMessage: ""
           });
           break;

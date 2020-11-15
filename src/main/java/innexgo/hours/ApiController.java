@@ -584,4 +584,27 @@ public class ApiController {
 
     return Errors.OK.getResponse();
   }
+
+  @RequestMapping("/misc/initializeRoot/")
+  public ResponseEntity<?> populateUsers( //
+      @RequestParam("adminEmail") String adminEmail, //
+      @RequestParam("adminName") String adminName, //
+      @RequestParam("adminPassword") String adminPassword //
+  ) {
+
+    if (userService.getAll().size() > 0) {
+      return Errors.DATABASE_INITIALIZED.getResponse();
+    }
+
+    // create user
+    User user = new User();
+    user.name = adminName;
+    user.email = adminEmail;
+    user.kind = UserKind.ADMIN;
+    user.passwordHash = Utils.encodePassword(adminPassword);
+    userService.add(user);
+
+    return new ResponseEntity<>(user, HttpStatus.OK);
+  }
+
 }
