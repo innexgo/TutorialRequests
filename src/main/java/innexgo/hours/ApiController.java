@@ -237,6 +237,9 @@ public class ApiController {
             innexgoHoursSite + "/reset_password?resetKey=" + rawKey + "</p>" //
     ); //
 
+    user.passwordSetTime = System.currentTimeMillis();
+    userService.update(user);
+
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

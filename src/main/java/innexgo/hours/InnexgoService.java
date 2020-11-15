@@ -92,7 +92,7 @@ public class InnexgoService {
    * @return ApiKey or null if invalid
    */
   ApiKey getApiKeyIfValid(String key) {
-    String hash = Utils.encodeApiKey(key);
+    String hash = Utils.hashGeneratedKey(key);
     if (apiKeyService.existsByKeyHash(hash)) {
       ApiKey apiKey = apiKeyService.getByKeyHash(hash);
       if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
@@ -109,7 +109,7 @@ public class InnexgoService {
    * @return User or null if invalid
    */
   User getUserIfValid(String key) {
-    String hash = Utils.encodeApiKey(key);
+    String hash = Utils.hashGeneratedKey(key);
     if (apiKeyService.existsByKeyHash(hash)) {
       ApiKey apiKey = apiKeyService.getByKeyHash(hash);
       if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
