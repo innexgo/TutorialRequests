@@ -235,7 +235,10 @@ public class ApiController {
             "<p>Do not share this link with others.</p>" + //
             "<p>Password Change link: " + //
             innexgoHoursSite + "/reset_password?resetKey=" + rawKey + "</p>" //
-    );
+    ); //
+
+    user.passwordSetTime = System.currentTimeMillis();
+    userService.update(user);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
