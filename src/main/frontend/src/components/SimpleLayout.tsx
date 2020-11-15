@@ -1,9 +1,8 @@
 import React from 'react';
 import { ArrowForward } from '@material-ui/icons';
-import { Container, Row, Col, Nav, Navbar, } from 'react-bootstrap';
+import { Container, Row, Col} from 'react-bootstrap';
 
 import transparent from "../img/innexgo_transparent_icon.png"
-import innexgo_logo from '../img/innexgo_transparent_icon.png';
 
 class SimpleLayout extends React.Component {
   render() {
@@ -33,6 +32,10 @@ class SimpleLayout extends React.Component {
             <br />
             <a href="https://hours.innexgo.com" className="text-light">
               <ArrowForward />Not your school?
+            </a>
+            <br />
+            <a href="/terms_of_service" className="text-light">
+              <ArrowForward />Terms of Service
             </a>
           </Col>
           <Col>

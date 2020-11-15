@@ -34,7 +34,7 @@ function Instructions() {
           </p>
           <hr id="one" style={{ marginTop: '20px', marginBottom: '20px' }} />
           <h5 style={{ marginBottom: '20px' }}>Create office hour appointment</h5>
-          <video width='80%' height='60%' autoPlay loop style={{ marginBottom: '20px' }}>
+          <video width='80%' height='60%' controls style={{ marginBottom: '20px' }}>
             <source src={sample1} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
@@ -47,7 +47,7 @@ function Instructions() {
 
           <hr id="two" style={{ marginTop: '20px', marginBottom: '20px' }} />
           <h5 style={{ marginBottom: '20px' }}>Change duration of appointment</h5>
-          <video width='80%' height='60%' autoPlay loop style={{ marginBottom: '20px' }}>
+          <video width='80%' height='60%' controls style={{ marginBottom: '20px' }}>
             <source src={sample2} type="video/mp4" />
                         Your browser does not support the video tag.
           </video>
@@ -60,7 +60,7 @@ function Instructions() {
 
           <hr id="three" style={{ marginTop: '20px', marginBottom: '20px' }} />
           <h5 style={{ marginBottom: '20px' }}>Calendar day/week view</h5>
-          <video width='80%' height='60%' autoPlay loop style={{ marginBottom: '20px' }}>
+          <video width='80%' height='60%' controls style={{ marginBottom: '20px' }}>
             <source src={sample3} type="video/mp4" />
                         Your browser does not support the video tag.
           </video>
@@ -71,7 +71,7 @@ function Instructions() {
 
           <hr id="four" style={{ marginTop: '20px', marginBottom: '20px' }} />
           <h5 style={{ marginBottom: '20px' }}>See past/future appointments</h5>
-          <video width='80%' height='60%' autoPlay loop style={{ marginBottom: '20px' }}>
+          <video width='80%' height='60%' controls style={{ marginBottom: '20px' }}>
             <source src={sample4} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
@@ -84,7 +84,7 @@ function Instructions() {
 
           <hr id="five" style={{ marginTop: '20px', marginBottom: '20px' }} />
           <h5 style={{ marginBottom: '20px' }}>Mark attendance</h5>
-          <video width='80%' height='60%' autoPlay loop style={{ marginBottom: '20px' }}>
+          <video width='80%' height='60%' controls style={{ marginBottom: '20px' }}>
             <source src={sample5} type="video/mp4" />
             Your browser does not support the video tag.
           </video>

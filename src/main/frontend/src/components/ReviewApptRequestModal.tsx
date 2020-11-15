@@ -133,7 +133,7 @@ function ReviewApptRequestModal(props: ReviewApptRequestModalProps) {
                 <Button type="submit" > Accept </Button>
                 <Button variant="danger" onClick={() => props.setShow(false)}> Ignore </Button>
                 <br />
-                <Form.Control.Feedback type="invalid">{fprops.status}</Form.Control.Feedback>
+                <Form.Text className="text-danger">{fprops.status}</Form.Text>
               </Form>)}
           </Formik>
         </Col>

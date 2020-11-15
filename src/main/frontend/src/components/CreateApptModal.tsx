@@ -149,8 +149,8 @@ function CreateApptModal(props: CreateApptModalProps) {
               </Col>
             </Form.Group>
             <Button type="submit"> Submit </Button>
-            <br/>
-            <Form.Control.Feedback type="invalid">{fprops.status}</Form.Control.Feedback>
+            <br />
+            <Form.Text className="text-danger">{fprops.status}</Form.Text>
           </Form>)}
       </Formik>
     </Modal.Body>

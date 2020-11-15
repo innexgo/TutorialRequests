@@ -48,7 +48,7 @@ public enum Errors {
   RESETKEY_INVALID(HttpStatus.BAD_REQUEST),
   RESETKEY_TIMED_OUT(HttpStatus.BAD_REQUEST),
   EMAIL_RATELIMIT(HttpStatus.TOO_MANY_REQUESTS),
-  EMAIL_BLACKLISTED(HttpStatus.FORBIDDEN), //email us at reactivate@innexgo.com to allow usage
+  EMAIL_BLACKLISTED(HttpStatus.FORBIDDEN),
   UNKNOWN(HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;
