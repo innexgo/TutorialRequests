@@ -53,12 +53,12 @@ public class Utils {
     return passwordEncoder.matches(password, hash);
   }
 
-  public static String encodeApiKey(String key) {
+  public static String hashGeneratedKey(String key) {
     return base64Encoder.encodeToString(getDigester().digest(key.getBytes()));
   }
 
-  public static boolean matchesApiKey(String key, String hash) {
-    return hash.equals(encodeApiKey(key));
+  public static boolean matchesHashedGenKey(String key, String hash) {
+    return hash.equals(hashGeneratedKey(key));
   }
 
   // create 128 bit key

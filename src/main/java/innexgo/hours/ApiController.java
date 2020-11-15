@@ -113,7 +113,7 @@ public class ApiController {
     apiKey.creationTime = System.currentTimeMillis();
     apiKey.duration = duration;
     apiKey.key = Utils.generateKey();
-    apiKey.keyHash = Utils.encodeApiKey(apiKey.key);
+    apiKey.keyHash = Utils.hashGeneratedKey(apiKey.key);
     apiKeyService.add(apiKey);
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
   }
@@ -151,7 +151,8 @@ public class ApiController {
     evc.name = userName;
     evc.email = userEmail;
     evc.creationTime = System.currentTimeMillis();
-    evc.verificationKey = Utils.generateKey();
+    String rawKey = Utils.generateKey();
+    evc.verificationKey = Utils.hashGeneratedKey(rawKey);
     evc.passwordHash = Utils.encodePassword(userPassword);
     evc.kind = userKind;
     emailVerificationChallengeService.add(evc);
@@ -161,7 +162,7 @@ public class ApiController {
             + "<p>This link is valid for up to 15 minutes.</p>" //
             + "<p>Do not share this link with others.</p>" //
             + "<p>Verification link: " //
-            + innexgoHoursSite + "/register_confirm?verificationKey=" + evc.verificationKey //
+            + innexgoHoursSite + "/register_confirm?verificationKey=" + rawKey //
             + "</p>"); //
 
     return new ResponseEntity<>(HttpStatus.OK);
@@ -169,11 +170,13 @@ public class ApiController {
 
   @RequestMapping("/user/new/")
   public ResponseEntity<?> newUser(@RequestParam String verificationKey) {
-    if (!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
+    String hashedVerificationKey = Utils.hashGeneratedKey(verificationKey);
+
+    if (!emailVerificationChallengeService.existsByVerificationKey(hashedVerificationKey)) {
       return Errors.VERIFICATIONKEY_NONEXISTENT.getResponse();
     }
 
-    EmailVerificationChallenge evc = emailVerificationChallengeService.getByVerificationKey(verificationKey);
+    EmailVerificationChallenge evc = emailVerificationChallengeService.getByVerificationKey(hashedVerificationKey);
 
     final long now = System.currentTimeMillis();
 
@@ -220,7 +223,8 @@ public class ApiController {
     fp.email = userEmail;
     fp.creationTime = now;
     fp.used = false;
-    fp.resetKey = Utils.generateKey();
+    String rawKey = Utils.generateKey();
+    fp.resetKey = Utils.hashGeneratedKey(rawKey);
 
     forgotPasswordService.add(fp);
 
@@ -230,8 +234,11 @@ public class ApiController {
             "<p>This link is valid for up to 15 minutes.</p>" + //
             "<p>Do not share this link with others.</p>" + //
             "<p>Password Change link: " + //
-            innexgoHoursSite + "/reset_password?resetKey=" + fp.resetKey + "</p>" //
+            innexgoHoursSite + "/reset_password?resetKey=" + rawKey + "</p>" //
     ); //
+
+    user.passwordSetTime = System.currentTimeMillis();
+    userService.update(user);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -554,11 +561,13 @@ public class ApiController {
       @RequestParam String resetKey, //
       @RequestParam String newPassword //
   ) {
-    if (!forgotPasswordService.existsByResetKey(resetKey)) {
+
+    String hashedResetKey = Utils.hashGeneratedKey(resetKey);
+    if (!forgotPasswordService.existsByResetKey(hashedResetKey)) {
       return Errors.RESETKEY_NONEXISTENT.getResponse();
     }
 
-    ForgotPassword forgotPassword = forgotPasswordService.getByResetKey(resetKey);
+    ForgotPassword forgotPassword = forgotPasswordService.getByResetKey(hashedResetKey);
 
     // deny if timed out
     if (System.currentTimeMillis() > (forgotPassword.creationTime + fifteenMinutes)) {

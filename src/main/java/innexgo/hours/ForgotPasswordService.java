@@ -52,7 +52,7 @@ public class ForgotPasswordService {
   public void add(ForgotPassword user) {
     // Set user id
     user.id = nextId();
-    user.used = true;
+    user.used = false;
     // Add user
     String sql =
         "INSERT INTO forgot_password (id, email, creation_time, reset_key, used) values (?, ?, ?, ?, ?)";
