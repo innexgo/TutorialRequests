@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik, FormikHelpers, FormikErrors } from 'formik'
-import { Button, Row, Col, Form, } from 'react-bootstrap'
+import { Button, Card, Form, } from 'react-bootstrap'
 
 import { newEmailVerificationChallenge, isApiErrorCode } from '../utils/utils';
 
@@ -139,75 +139,65 @@ function RegisterForm() {
         <Form
           noValidate
           onSubmit={props.handleSubmit} >
-          <Form.Group as={Row} >
-            <Form.Label column md={2}>First name</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="firstName"
-                type="text"
-                placeholder="First Name"
-                value={props.values.firstName}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.firstName}
-              />
-              <Form.Control.Feedback type="invalid">{props.errors.firstName}</Form.Control.Feedback>
-            </Col>
+          <Form.Group >
+            <Form.Label >First Name</Form.Label>
+            <Form.Control
+              name="firstName"
+              type="text"
+              placeholder="First Name"
+              value={props.values.firstName}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.firstName}
+            />
+            <Form.Control.Feedback type="invalid">{props.errors.firstName}</Form.Control.Feedback>
           </Form.Group>
-          <Form.Group as={Row} >
-            <Form.Label column md={2}>Last name</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="lastName"
-                type="text"
-                placeholder="Last Name"
-                value={props.values.lastName}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.lastName}
-              />
-              <Form.Control.Feedback type="invalid">{props.errors.lastName}</Form.Control.Feedback>
-            </Col>
+          <Form.Group >
+            <Form.Label >Last Name</Form.Label>
+            <Form.Control
+              name="lastName"
+              type="text"
+              placeholder="Last Name"
+              value={props.values.lastName}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.lastName}
+            />
+            <Form.Control.Feedback type="invalid">{props.errors.lastName}</Form.Control.Feedback>
           </Form.Group>
-          <Form.Group as={Row} >
-            <Form.Label column md={2}>Email</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={props.values.email}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.email}
-              />
-              <Form.Control.Feedback type="invalid"> {props.errors.email} </Form.Control.Feedback>
-            </Col>
+          <Form.Group >
+            <Form.Label >Email</Form.Label>
+            <Form.Control
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={props.values.email}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.email}
+            />
+            <Form.Control.Feedback type="invalid"> {props.errors.email} </Form.Control.Feedback>
           </Form.Group>
-          <Form.Group as={Row} >
-            <Form.Label column md={2}>Password</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="password1"
-                type="password"
-                placeholder="Password"
-                value={props.values.password1}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.password1}
-              />
-              <Form.Control.Feedback type="invalid">{props.errors.password1}</Form.Control.Feedback>
-            </Col>
+          <Form.Group >
+            <Form.Label >Password</Form.Label>
+            <Form.Control
+              name="password1"
+              type="password"
+              placeholder="Password"
+              value={props.values.password1}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.password1}
+            />
+            <Form.Control.Feedback type="invalid">{props.errors.password1}</Form.Control.Feedback>
           </Form.Group>
-          <Form.Group as={Row} >
-            <Form.Label column md={2}>Confirm Password</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="password2"
-                type="password"
-                placeholder="Confirm Password"
-                value={props.values.password2}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.password2}
-              />
-              <Form.Control.Feedback type="invalid">{props.errors.password2}</Form.Control.Feedback>
-            </Col>
+          <Form.Group >
+            <Form.Label >Confirm Password</Form.Label>
+            <Form.Control
+              name="password2"
+              type="password"
+              placeholder="Confirm Password"
+              value={props.values.password2}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.password2}
+            />
+            <Form.Control.Feedback type="invalid">{props.errors.password2}</Form.Control.Feedback>
           </Form.Group>
           <Form.Check>
             <Form.Check.Input
@@ -232,9 +222,13 @@ function RegisterForm() {
 function Register() {
   return (
     <SimpleLayout>
-      <div className="px-3 py-3">
-        <h4>Register with <SchoolName /></h4>
-        <RegisterForm />
+      <div className="h-100 w-100 d-flex">
+        <Card className="mx-auto my-auto">
+          <Card.Body>
+            <Card.Title>Register with <SchoolName /></Card.Title>
+            <RegisterForm />
+          </Card.Body>
+        </Card>
       </div>
     </SimpleLayout>
   )

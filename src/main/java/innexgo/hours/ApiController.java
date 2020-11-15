@@ -162,7 +162,7 @@ public class ApiController {
       + "<p>This link is valid for up to 15 minutes.</p>"
       + "<p>Do not share this link with others.</p>"
       + "<p>Verification link: "
-      + innexgoHoursSite + "/api/user/new/?verificationKey=" + evc.verificationKey
+      + innexgoHoursSite + "/register_confirm?verificationKey=" + evc.verificationKey
       + "</p>");
 
     return new ResponseEntity<>(HttpStatus.OK);
@@ -171,12 +171,7 @@ public class ApiController {
 
 
   @RequestMapping("/user/new/")
-  public ResponseEntity<?> checkEmailVerification(@RequestParam String verificationKey) {
-
-    if (Utils.isEmpty(verificationKey)) {
-      return Errors.VERIFICATIONKEY_NONEXISTENT.getResponse();
-    }
-
+  public ResponseEntity<?> newUser(@RequestParam String verificationKey) {
     if (!emailVerificationChallengeService.existsByVerificationKey(verificationKey)) {
       return Errors.VERIFICATIONKEY_NONEXISTENT.getResponse();
     }
@@ -231,7 +226,6 @@ public class ApiController {
     fp.resetKey = Utils.generateKey();
 
     forgotPasswordService.add(fp);
-
 
     mailService.send(
       fp.email,

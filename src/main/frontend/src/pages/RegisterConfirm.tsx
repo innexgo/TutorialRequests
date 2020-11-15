@@ -1,59 +1,71 @@
 import React from 'react';
-import { Button, Card, Form } from 'react-bootstrap'
+import { Card, } from 'react-bootstrap'
+import { Async } from 'react-async';
+import SimpleLayout from '../components/SimpleLayout';
+import Loader from '../components/Loader';
+import { newUser, isApiErrorCode } from '../utils/utils';
 
-import ExternalLayout from '../components/ExternalLayout';
-import { fetchApi } from '../utils/utils';
-
-import innexgo_logo from '../img/innexgo_logo_dark.png';
-
-import blurred_bg from '../img/homepage-bg.png';
-
-
+function RegisterConfirmError(prop: { maybeUser: any }) {
+  if (isApiErrorCode(prop.maybeUser)) {
+    switch (prop.maybeUser) {
+      case "VERIFICATIONKEY_NONEXISTENT": {
+        return <Card.Text>
+          Verification link is invalid.
+          Click <a href="/register">here</a> to register.
+        </Card.Text>;
+      }
+      case "VERIFICATIONKEY_TIMED_OUT": {
+        return <Card.Text>
+          Verification link has timed out.
+          Click <a href="/register">here</a> to register again.
+        </Card.Text>;
+      }
+      case "USER_EXISTENT": {
+        return <Card.Text>
+          A user with these credentials already exists.
+        </Card.Text>;
+      }
+      default: {
+        return <Card.Text>
+          An unknown or network error has occured.
+        </Card.Text>;
+      }
+    }
+  } else {
+    return <Card.Text>
+      Your account ({prop.maybeUser.email}) has been sucessfully created.
+      Click <a href="/">here</a> to login.
+    </Card.Text>
+  }
+}
 
 function RegisterConfirm() {
-  const bgStyle = {
-    backgroundImage: `radial-gradient(rgba(0, 0, 0, 0.9),rgba(0, 0, 0, 0.1)), url(${blurred_bg})`,
-    height: "100vh",
-    alignItems: "center",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "cover",
-    display: "flex",
-    justifyContent: "center"
-  };
-
-  const errorStyle = {
-    color: "#DC143C"
-  }
-
-  const [errorText, setErrorText] = React.useState("");
-
-  
-  //TODO get api call, verify email, put either success or error in this variable:
-    const result = ""
-  
+  const maybeUserPromise = newUser({
+    verificationKey: new URLSearchParams(window.location.search).get("verificationKey") ?? ""
+  });
 
   return (
-    <ExternalLayout fixed={false} transparentTop={true}>
-      <div style={bgStyle}>
-        <Card>
+    <SimpleLayout>
+      <div className="h-100 w-100 d-flex">
+        <Card className="mx-auto my-auto">
           <Card.Body>
-            <Card.Title>
-              <h4><img
-                alt="Innexgo Logo"
-                src={innexgo_logo}
-                width="30"
-                height="30"
-                className="d-inline-block align-top"
-              />{' '}
-                Innexgo</h4>
-            </Card.Title>
-            <p>{result}</p>
-            <br />
+            <Card.Title>Complete Account Registration</Card.Title>
+            <Async promise={maybeUserPromise}>
+              <Async.Pending>
+                <div>
+                  <br />
+                  <Loader />
+                  <br />
+                </div>
+              </Async.Pending>
+              <Async.Resolved>
+                {(maybeUser) => <RegisterConfirmError maybeUser={maybeUser} />}
+              </Async.Resolved>
+            </Async>
           </Card.Body>
         </Card>
       </div>
-    </ExternalLayout>
+    </SimpleLayout>
   )
 }
 

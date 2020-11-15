@@ -64,7 +64,6 @@ const ApiErrorCodes = [
   "ATTENDANCE_EXISTENT",
   "NEGATIVE_DURATION",
   "VERIFICATIONKEY_NONEXISTENT",
-  "VERIFICATIONKEY_INVALID",
   "VERIFICATIONKEY_TIMED_OUT",
   "RESETKEY_NONEXISTENT",
   "RESETKEY_INVALID",
@@ -77,7 +76,7 @@ const ApiErrorCodes = [
 ] as const;
 
 // Creates a union type
-type ApiErrorCode = typeof ApiErrorCodes[number];
+export type ApiErrorCode = typeof ApiErrorCodes[number];
 
 type NewApiKeyProps = {
   userEmail: string,

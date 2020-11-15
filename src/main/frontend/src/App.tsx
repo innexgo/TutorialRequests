@@ -50,13 +50,12 @@ function App() {
         <Route path="/instructions" component={Instructions} />
         <Route path="/terms_of_service" component={TermsOfService} />
         <Route path="/register" component={Register} />
-        <Route path="/forgotpassword" component={ForgotPassword} />
+        <Route path="/forgot_password" component={ForgotPassword} />
+        <Route  path="/register_confirm" component={RegisterConfirm} />
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
           component={UserDashboard} />
         <AuthenticatedRoute path="/admin" {...apiKeyGetSetter}
           component={Admin} />
-        <AuthenticatedRoute path="/registerconfirm" {...apiKeyGetSetter}
-          component={RegisterConfirm} />
         <StudentRoute path="/student" {...apiKeyGetSetter}
           component={StudentDashboard} />
         <Route path="/" component={Error404} />

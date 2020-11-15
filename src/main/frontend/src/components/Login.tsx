@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik, FormikHelpers, FormikErrors } from 'formik'
-import { Button, Row, Col, Form, } from 'react-bootstrap'
+import { Card, Button, Form, } from 'react-bootstrap'
 import { newApiKey, isApiErrorCode } from '../utils/utils';
 
 import SimpleLayout from '../components/SimpleLayout';
@@ -81,53 +81,53 @@ function LoginForm(props: LoginProps) {
         <Form
           noValidate
           onSubmit={props.handleSubmit} >
-          <Form.Group as={Row} >
-            <Form.Label column md={2}>Email</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={props.values.email}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.email}
-              />
-              <Form.Control.Feedback type="invalid"> {props.errors.email} </Form.Control.Feedback>
-            </Col>
+          <Form.Group >
+            <Form.Label >Email</Form.Label>
+            <Form.Control
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={props.values.email}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.email}
+            />
+            <Form.Control.Feedback type="invalid"> {props.errors.email} </Form.Control.Feedback>
           </Form.Group>
-          <Form.Group as={Row} >
-            <Form.Label column md={2}>Password</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="password"
-                type="password"
-                placeholder="Password"
-                value={props.values.password}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.password}
-              />
-              <Form.Control.Feedback type="invalid">{props.errors.password}</Form.Control.Feedback>
-            </Col>
+          <Form.Group >
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              name="password"
+              type="password"
+              placeholder="Password"
+              value={props.values.password}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.password}
+            />
+            <Form.Control.Feedback type="invalid">{props.errors.password}</Form.Control.Feedback>
           </Form.Group>
+          <br />
           <Button type="submit">Login</Button>
           <br />
           <Form.Text className="text-danger">{props.status}</Form.Text>
           <br />
           <Form.Text className="text-muted">
-            <a href="/forgotpassword">Forgot Password?</a>
+            <a href="/forgot_password">Forgot Password?</a>
           </Form.Text>
         </Form>
       )}
-    </Formik>
-  )
+    </Formik>)
 }
 
 function Login(props: LoginProps) {
   return (
     <SimpleLayout>
-      <div className="px-3 py-3">
-        <h4>Login to <SchoolName /></h4>
-        <LoginForm {...props} />
+      <div className="h-100 w-100 d-flex">
+        <Card className="mx-auto my-auto">
+          <Card.Body>
+          <Card.Title>Login to <SchoolName /></Card.Title>
+            <LoginForm {...props} />
+          </Card.Body>
+        </Card>
       </div>
     </SimpleLayout>
   );
