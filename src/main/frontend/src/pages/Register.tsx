@@ -2,7 +2,7 @@ import React from 'react';
 import { Formik, FormikHelpers, FormikErrors } from 'formik'
 import { Button, Card, Form, } from 'react-bootstrap'
 
-import { newEmailVerificationChallenge, isApiErrorCode } from '../utils/utils';
+import { newEmailVerificationChallenge, isApiErrorCode, isPasswordValid } from '../utils/utils';
 
 import SimpleLayout from '../components/SimpleLayout';
 import SchoolName from '../components/SchoolName';
@@ -17,8 +17,6 @@ function RegisterForm() {
     password2: string,
     terms: boolean,
   }
-
-  const isPasswordValid = (pass: string) => pass.length >= 8 && /\d/.test(pass);
 
   const onSubmit = async (values: RegistrationValue, props: FormikHelpers<RegistrationValue>) => {
     // Validate input
@@ -105,7 +103,7 @@ function RegisterForm() {
         }
         default: {
           props.setStatus({
-            failureMessage: "An unknown or network error has occured while trying to log you in",
+            failureMessage: "An unknown or network error has occured while trying to register.",
             successMessage: ""
           });
           break;

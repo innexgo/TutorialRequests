@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik, FormikHelpers } from 'formik'
-import { Button, Row, Col, Form, } from 'react-bootstrap'
+import { Button, Card, Form, } from 'react-bootstrap'
 import { newForgotPassword, isApiErrorCode } from '../utils/utils';
 
 import SimpleLayout from '../components/SimpleLayout';
@@ -69,20 +69,19 @@ function ForgotPasswordForm() {
         <Form
           noValidate
           onSubmit={props.handleSubmit} >
-          <Form.Group as={Row} >
+          <Form.Group >
             <Form.Label column md={2}>Email</Form.Label>
-            <Col md={5}>
-              <Form.Control
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={props.values.email}
-                onChange={props.handleChange}
-                isInvalid={!!props.errors.email}
-              />
-              <Form.Control.Feedback type="invalid"> {props.errors.email} </Form.Control.Feedback>
-            </Col>
+            <Form.Control
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={props.values.email}
+              onChange={props.handleChange}
+              isInvalid={!!props.errors.email}
+            />
+            <Form.Control.Feedback type="invalid"> {props.errors.email} </Form.Control.Feedback>
           </Form.Group>
+          <br />
           <Button type="submit">Submit</Button>
           <br />
           <Form.Text className="text-danger">{props.status.failureMessage}</Form.Text>
@@ -94,14 +93,16 @@ function ForgotPasswordForm() {
 }
 
 function ForgotPassword() {
-  return (
-    <SimpleLayout>
-      <div className="px-3 py-3">
-        <h4>Send Password Reset</h4>
-        <ForgotPasswordForm />
-      </div>
-    </SimpleLayout>
-  );
+  return <SimpleLayout>
+    <div className="h-100 w-100 d-flex">
+      <Card className="mx-auto my-auto">
+        <Card.Body>
+          <Card.Title>Send Reset Password Email</Card.Title>
+          <ForgotPasswordForm />
+        </Card.Body>
+      </Card>
+    </div>
+  </SimpleLayout>
 }
 
 export default ForgotPassword;

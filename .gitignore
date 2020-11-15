@@ -29,7 +29,7 @@ build/
 
 # Our own stuff
 /innexgo.sql
-/.syntastic_javac_config
+workspace/
 /.vscode/
 
 # Do not include node_modules

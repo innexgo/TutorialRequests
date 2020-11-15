@@ -2,7 +2,6 @@ import React from 'react'
 
 import { Row, Col, Modal, Button, Form } from 'react-bootstrap';
 import ToggleButton from "react-bootstrap/ToggleButton";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
 import { newAttendance, isApiErrorCode } from '../utils/utils';
 import { Formik, FormikHelpers } from 'formik';
 import format from 'date-fns/format';
@@ -20,7 +19,7 @@ function ApptTakeAttendanceModal(props: ApptTakeAttendanceModalProps) {
     attendanceKind: AttendanceKind
   }
 
-  async function onSubmit(values: TakeAttendanceValues, { setErrors, setStatus }: FormikHelpers<TakeAttendanceValues>) {
+  async function onSubmit(values: TakeAttendanceValues, { setStatus }: FormikHelpers<TakeAttendanceValues>) {
     const maybeAttendance = await newAttendance({
       apptId: props.appt.apptRequest.apptRequestId,
       attendanceKind: values.attendanceKind,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, AccountCircle, Assessment } from '@material-ui/icons';
+import { Home, } from '@material-ui/icons';
 
 import DashboardLayout from '../components/DashboardLayout';
 

@@ -68,7 +68,7 @@ function LoginForm(props: LoginProps) {
     }
   }
 
-  return (
+  return <>
     <Formik<LoginValue>
       onSubmit={onSubmit}
       initialStatus=""
@@ -115,7 +115,8 @@ function LoginForm(props: LoginProps) {
           </Form.Text>
         </Form>
       )}
-    </Formik>)
+    </Formik>
+  </>
 }
 
 function Login(props: LoginProps) {
@@ -124,7 +125,7 @@ function Login(props: LoginProps) {
       <div className="h-100 w-100 d-flex">
         <Card className="mx-auto my-auto">
           <Card.Body>
-          <Card.Title>Login to <SchoolName /></Card.Title>
+            <Card.Title>Login to <SchoolName /></Card.Title>
             <LoginForm {...props} />
           </Card.Body>
         </Card>

@@ -6,7 +6,7 @@ const SchoolName = () => {
   const getSchoolInfo = async () => {
       const maybeSchoolInfo = await schoolInfo();
       if(isApiErrorCode(maybeSchoolInfo)) {
-          throw null;
+          throw new Error();
       } else {
           return maybeSchoolInfo;
       }

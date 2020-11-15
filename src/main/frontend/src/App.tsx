@@ -12,6 +12,7 @@ import Admin from './pages/Admin';
 import Register from './pages/Register';
 import RegisterConfirm from './pages/RegisterConfirm';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 import StudentDashboard from './pages/StudentDashboard';
 
@@ -51,7 +52,8 @@ function App() {
         <Route path="/terms_of_service" component={TermsOfService} />
         <Route path="/register" component={Register} />
         <Route path="/forgot_password" component={ForgotPassword} />
-        <Route  path="/register_confirm" component={RegisterConfirm} />
+        <Route path="/reset_password" component={ResetPassword} />
+        <Route path="/register_confirm" component={RegisterConfirm} />
         <AuthenticatedRoute path="/user"  {...apiKeyGetSetter}
           component={UserDashboard} />
         <AuthenticatedRoute path="/admin" {...apiKeyGetSetter}

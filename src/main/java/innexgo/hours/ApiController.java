@@ -156,19 +156,16 @@ public class ApiController {
     evc.kind = userKind;
     emailVerificationChallengeService.add(evc);
     mailService.send(userEmail, "Innexgo Hours: Email Verification",
-      "<p>Required email verification requested under the name: " + evc.name
-      + "</p>"
-      + "<p>If you did not make this request, then feel free to ignore.</p>"
-      + "<p>This link is valid for up to 15 minutes.</p>"
-      + "<p>Do not share this link with others.</p>"
-      + "<p>Verification link: "
-      + innexgoHoursSite + "/register_confirm?verificationKey=" + evc.verificationKey
-      + "</p>");
+        "<p>Required email verification requested under the name: " + evc.name + "</p>" //
+            + "<p>If you did not make this request, then feel free to ignore.</p>" //
+            + "<p>This link is valid for up to 15 minutes.</p>" //
+            + "<p>Do not share this link with others.</p>" //
+            + "<p>Verification link: " //
+            + innexgoHoursSite + "/register_confirm?verificationKey=" + evc.verificationKey //
+            + "</p>"); //
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
-
-
 
   @RequestMapping("/user/new/")
   public ResponseEntity<?> newUser(@RequestParam String verificationKey) {
@@ -227,16 +224,14 @@ public class ApiController {
 
     forgotPasswordService.add(fp);
 
-    mailService.send(
-      fp.email,
-      "Innexgo Hours: Password Reset",
-      "<p>Requested password reset service.</p>"
-      + "<p>If you did not make this request, then feel free to ignore.</p>"
-      + "<p>This link is valid for up to 15 minutes.</p>"
-      + "<p>Do not share this link with others.</p>"
-      + "<p>Password Change link: "
-      + innexgoHoursSite + "/misc/resetPassword/?resetKey=" + fp.resetKey 
-      + "</p>");
+    mailService.send(fp.email, "Innexgo Hours: Password Reset", //
+        "<p>Requested password reset service.</p>" + //
+            "<p>If you did not make this request, then feel free to ignore.</p>" + //
+            "<p>This link is valid for up to 15 minutes.</p>" + //
+            "<p>Do not share this link with others.</p>" + //
+            "<p>Password Change link: " + //
+            innexgoHoursSite + "/reset_password?resetKey=" + fp.resetKey + "</p>" //
+    ); //
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -296,15 +291,15 @@ public class ApiController {
       return Errors.APIKEY_NONEXISTENT.getResponse();
     }
 
-    if(keyCreator.kind == UserKind.STUDENT) {
-        return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    if (keyCreator.kind == UserKind.STUDENT) {
+      return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
     if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
 
-    if(apptService.existsByApptRequestId(apptRequestId)) {
+    if (apptService.existsByApptRequestId(apptRequestId)) {
       return Errors.APPT_EXISTENT.getResponse();
     }
 
@@ -328,8 +323,8 @@ public class ApiController {
       return Errors.APIKEY_NONEXISTENT.getResponse();
     }
 
-    if(keyCreator.kind == UserKind.STUDENT) {
-        return Errors.APIKEY_UNAUTHORIZED.getResponse();
+    if (keyCreator.kind == UserKind.STUDENT) {
+      return Errors.APIKEY_UNAUTHORIZED.getResponse();
     }
 
     if (attendanceService.existsByApptId(apptId)) {
@@ -517,8 +512,8 @@ public class ApiController {
   public ResponseEntity<?> updatePassword( //
       @RequestParam long userId, //
       @RequestParam String oldPassword, //
-      @RequestParam String newPassword, // 
-      @RequestParam String apiKey  // 
+      @RequestParam String newPassword, //
+      @RequestParam String apiKey //
   ) throws IOException {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
@@ -539,19 +534,9 @@ public class ApiController {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
 
-    if (mailService.emailExistsInBlacklist(user.email)) {
-      return Errors.EMAIL_BLACKLISTED.getResponse();
-    }
-
     user.passwordHash = Utils.encodePassword(newPassword);
     user.passwordSetTime = System.currentTimeMillis();
     userService.update(user);
-
-    mailService.send(
-        user.email,
-        "Innexgo Hours: Password Changed",
-        "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
-    );
 
     return Errors.OK.getResponse();
   }
@@ -564,18 +549,11 @@ public class ApiController {
     }, HttpStatus.OK);
   }
 
-  
-
   @RequestMapping("/misc/resetPassword/")
   public ResponseEntity<?> checkResetPassword( //
       @RequestParam String resetKey, //
-      @RequestParam String newUserPassword //
-  ) throws IOException {
-
-    if (Utils.isEmpty(resetKey)) {
-      return Errors.RESETKEY_INVALID.getResponse();
-    }
-
+      @RequestParam String newPassword //
+  ) {
     if (!forgotPasswordService.existsByResetKey(resetKey)) {
       return Errors.RESETKEY_NONEXISTENT.getResponse();
     }
@@ -585,28 +563,21 @@ public class ApiController {
     // deny if timed out
     if (System.currentTimeMillis() > (forgotPassword.creationTime + fifteenMinutes)) {
       return Errors.RESETKEY_TIMED_OUT.getResponse();
-    } 
+    }
 
     // deny if already used
     if (forgotPassword.used) {
       return Errors.RESETKEY_INVALID.getResponse();
     }
 
-    // deny if email blacklisted
-    if (mailService.emailExistsInBlacklist(forgotPassword.email)) {
-      return Errors.EMAIL_BLACKLISTED.getResponse();
+    if (!Utils.securePassword(newPassword)) {
+      return Errors.PASSWORD_INSECURE.getResponse();
     }
 
     User u = userService.getByEmail(forgotPassword.email);
-    u.passwordHash = Utils.encodePassword(newUserPassword);
+    u.passwordHash = Utils.encodePassword(newPassword);
     u.passwordSetTime = System.currentTimeMillis();
     userService.update(u);
-    
-    mailService.send(
-      u.email,
-      "Innexgo Hours: Password Changed",
-      "Your password on Innexgo Hours was changed. If you did not change your password, please secure your account."
-    );
 
     forgotPassword.used = true;
     forgotPasswordService.update(forgotPassword);

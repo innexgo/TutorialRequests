@@ -255,7 +255,7 @@ export async function schoolInfo(): Promise<SchoolInfo | ApiErrorCode> {
 
 type ResetPasswordProps = {
   resetKey: String,
-  newUserPassword: String,
+  newPassword: String,
 }
 
 export async function resetPassword(props: ResetPasswordProps): Promise<ApiErrorCode> {
@@ -266,4 +266,4 @@ export function isApiErrorCode(maybeApiErrorCode: any): maybeApiErrorCode is Api
   return typeof maybeApiErrorCode === 'string' && ApiErrorCodes.includes(maybeApiErrorCode as any);
 }
 
-
+export const isPasswordValid = (pass: string) => pass.length >= 8 && /\d/.test(pass);
