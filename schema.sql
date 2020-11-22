@@ -45,30 +45,70 @@ create table api_key(
   key_hash char(64) not null unique
 );
 
-drop table if exists appt_request;
-create table appt_request(
-  appt_request_id integer not null primary key,
+-- Represents a specific class
+-- Publically visible
+drop table if exists course;
+create table course(
+  id integer not null primary key,
   creator_id integer not null,
+  creation_time integer not null,
+  name varchar(100) not null,
+  description varchar(100) not null,
+  host_id integer not null
+);
+
+-- Represents a specific instance of a course
+drop table if exists course_session;
+create table course_session(
+  id integer not null primary key,
+  creator_id integer not null,
+  creation_time integer not null,
+  course_id integer not null,
+  start_time integer not null,
+  duration integer not null,
+  private integer not null       -- boolean
+);
+
+-- a request from a student to a course for a specific time
+-- it's up to the teacher which course session to allocate to the student
+drop table if exists course_session_request;
+create table course_session_request(
+  course_session_request_id integer not null primary key,
+  creator_id integer not null,
+  creation_time integer not null,
   attendee_id integer not null,
-  host_id integer not null,
+  course_id integer not null,
   message varchar(100) not null,
-  creation_time integer not null,
   start_time integer not null,
   duration integer not null
 );
 
-drop table if exists appt; 
-create table appt(
-  appt_request_id integer not null primary key,
-  message varchar(100) not null,
+-- a response to the course session request
+drop table if exists course_session_request_response; 
+create table course_session_request_response(
+  course_session_request_id integer not null primary key,
+  course_session_request_response_kind integer not null, -- can be ACCEPTED(0), REJECTED(1)
+  response_message varchar(100) not null,
   creation_time integer not null,
-  start_time integer not null,
-  duration integer not null
+  accepted_committment_id integer not null, -- only valid if course_session_request_response_kind == ACCEPTED
 );
 
-drop table if exists attendance;
-create table attendance(
-  appt_id integer not null primary key,
+-- a committment to attend a course session
+drop table if exists committment;
+create table committment( 
+  committment_id integer not null primary key,
+  creator_id integer not null,
   creation_time integer not null,
-  kind integer not null
+  attendee_id integer not null,
+  course_session_id integer not null,
+  cancellable integer not null -- boolean
+);
+
+--  aresponse to the commitment
+drop table if exists committment_response;
+create table committment_response(
+  committment_id integer not null primary key,
+  creator_id integer not null,
+  creation_time integer not null,
+  committment_response_kind integer not null -- can be PRESENT(0), TARDY(1), ABSENT(2), CANCELLED(3)
 );
