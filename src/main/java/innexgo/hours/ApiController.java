@@ -165,7 +165,7 @@ public class ApiController {
             + innexgoHoursSite + "/register_confirm?verificationKey=" + rawKey //
             + "</p>"); //
 
-    return new ResponseEntity<>(HttpStatus.OK);
+    return new ResponseEntity<>(innexgoService.fillEmailVerificationChallenge(evc), HttpStatus.OK);
   }
 
   @RequestMapping("/user/new/")
@@ -240,7 +240,7 @@ public class ApiController {
     user.passwordSetTime = System.currentTimeMillis();
     userService.update(user);
 
-    return new ResponseEntity<>(HttpStatus.OK);
+    return new ResponseEntity<>(innexgoService.fillForgotPassword(fp), HttpStatus.OK);
   }
 
   @RequestMapping("/apptRequest/new/")
@@ -557,7 +557,7 @@ public class ApiController {
   }
 
   @RequestMapping("/misc/resetPassword/")
-  public ResponseEntity<?> checkResetPassword( //
+  public ResponseEntity<?> resetPassword( //
       @RequestParam String resetKey, //
       @RequestParam String newPassword //
   ) {

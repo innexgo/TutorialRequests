@@ -86,6 +86,16 @@ public class InnexgoService {
   }
 
   /**
+   * Fills in jackson objects for ForgotPassword
+   *
+   * @param forgotPassword - ForgotPassword object
+   * @return ForgotPassword object with recursively filled jackson objects
+   */
+  ForgotPassword fillForgotPassword(ForgotPassword forgotPassword) {
+    return forgotPassword;
+  }
+
+  /**
    * Returns an apiKey if valid
    *
    * @param key - apikey code of the User
