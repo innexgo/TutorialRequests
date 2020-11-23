@@ -32,7 +32,7 @@ public class ApiKeyService {
 
   public ApiKey getById(long id) {
     String sql =
-        "SELECT id, creator_id, creation_time, duration, key_hash FROM api_key WHERE id=?";
+        "SELECT * FROM api_key WHERE id=?";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     ApiKey apiKey = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return apiKey;
@@ -41,7 +41,7 @@ public class ApiKeyService {
   // Gets the last created key with the keyhash
   public ApiKey getByKeyHash(String keyHash) {
     String sql =
-        "SELECT id, creator_id, creation_time, duration, key_hash FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
+        "SELECT * FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     List<ApiKey> apiKeys = jdbcTemplate.query(sql, rowMapper, keyHash);
     return apiKeys.size() > 0 ? apiKeys.get(0) : null;
@@ -49,7 +49,7 @@ public class ApiKeyService {
 
   public List<ApiKey> getAll() {
     String sql =
-        "SELECT id, creator_id, creation_time, duration, key_hash  FROM api_key";
+        "SELECT * FROM api_key";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
@@ -64,19 +64,27 @@ public class ApiKeyService {
     }
   }
 
-
   public void add(ApiKey apiKey) {
     apiKey.id = nextId();
 
     String sql =
-        "INSERT INTO api_key (id, creator_id, creation_time, duration, key_hash) values (?,?,?,?,?)";
+        "INSERT INTO api_key values (?,?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
         apiKey.id,
         apiKey.creatorId,
         apiKey.creationTime,
         apiKey.duration,
-        apiKey.keyHash);
+        apiKey.keyHash,
+        apiKey.valid
+    );
+  }
+
+  public void revoke(ApiKey apiKey) {
+    String sql =
+        "UPDATE api_key SET valid=? WHERE id=?";
+    jdbcTemplate.update(sql, false, apiKey.id);
+    apiKey.valid = false;
   }
 
   public boolean existsById(long id) {
@@ -97,15 +105,17 @@ public class ApiKeyService {
       Long minCreationTime,
       Long maxCreationTime,
       String keyHash,
+      Boolean valid,
       long offset,
       long count) {
     String sql =
-        "SELECT a.id, a.creator_id, a.creation_time, a.duration, a.key_hash FROM api_key a WHERE 1=1"
+        "SELECT a.* FROM api_key a WHERE 1=1"
             + (id == null ? "" : " AND a.id=" + id)
             + (creatorId == null ? "" : " AND a.creator_id =" + creatorId)
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND a.creation_time <= " + maxCreationTime)
             + (keyHash == null ? "" : " AND a.key_hash = " + Utils.escape(keyHash))
+            + (valid == null ? "" : " AND a.valid = " + valid)
             + (" ORDER BY a.id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

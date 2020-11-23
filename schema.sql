@@ -12,7 +12,7 @@ create table forgot_password(
   email varchar(100) not null,
   creation_time integer not null,
   reset_key char(64) not null unique,
-  used integer not null
+  valid integer not null
 );
 
 drop table if exists email_verification_challenge;
@@ -42,55 +42,45 @@ create table api_key(
   creator_id integer not null,
   creation_time integer not null,
   duration integer not null,
-  key_hash char(64) not null unique
+  key_hash char(64) not null unique,
+  valid integer not null, -- boolean
 );
 
--- Represents a specific class
--- Publically visible
-drop table if exists course;
-create table course(
+-- Represents a specific instance of a course
+drop table if exists session;
+create table session(
   id integer not null primary key,
   creator_id integer not null,
   creation_time integer not null,
   name varchar(100) not null,
-  description varchar(100) not null,
   host_id integer not null
-);
-
--- Represents a specific instance of a course
-drop table if exists course_session;
-create table course_session(
-  id integer not null primary key,
-  creator_id integer not null,
-  creation_time integer not null,
-  course_id integer not null,
   start_time integer not null,
   duration integer not null,
-  private integer not null       -- boolean
+  public integer not null       -- boolean
 );
 
 -- a request from a student to a course for a specific time
 -- it's up to the teacher which course session to allocate to the student
-drop table if exists course_session_request;
-create table course_session_request(
-  course_session_request_id integer not null primary key,
+drop table if exists session_request;
+create table session_request(
+  session_request_id integer not null primary key,
   creator_id integer not null,
   creation_time integer not null,
   attendee_id integer not null,
-  course_id integer not null,
+  id integer not null,
   message varchar(100) not null,
   start_time integer not null,
   duration integer not null
 );
 
 -- a response to the course session request
-drop table if exists course_session_request_response; 
-create table course_session_request_response(
-  course_session_request_id integer not null primary key,
-  course_session_request_response_kind integer not null, -- can be ACCEPTED(0), REJECTED(1)
+drop table if exists session_request_response; 
+create table session_request_response(
+  session_request_id integer not null primary key,
+  session_request_response_kind integer not null, -- can be ACCEPTED(0), REJECTED(1)
   response_message varchar(100) not null,
   creation_time integer not null,
-  accepted_committment_id integer not null, -- only valid if course_session_request_response_kind == ACCEPTED
+  accepted_committment_id integer not null, -- only valid if session_request_response_kind == ACCEPTED
 );
 
 -- a committment to attend a course session
@@ -100,7 +90,7 @@ create table committment(
   creator_id integer not null,
   creation_time integer not null,
   attendee_id integer not null,
-  course_session_id integer not null,
+  session_id integer not null,
   cancellable integer not null -- boolean
 );
 

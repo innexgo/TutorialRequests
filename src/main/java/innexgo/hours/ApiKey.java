@@ -24,6 +24,7 @@ public class ApiKey {
 
   public long creationTime;
   public long duration;
+  public boolean valid;
 
   // not public
   String keyHash;

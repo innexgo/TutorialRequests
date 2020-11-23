@@ -30,6 +30,7 @@ public class ApiKeyRowMapper implements RowMapper<ApiKey> {
     apiKey.creatorId = row.getLong("creator_id");
     apiKey.creationTime = row.getLong("creation_time");
     apiKey.duration= row.getLong("duration");
+    apiKey.valid= row.getBoolean("valid");
 
     apiKey.keyHash = row.getString("key_hash");
     return apiKey;
