@@ -19,7 +19,7 @@
 package innexgo.hours;
 
 public class Committment {
-  long committmentId;
+  public long committmentId;
   long creatorId;
   public long creationTime;
   long attendeeId;

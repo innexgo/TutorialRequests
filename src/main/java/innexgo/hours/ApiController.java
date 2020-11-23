@@ -44,11 +44,15 @@ public class ApiController {
   @Autowired
   UserService userService;
   @Autowired
-  ApptRequestService apptRequestService;
+  SessionService sessionService;
   @Autowired
-  ApptService apptService;
+  SessionRequestService sessionRequestService;
   @Autowired
-  AttendanceService attendanceService;
+  SessionRequestResponseService sessionRequestResponseService;
+  @Autowired
+  CommittmentService committmentService;
+  @Autowired
+  CommittmentResponseService committmentResponseService;
   @Autowired
   EmailVerificationChallengeService emailVerificationChallengeService;
   @Autowired
@@ -114,6 +118,7 @@ public class ApiController {
     apiKey.duration = duration;
     apiKey.key = Utils.generateKey();
     apiKey.keyHash = Utils.hashGeneratedKey(apiKey.key);
+    apiKey.valid = true;
     apiKeyService.add(apiKey);
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
   }

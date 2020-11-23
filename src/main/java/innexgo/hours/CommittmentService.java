@@ -31,7 +31,7 @@ public class CommittmentService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public Committment getByApptId(long committmentId) {
+  public Committment getByCommittmentId(long committmentId) {
     String sql =
         "SELECT * FROM committment WHERE committment_id=?";
     RowMapper<Committment> rowMapper = new CommittmentRowMapper();
@@ -53,7 +53,7 @@ public class CommittmentService {
 
   }
 
-  public boolean existsByApptId(long committmentId) {
+  public boolean existsByCommittmentId(long committmentId) {
     String sql = "SELECT count(*) FROM committment WHERE committment_id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, committmentId);
     return count != 0;
@@ -87,21 +87,21 @@ public class CommittmentService {
       "SELECT c.* FROM committment c"
         + (nojoin ? "" : " LEFT JOIN session s ON s.session_id = c.session_id")
         + " WHERE 1=1 "
-        + (committmentId == null ? ""    : " AND c.committment_id = " + committmentId)
-        + (creatorId == null ? ""        : " AND c.creator_id = " + creatorId)
-        + (creationTime == null ? ""     : " AND c.creation_time = " + creationTime)
-        + (minCreationTime == null ? ""  : " AND c.creation_time > " + minCreationTime)
-        + (maxCreationTime == null ? ""  : " AND c.creation_time < " + maxCreationTime)
-        + (attendeeId == null ? ""       : " AND c.attendee_id = " + attendeeId)
-        + (sessionId == null ? ""        : " AND c.session_id = " + sessionId)
-        + (cancellable == null ? ""      : " AND c.cancellable = " + cancellable)
-        + (startTime == null ? ""        : " AND s.start_time = " + startTime)
-        + (minStartTime == null ? ""     : " AND s.start_time > " + minStartTime)
-        + (maxStartTime == null ? ""     : " AND s.start_time < " + maxStartTime)
-        + (duration == null ? ""         : " AND s.duration = " + duration)
-        + (minDuration == null ? ""      : " AND s.duration > " + minDuration)
-        + (maxDuration == null ? ""      : " AND s.duration < " + maxDuration)
-        + (hostId == null     ? ""       : " AND s.host_id = " + hostId)
+        + (committmentId   == null ? "" : " AND c.committment_id = " + committmentId)
+        + (creatorId       == null ? "" : " AND c.creator_id = " + creatorId)
+        + (creationTime    == null ? "" : " AND c.creation_time = " + creationTime)
+        + (minCreationTime == null ? "" : " AND c.creation_time > " + minCreationTime)
+        + (maxCreationTime == null ? "" : " AND c.creation_time < " + maxCreationTime)
+        + (attendeeId      == null ? "" : " AND c.attendee_id = " + attendeeId)
+        + (sessionId       == null ? "" : " AND c.session_id = " + sessionId)
+        + (cancellable     == null ? "" : " AND c.cancellable = " + cancellable)
+        + (startTime       == null ? "" : " AND s.start_time = " + startTime)
+        + (minStartTime    == null ? "" : " AND s.start_time > " + minStartTime)
+        + (maxStartTime    == null ? "" : " AND s.start_time < " + maxStartTime)
+        + (duration        == null ? "" : " AND s.duration = " + duration)
+        + (minDuration     == null ? "" : " AND s.duration > " + minDuration)
+        + (maxDuration     == null ? "" : " AND s.duration < " + maxDuration)
+        + (hostId          == null ? "" : " AND s.host_id = " + hostId)
         + (" ORDER BY at.committment_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";

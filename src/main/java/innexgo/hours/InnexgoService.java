@@ -13,9 +13,15 @@ public class InnexgoService {
   @Autowired
   UserService userService;
   @Autowired
-  ApptService apptService;
+  SessionService sessionService;
   @Autowired
-  ApptRequestService apptRequestService;
+  SessionRequestService sessionRequestService;
+  @Autowired
+  SessionRequestResponseService sessionRequestResponseService;
+  @Autowired
+  CommittmentService committmentService;
+  @Autowired
+  CommittmentResponseService committmentResponseService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
 
@@ -43,46 +49,84 @@ public class InnexgoService {
   /**
    * Fills in jackson objects for EmailVerificationChallenge
    *
-   * @param emailChallengeUser - EmailVerificationChallenge object
+   * @param emailVerificationChallenge - EmailVerificationChallenge object
    * @return EmailVerificationChallenge object with filled jackson objects
    */
-  EmailVerificationChallenge fillEmailVerificationChallenge(EmailVerificationChallenge emailChallengeUser) {
-    return emailChallengeUser;
+  EmailVerificationChallenge fillEmailVerificationChallenge(EmailVerificationChallenge emailVerificationChallenge) {
+    return emailVerificationChallenge;
   }
 
   /**
-   * Fills in jackson objects for ApptRequest
+   * Fills in jackson objects for SessionRequest
    *
-   * @param apptRequest - ApptRequest object
-   * @return ApptRequest object with recursively filled jackson objects
+   * @param sessionRequest - SessionRequest object
+   * @return SessionRequest object with recursively filled jackson objects
    */
-  ApptRequest fillApptRequest(ApptRequest apptRequest) {
-    apptRequest.creator = fillUser(userService.getById(apptRequest.creatorId));
-    apptRequest.attendee = fillUser(userService.getById(apptRequest.attendeeId));
-    apptRequest.host = fillUser(userService.getById(apptRequest.hostId));
-    return apptRequest;
+  SessionRequest fillSessionRequest(SessionRequest sessionRequest) {
+    sessionRequest.creator = fillUser(userService.getById(sessionRequest.creatorId));
+    sessionRequest.attendee = fillUser(userService.getById(sessionRequest.attendeeId));
+    sessionRequest.host = fillUser(userService.getById(sessionRequest.hostId));
+    return sessionRequest;
   }
 
   /**
-   * Fills in jackson objects for Appt
+   * Fills in jackson objects for SessionRequestResponse
    *
-   * @param appt - Appt object
-   * @return Appt object with recursively filled jackson objects
+   * @param sessionRequestResponse - SessionRequestResponse object
+   * @return SessionRequestResponse object with recursively filled jackson objects
    */
-  Appt fillAppt(Appt appt) {
-    appt.apptRequest = fillApptRequest(apptRequestService.getByApptRequestId(appt.apptRequestId));
-    return appt;
+  SessionRequestResponse fillSessionRequestResponse(SessionRequestResponse sessionRequestResponse) {
+    sessionRequestResponse.creator = fillUser(userService.getById(sessionRequestResponse.creatorId));
+    sessionRequestResponse.sessionRequest = fillSessionRequest(
+        sessionRequestService.getBySessionRequestId(sessionRequestResponse.sessionRequestId));
+
+    // depends on whether it was acceppted or not
+    if (sessionRequestResponse.accepted) {
+      sessionRequestResponse.committment = fillCommittment(
+          committmentService.getByCommittmentId(sessionRequestResponse.committmentId));
+    } else {
+      sessionRequestResponse.committment = null;
+    }
+    return sessionRequestResponse;
   }
 
   /**
-   * Fills in jackson objects for Attendance
+   * Fills in jackson objects for Session
    *
-   * @param attendance - Attendance object
-   * @return Attendance object with recursively filled jackson objects
+   * @param session - Session object
+   * @return Session object with recursively filled jackson objects
    */
-  Attendance fillAttendance(Attendance attendance) {
-    attendance.appt = fillAppt(apptService.getByApptRequestId(attendance.apptId));
-    return attendance;
+  Session fillSession(Session session) {
+    session.creator = fillUser(userService.getById(session.creatorId));
+    session.host = fillUser(userService.getById(session.hostId));
+    return session;
+  }
+
+  /**
+   * Fills in jackson objects for Committment
+   *
+   * @param committment - Committment object
+   * @return Committment object with recursively filled jackson objects
+   */
+  Committment fillCommittment(Committment committment) {
+    committment.creator = fillUser(userService.getById(committment.creatorId));
+    committment.attendee = fillUser(userService.getById(committment.attendeeId));
+    committment.session = fillSession(sessionService.getBySessionId(committment.sessionId));
+    return committment;
+  }
+
+  /**
+   * Fills in jackson objects for CommittmentResponse
+   *
+   * @param committmentResponse - CommittmentResponse object
+   * @return CommittmentResponse object with recursively filled jackson objects
+   */
+  CommittmentResponse fillCommittmentResponse(CommittmentResponse committmentResponse) {
+    committmentResponse.creator = fillUser(userService.getById(committmentResponse.creatorId));
+    committmentResponse.committment = fillCommittment(
+        committmentService.getByCommittmentId(committmentResponse.committmentId));
+
+    return committmentResponse;
   }
 
   /**

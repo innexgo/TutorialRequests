@@ -95,7 +95,7 @@ create table committment(
   cancellable integer not null -- boolean
 );
 
---  aresponse to the commitment
+-- a response to the commitment
 drop table if exists committment_response;
 create table committment_response(
   committment_id integer not null primary key,
