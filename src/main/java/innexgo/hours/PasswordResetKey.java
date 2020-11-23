@@ -18,7 +18,7 @@
 
 package innexgo.hours;
 
-public class ForgotPassword {
+public class PasswordResetKey {
     public long id;
     public String email;
     public long creationTime;

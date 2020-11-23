@@ -58,7 +58,7 @@ public class ApiController {
   @Autowired
   MailService mailService;
   @Autowired
-  ForgotPasswordService forgotPasswordService;
+  PasswordResetKeyService resetPasswordKeyService;
   @Autowired
   InnexgoService innexgoService;
 
@@ -178,7 +178,7 @@ public class ApiController {
     String hashedVerificationKey = Utils.hashGeneratedKey(verificationKey);
 
     if (!emailVerificationChallengeService.existsByVerificationKey(hashedVerificationKey)) {
-      return Errors.VERIFICATIONKEY_NONEXISTENT.getResponse();
+      return Errors.EMAIL_VERIFICATION_CHALLENGE_KEY_NONEXISTENT.getResponse();
     }
 
     EmailVerificationChallenge evc = emailVerificationChallengeService.getByVerificationKey(hashedVerificationKey);
@@ -186,7 +186,7 @@ public class ApiController {
     final long now = System.currentTimeMillis();
 
     if ((evc.creationTime + fifteenMinutes) < now) {
-      return Errors.VERIFICATIONKEY_TIMED_OUT.getResponse();
+      return Errors.EMAIL_VERIFICATION_CHALLENGE_KEY_TIMED_OUT.getResponse();
     }
 
     if (userService.existsByEmail(evc.email)) {
@@ -205,8 +205,8 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
-  @RequestMapping("/forgotPassword/new/")
-  public ResponseEntity<?> newForgotPassword(@RequestParam String userEmail) {
+  @RequestMapping("/resetPasswordKey/new/")
+  public ResponseEntity<?> newPasswordResetKey(@RequestParam String userEmail) {
 
     if (!userService.existsByEmail(userEmail)) {
       return Errors.USER_NONEXISTENT.getResponse();
@@ -224,14 +224,14 @@ public class ApiController {
       return Errors.EMAIL_BLACKLISTED.getResponse();
     }
 
-    ForgotPassword fp = new ForgotPassword();
+    PasswordResetKey fp = new PasswordResetKey();
     fp.email = userEmail;
     fp.creationTime = now;
     fp.used = false;
     String rawKey = Utils.generateKey();
     fp.resetKey = Utils.hashGeneratedKey(rawKey);
 
-    forgotPasswordService.add(fp);
+    resetPasswordKeyService.add(fp);
 
     mailService.send(fp.email, "Innexgo Hours: Password Reset", //
         "<p>Requested password reset service.</p>" + //
@@ -245,23 +245,26 @@ public class ApiController {
     user.passwordSetTime = System.currentTimeMillis();
     userService.update(user);
 
-    return new ResponseEntity<>(innexgoService.fillForgotPassword(fp), HttpStatus.OK);
+    return new ResponseEntity<>(innexgoService.fillPasswordResetKey(fp), HttpStatus.OK);
   }
 
-  @RequestMapping("/apptRequest/new/")
-  public ResponseEntity<?> newApptRequest( //
-      @RequestParam long targetId, //
-      @RequestParam boolean attending, //
-      @RequestParam String message, //
+  @RequestMapping("/session/new/")
+  public ResponseEntity<?> newSession( //
+      @RequestParam String name, //
+      @RequestParam long hostId, //
       @RequestParam long startTime, //
       @RequestParam long duration, //
       @RequestParam String apiKey) {
-    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null) {
-      return Errors.APIKEY_NONEXISTENT.getResponse();
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if (!userService.existsById(targetId)) {
+    if (keyCreator.kind == UserKind.STUDENT) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    if (!userService.existsById(hostId)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
@@ -269,27 +272,98 @@ public class ApiController {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
 
-    long hostId;
-    long attendeeId;
-    if (attending) {
-      hostId = targetId;
-      attendeeId = key.creatorId;
-    } else {
-      hostId = key.creatorId;
-      attendeeId = targetId;
+    Session s = new Session();
+    s.creatorId = keyCreator.id;
+    s.creationTime = System.currentTimeMillis();
+    s.name = name;
+    s.hostId = hostId;
+    s.startTime = startTime;
+    s.duration = duration;
+    sessionService.add(s);
+    return new ResponseEntity<>(innexgoService.fillSession(s), HttpStatus.OK);
+  }
+
+  @RequestMapping("/sessionRequest/new/")
+  public ResponseEntity<?> newSessionRequest( //
+      @RequestParam long attendeeId, //
+      @RequestParam long hostId, //
+      @RequestParam String message, //
+      @RequestParam long startTime, //
+      @RequestParam long duration, //
+      @RequestParam String apiKey) {
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    ApptRequest ar = new ApptRequest();
-    ar.creatorId = key.creatorId;
-    ar.hostId = hostId;
-    ar.attendeeId = attendeeId;
-    ar.message = message;
-    ar.creationTime = System.currentTimeMillis();
-    ar.startTime = startTime;
-    ar.duration = duration;
-    apptRequestService.add(ar);
-    return new ResponseEntity<>(innexgoService.fillApptRequest(ar), HttpStatus.OK);
+    if (!userService.existsById(hostId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    if (!userService.existsById(attendeeId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    // Students can only create appointments for themselves (may want to change this
+    // as we develop a more fine grained permissioning system)
+    if ((keyCreator.kind == UserKind.STUDENT) && attendeeId != keyCreator.id) {
+      return Errors.SESSION_CANNOT_CREATE_FOR_OTHERS_STUDENT.getResponse();
+    }
+
+    if (duration < 0) {
+      return Errors.NEGATIVE_DURATION.getResponse();
+    }
+
+    SessionRequest sr = new SessionRequest();
+    sr.creatorId = keyCreator.id;
+    sr.creationTime = System.currentTimeMillis();
+    sr.attendeeId = attendeeId;
+    sr.hostId = hostId;
+    sr.message = message;
+    sr.startTime = startTime;
+    sr.duration = duration;
+    sessionRequestService.add(sr);
+    return new ResponseEntity<>(innexgoService.fillSessionRequest(sr), HttpStatus.OK);
   }
+
+  @RequestMapping("/sessionRequestResponse/new/")
+  public ResponseEntity<?> newSessionRequestResponse( //
+      @RequestParam long sessionRequestId, //
+      @RequestParam String message, //
+      @RequestParam boolean accepted, //
+      @RequestParam(required = false) Long committmentId, //
+      @RequestParam String apiKey) {
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    if (sessionRequestService.existsBySessionRequestId(sessionRequestId)) {
+      return Errors.SESSION_REQUEST_RESPONSE_EXISTENT.getResponse();
+    }
+
+    // students are not allowed to accept their own appointments
+    if (keyCreator.kind == UserKind.STUDENT && accepted) {
+      return Errors.SESSION_REQUEST_RESPONSE_CANNOT_CANCEL_STUDENT.getResponse();
+    }
+
+    if (accepted && committmentId == null) {
+      return Errors.COMMITTMENT_NONEXISTENT.getResponse();
+    }
+
+    SessionRequestResponse srr = new SessionRequestResponse();
+    srr.sessionRequestId = sessionRequestId;
+    srr.creatorId = keyCreator.id;
+    srr.message = message;
+    srr.accepted = accepted;
+    if (accepted) {
+      srr.committmentId = committmentId;
+    }
+    sessionRequestResponseService.add(srr);
+    return new ResponseEntity<>(innexgoService.fillSessionRequestResponse(srr), HttpStatus.OK);
+  }
+
+  // everything from here on out is a TODO
 
   @RequestMapping("/appt/new/")
   public ResponseEntity<?> newAppt( //
@@ -300,11 +374,11 @@ public class ApiController {
       @RequestParam String apiKey) {
     User keyCreator = innexgoService.getUserIfValid(apiKey);
     if (keyCreator == null) {
-      return Errors.APIKEY_NONEXISTENT.getResponse();
+      return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
     if (keyCreator.kind == UserKind.STUDENT) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     if (duration < 0) {
@@ -332,11 +406,11 @@ public class ApiController {
       @RequestParam String apiKey) {
     User keyCreator = innexgoService.getUserIfValid(apiKey);
     if (keyCreator == null) {
-      return Errors.APIKEY_NONEXISTENT.getResponse();
+      return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
     if (keyCreator.kind == UserKind.STUDENT) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     if (attendanceService.existsByApptId(apptId)) {
@@ -365,7 +439,7 @@ public class ApiController {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     List<User> list = userService.query( //
@@ -407,7 +481,7 @@ public class ApiController {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
 
     if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     List<ApptRequest> list = apptRequestService.query(//
@@ -456,7 +530,7 @@ public class ApiController {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     List<Appt> list = apptService.query( //
@@ -499,7 +573,7 @@ public class ApiController {
 
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     List<Attendance> list = attendanceService.query( //
@@ -529,7 +603,7 @@ public class ApiController {
   ) throws IOException {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
-      return Errors.APIKEY_UNAUTHORIZED.getResponse();
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     if (!userService.existsById(userId)) {
@@ -568,33 +642,33 @@ public class ApiController {
   ) {
 
     String hashedResetKey = Utils.hashGeneratedKey(resetKey);
-    if (!forgotPasswordService.existsByResetKey(hashedResetKey)) {
-      return Errors.RESETKEY_NONEXISTENT.getResponse();
+    if (!resetPasswordKeyService.existsByResetKey(hashedResetKey)) {
+      return Errors.PASSWORD_RESET_KEY_NONEXISTENT.getResponse();
     }
 
-    ForgotPassword forgotPassword = forgotPasswordService.getByResetKey(hashedResetKey);
+    PasswordResetKey resetPasswordKey = resetPasswordKeyService.getByResetKey(hashedResetKey);
 
     // deny if timed out
-    if (System.currentTimeMillis() > (forgotPassword.creationTime + fifteenMinutes)) {
-      return Errors.RESETKEY_TIMED_OUT.getResponse();
+    if (System.currentTimeMillis() > (resetPasswordKey.creationTime + fifteenMinutes)) {
+      return Errors.PASSWORD_RESET_KEY_TIMED_OUT.getResponse();
     }
 
     // deny if already used
-    if (forgotPassword.used) {
-      return Errors.RESETKEY_INVALID.getResponse();
+    if (resetPasswordKey.used) {
+      return Errors.PASSWORD_RESET_KEY_INVALID.getResponse();
     }
 
     if (!Utils.securePassword(newPassword)) {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
 
-    User u = userService.getByEmail(forgotPassword.email);
+    User u = userService.getByEmail(resetPasswordKey.email);
     u.passwordHash = Utils.encodePassword(newPassword);
     u.passwordSetTime = System.currentTimeMillis();
     userService.update(u);
 
-    forgotPassword.used = true;
-    forgotPasswordService.update(forgotPassword);
+    resetPasswordKey.used = true;
+    resetPasswordKeyService.update(resetPasswordKey);
 
     return Errors.OK.getResponse();
   }

@@ -27,20 +27,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @Repository
-public class ForgotPasswordService {
+public class PasswordResetKeyService {
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  public List<ForgotPassword> getAll() {
+  public List<PasswordResetKey> getAll() {
     String sql =
-        "SELECT id, name, email, creation_time, reset_key, password_hash, used FROM forgot_password";
-    RowMapper<ForgotPassword> rowMapper = new ForgotPasswordRowMapper();
+        "SELECT * used FROM password_reset_key";
+    RowMapper<PasswordResetKey> rowMapper = new PasswordResetKeyRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
 
   public long nextId() {
-    String sql = "SELECT max(id) FROM forgot_password";
+    String sql = "SELECT max(id) FROM password_reset_key";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
     if(maxId == null) {
       return 0;
@@ -49,13 +49,13 @@ public class ForgotPasswordService {
     }
   }
 
-  public void add(ForgotPassword user) {
+  public void add(PasswordResetKey user) {
     // Set user id
     user.id = nextId();
     user.used = false;
     // Add user
     String sql =
-        "INSERT INTO forgot_password (id, email, creation_time, reset_key, used) values (?, ?, ?, ?, ?)";
+        "INSERT INTO password_reset_key values (?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         user.id,
@@ -65,29 +65,26 @@ public class ForgotPasswordService {
         user.used);
   }
 
-  public void update(ForgotPassword user) {
+  public void use(PasswordResetKey user) {
     String sql =
-    "UPDATE forgot_password SET id=?, email=?, creation_time=?, reset_key=?, used=? WHERE id=?";
+    "UPDATE password_reset_key SET used=? WHERE id=?";
     jdbcTemplate.update(
         sql,
-        user.id,
-        user.email,
-        user.creationTime,
-        user.resetKey,
-        user.used,
-        user.id); 
+        true,
+        user.id);
+    user.used = true;
   }
 
-  public ForgotPassword getByResetKey(String resetKey) {
+  public PasswordResetKey getByResetKey(String resetKey) {
     String sql =
-        "SELECT id, email, creation_time, reset_key, used FROM forgot_password WHERE reset_key=?";
-    RowMapper<ForgotPassword> rowMapper = new ForgotPasswordRowMapper();
-    ForgotPassword forgotPassword = jdbcTemplate.queryForObject(sql, rowMapper, resetKey);
-    return forgotPassword;
+        "SELECT * FROM password_reset_key WHERE reset_key=?";
+    RowMapper<PasswordResetKey> rowMapper = new PasswordResetKeyRowMapper();
+    PasswordResetKey passwordResetKey = jdbcTemplate.queryForObject(sql, rowMapper, resetKey);
+    return passwordResetKey;
   }
 
   public boolean existsByResetKey(String resetKey) {
-    String sql = "SELECT count(*) FROM forgot_password WHERE reset_key=?";
+    String sql = "SELECT count(*) FROM password_reset_key WHERE reset_key=?";
     long count = jdbcTemplate.queryForObject(sql, Long.class, resetKey);
     return count != 0;
   }

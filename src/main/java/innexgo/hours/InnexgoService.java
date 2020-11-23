@@ -22,6 +22,8 @@ public class InnexgoService {
   CommittmentService committmentService;
   @Autowired
   CommittmentResponseService committmentResponseService;
+  @Autowired
+  PasswordResetKeyService passwordResetKeyService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
 
@@ -44,6 +46,16 @@ public class InnexgoService {
    */
   User fillUser(User user) {
     return user;
+  }
+
+  /**
+   * Fills in jackson objects for PasswordResetKey
+   *
+   * @param passwordResetKey - PasswordResetKey object
+   * @return PasswordResetKey object with filled jackson objects
+   */
+  PasswordResetKey fillPasswordResetKey(PasswordResetKey passwordResetKey) {
+    return passwordResetKey;
   }
 
   /**

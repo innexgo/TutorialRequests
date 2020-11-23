@@ -6,8 +6,8 @@ create table email_blacklist(
   last_update_time integer not null
 );
 
-drop table if exists forgot_password;
-create table forgot_password(
+drop table if exists password_reset_key;
+create table password_reset_key(
   id integer not null primary key,
   email varchar(100) not null,
   creation_time integer not null,

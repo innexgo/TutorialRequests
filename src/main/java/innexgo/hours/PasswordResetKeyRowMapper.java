@@ -22,11 +22,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 
-public class ForgotPasswordRowMapper implements RowMapper<ForgotPassword> {
+public class PasswordResetKeyRowMapper implements RowMapper<PasswordResetKey> {
 
   @Override
-  public ForgotPassword mapRow(ResultSet row, int rowNum) throws SQLException {
-    ForgotPassword u = new ForgotPassword();
+  public PasswordResetKey mapRow(ResultSet row, int rowNum) throws SQLException {
+    PasswordResetKey u = new PasswordResetKey();
     u.id = row.getLong("id");
     u.email = row.getString("email");
     u.creationTime = row.getLong("creation_time");
