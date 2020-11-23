@@ -18,20 +18,18 @@
 
 package innexgo.hours;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.springframework.jdbc.core.RowMapper;
+public class Committment {
+  long committmentId;
+  long creatorId;
+  public long creationTime;
+  long attendeeId;
+  long sessionId;
+  public long startTime;
+  public long duration;
+  public boolean cancellable;
 
-public class ApptRowMapper implements RowMapper<Appt> {
-
-  @Override
-  public Appt mapRow(ResultSet row, int rowNum) throws SQLException {
-    Appt appt = new Appt();
-    appt.apptRequestId = row.getLong("appt_request_id");
-    appt.message = row.getString("message");
-    appt.creationTime = row.getLong("creation_time");
-    appt.startTime= row.getLong("start_time");
-    appt.duration = row.getLong("duration");
-    return appt;
-  }
+  // for jackson
+  public User creator;
+  public User attendee;
+  public Session session;
 }

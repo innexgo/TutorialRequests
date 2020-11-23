@@ -67,7 +67,7 @@ create table session_request(
   creator_id integer not null,
   creation_time integer not null,
   attendee_id integer not null,
-  id integer not null,
+  host_id integer not null,
   message varchar(100) not null,
   start_time integer not null,
   duration integer not null
@@ -77,10 +77,11 @@ create table session_request(
 drop table if exists session_request_response; 
 create table session_request_response(
   session_request_id integer not null primary key,
-  session_request_response_kind integer not null, -- can be ACCEPTED(0), REJECTED(1)
-  response_message varchar(100) not null,
+  creator_id integer not null,
   creation_time integer not null,
-  accepted_committment_id integer not null, -- only valid if session_request_response_kind == ACCEPTED
+  message varchar(100) not null,
+  accepted integer not null, -- boolean
+  accepted_committment_id integer not null, -- only valid if accepted == true
 );
 
 -- a committment to attend a course session

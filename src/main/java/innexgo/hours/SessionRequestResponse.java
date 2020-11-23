@@ -18,13 +18,18 @@
 
 package innexgo.hours;
 
-public class Appt {
-  long apptRequestId;
-  public String message;
+public class SessionRequestResponse {
+  long sessionRequestId;
+  long creatorId;
   public long creationTime;
-  public long startTime;
-  public long duration;
+  public String message;
+  public boolean accepted;
+  // Only valid if accepted == true
+  public long committmentId;
 
   // for jackson
-  public ApptRequest apptRequest;
+  public User creator;
+  public SessionRequest sessionRequest;
+  // possibly null
+  public Committment committment;
 }
