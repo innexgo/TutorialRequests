@@ -18,16 +18,21 @@
 
 package innexgo.hours;
 
-public class Committment {
-  long committmentId;
-  long creatorId;
-  public long creationTime;
-  long attendeeId;
-  long sessionId;
-  public boolean cancellable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  // for jackson
-  public User creator;
-  public User attendee;
-  public Session session;
+public class CommittmentRowMapper implements RowMapper<Committment> {
+
+  @Override
+  public Committment mapRow(ResultSet row, int rowNum) throws SQLException {
+    Committment committment = new Committment();
+    committment.committmentId = row.getLong("committmentId");
+    committment.creatorId = row.getLong("creatorId");
+    committment.creationTime = row.getLong("creationTime");
+    committment.attendeeId = row.getLong("attendeeId");
+    committment.sessionId = row.getLong("sessionId");
+    committment.cancellable = row.getBoolean("cancellable");
+    return committment;
+  }
 }
