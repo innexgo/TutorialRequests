@@ -55,7 +55,7 @@ public class SessionService {
     session.sessionId = nextId();
     // Add session
     String sql =
-        "INSERT INTO session values (?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO session values (?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         session.sessionId,
@@ -64,7 +64,8 @@ public class SessionService {
         session.name,
         session.hostId,
         session.startTime,
-        session.duration
+        session.duration,
+        session.hidden
     );
   }
 
@@ -96,6 +97,7 @@ public class SessionService {
       Long duration,
       Long minDuration,
       Long maxDuration,
+      Boolean hidden,
       long offset,
       long count) {
     String sql =
@@ -114,6 +116,7 @@ public class SessionService {
             + (duration == null ? "" : " AND ses.duration = " + duration)
             + (minDuration == null ? "" : " AND ses.duration > " + minDuration)
             + (maxDuration == null ? "" : " AND ses.duration < " + maxDuration)
+            + (hidden == null ? "" : " AND ses.duration = " + (hidden ? 1 : 0))
             + (" ORDER BY ses.session_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

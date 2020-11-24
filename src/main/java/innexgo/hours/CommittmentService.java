@@ -75,6 +75,7 @@ public class CommittmentService {
      Long duration,
      Long minDuration,
      Long maxDuration,
+     Boolean responded,
      long offset,
      long count)
  {
@@ -86,6 +87,7 @@ public class CommittmentService {
     String sql=
       "SELECT c.* FROM committment c"
         + (nojoin ? "" : " LEFT JOIN session s ON s.session_id = c.session_id")
+        + (responded == null ? "" : " LEFT JOIN committment_response cr ON cr.committment_id= c.committment_id")
         + " WHERE 1=1 "
         + (committmentId   == null ? "" : " AND c.committment_id = " + committmentId)
         + (creatorId       == null ? "" : " AND c.creator_id = " + creatorId)
@@ -102,6 +104,7 @@ public class CommittmentService {
         + (minDuration     == null ? "" : " AND s.duration > " + minDuration)
         + (maxDuration     == null ? "" : " AND s.duration < " + maxDuration)
         + (hostId          == null ? "" : " AND s.host_id = " + hostId)
+        + (responded       == null ? "" : " AND cr.committment_id IS" + (responded ? " NOT NULL" : " NULL"))
         + (" ORDER BY at.committment_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";

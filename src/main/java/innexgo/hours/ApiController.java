@@ -20,7 +20,6 @@ package innexgo.hours;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +57,7 @@ public class ApiController {
   @Autowired
   MailService mailService;
   @Autowired
-  PasswordResetKeyService resetPasswordKeyService;
+  PasswordResetKeyService passwordResetKeyService;
   @Autowired
   InnexgoService innexgoService;
 
@@ -78,7 +77,7 @@ public class ApiController {
   @Value("${INNEXGO_HOURS_SITE}")
   String innexgoHoursSite;
 
-  final static int fiveMinutes = 5 * 60 * 1000;
+  final static int fiveMinutes =     5 * 60 * 1000;
   final static int fifteenMinutes = 15 * 60 * 1000;
 
   /**
@@ -231,7 +230,7 @@ public class ApiController {
     String rawKey = Utils.generateKey();
     fp.resetKey = Utils.hashGeneratedKey(rawKey);
 
-    resetPasswordKeyService.add(fp);
+    passwordResetKeyService.add(fp);
 
     mailService.send(fp.email, "Innexgo Hours: Password Reset", //
         "<p>Requested password reset service.</p>" + //
@@ -363,66 +362,91 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillSessionRequestResponse(srr), HttpStatus.OK);
   }
 
-  // everything from here on out is a TODO
 
-  @RequestMapping("/appt/new/")
-  public ResponseEntity<?> newAppt( //
-      @RequestParam long apptRequestId, //
-      @RequestParam String message, //
-      @RequestParam long startTime, //
-      @RequestParam long duration, //
+  @RequestMapping("/committment/new/")
+  public ResponseEntity<?> newCommittment( //
+      @RequestParam long attendeeId, //
+      @RequestParam long sessionId, //
+      @RequestParam boolean cancellable, //
       @RequestParam String apiKey) {
     User keyCreator = innexgoService.getUserIfValid(apiKey);
     if (keyCreator == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if (keyCreator.kind == UserKind.STUDENT) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    if(!userService.existsById(attendeeId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
     }
 
-    if (duration < 0) {
-      return Errors.NEGATIVE_DURATION.getResponse();
+    if(!sessionService.existsBySessionId(sessionId)) {
+      return Errors.SESSION_NONEXISTENT.getResponse();
     }
 
-    if (apptService.existsByApptRequestId(apptRequestId)) {
-      return Errors.APPT_EXISTENT.getResponse();
+
+    if(keyCreator.kind == UserKind.STUDENT) {
+      // Students may not create committments on others behalf
+      if(keyCreator.id != attendeeId) {
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
+      Session s = sessionService.getBySessionId(sessionId);
+      // Students may not create committments for hidden sessions
+      if(s.hidden) {
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
+      // Students may not create uncancellable committments
+      if(!cancellable) {
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
     }
 
-    Appt a = new Appt();
-    a.apptRequestId = apptRequestId;
-    a.message = message;
-    a.creationTime = System.currentTimeMillis();
-    a.startTime = startTime;
-    a.duration = duration;
-    apptService.add(a);
-    return new ResponseEntity<>(innexgoService.fillAppt(a), HttpStatus.OK);
+    Committment c = new Committment();
+    c.creatorId = keyCreator.id;
+    c.creationTime = System.currentTimeMillis();
+    c.attendeeId = attendeeId;
+    c.sessionId = sessionId;
+    c.cancellable = cancellable;
+    committmentService.add(c);
+    return new ResponseEntity<>(innexgoService.fillCommittment(c), HttpStatus.OK);
   }
 
-  @RequestMapping("/attendance/new/")
-  public ResponseEntity<?> newAttendance( //
-      @RequestParam long apptId, //
-      @RequestParam AttendanceKind attendanceKind, //
+  @RequestMapping("/committmentResponse/new/")
+  public ResponseEntity<?> newCommittmentResponse( //
+      @RequestParam long committmentId, //
+      @RequestParam CommittmentResponseKind committmentResponseKind, //
       @RequestParam String apiKey) {
     User keyCreator = innexgoService.getUserIfValid(apiKey);
     if (keyCreator == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
+    if(!committmentService.existsByCommittmentId(committmentId) ) {
+      return Errors.COMMITTMENT_NONEXISTENT.getResponse();
+    }
+
+    if (committmentResponseService.existsByCommittmentId(committmentId)) {
+      return Errors.COMMITTMENT_RESPONSE_EXISTENT.getResponse();
+    }
+
     if (keyCreator.kind == UserKind.STUDENT) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      Committment c = committmentService.getByCommittmentId(committmentId) ;
+      // Students may only cancel their own committment
+      if(keyCreator.id != c.attendeeId) {
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
+
+      // Students may only cancel if their appointment is cancellable
+      if(!c.cancellable) {
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
     }
 
-    if (attendanceService.existsByApptId(apptId)) {
-      return Errors.ATTENDANCE_EXISTENT.getResponse();
-    }
-
-    Attendance a = new Attendance();
-    a.apptId = apptId;
+    CommittmentResponse a = new CommittmentResponse();
+    a.committmentId = committmentId;
+    a.creatorId = keyCreator.id;
     a.creationTime = System.currentTimeMillis();
-    a.kind = attendanceKind;
-    attendanceService.add(a);
-    return new ResponseEntity<>(innexgoService.fillAttendance(a), HttpStatus.OK);
+    a.kind = committmentResponseKind;
+    committmentResponseService.add(a);
+    return new ResponseEntity<>(innexgoService.fillCommittmentResponse(a), HttpStatus.OK);
   }
 
   @RequestMapping("/user/")
@@ -457,23 +481,23 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-  @RequestMapping("/apptRequest/")
-  public ResponseEntity<?> viewApptRequest( //
-      @RequestParam(required = false) Long apptRequestId, //
-      @RequestParam(required = false) Long creatorId, //
-      @RequestParam(required = false) Long attendeeId, //
-      @RequestParam(required = false) Long hostId, //
-      @RequestParam(required = false) String message, //
-      @RequestParam(required = false) Long creationTime, //
-      @RequestParam(required = false) Long minCreationTime, //
-      @RequestParam(required = false) Long maxCreationTime, //
-      @RequestParam(required = false) Long startTime, //
-      @RequestParam(required = false) Long minStartTime, //
-      @RequestParam(required = false) Long maxStartTime, //
-      @RequestParam(required = false) Long duration, //
-      @RequestParam(required = false) Long minDuration, //
-      @RequestParam(required = false) Long maxDuration, //
-      @RequestParam(required = false) Boolean confirmed, //
+
+  @RequestMapping("/session/")
+  public ResponseEntity<?> viewSession( //
+      @RequestParam(required=false) Long sessionId, //
+      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creationTime, //
+      @RequestParam(required=false) Long minCreationTime, //
+      @RequestParam(required=false) Long maxCreationTime, //
+      @RequestParam(required=false) String name, //
+      @RequestParam(required=false) Long hostId, //
+      @RequestParam(required=false) Long startTime, //
+      @RequestParam(required=false) Long minStartTime, //
+      @RequestParam(required=false) Long maxStartTime, //
+      @RequestParam(required=false) Long duration, //
+      @RequestParam(required=false) Long minDuration, //
+      @RequestParam(required=false) Long maxDuration, //
+      @RequestParam(required=false) Boolean hidden, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) {
@@ -484,45 +508,87 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<ApptRequest> list = apptRequestService.query(//
-        apptRequestId, // Long id,
-        creatorId, // Long creatorId,
-        attendeeId, // Long attendeeId,
-        hostId, // Long attendeeId,
-        message, // String message,
-        creationTime, // Long creationTime,
-        minCreationTime, // Long minCreationTime,
-        maxCreationTime, // Long maxCreationTime,
-        startTime, // Long startTime,
-        minStartTime, // Long minStartTime,
-        maxStartTime, // Long maxStartTime,
-        duration, // Long duration,
-        minDuration, // Long minDuration,
-        maxDuration, // Long maxDuration,
-        confirmed, // Boolean confirmed,
+    List<Session> list = sessionService.query(//
+        sessionId, //
+        creatorId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        name, //
+        hostId, //
+        startTime, //
+        minStartTime, //
+        maxStartTime, //
+        duration, //
+        minDuration, //
+        maxDuration, //
+        hidden, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillApptRequest(x)).collect(Collectors.toList());
+    ).stream().map(x -> innexgoService.fillSession(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-  @RequestMapping("/appt/")
-  public ResponseEntity<?> viewAppt( //
-      @RequestParam(required = false) Long apptRequestId, //
-      @RequestParam(required = false) Long creatorId, //
-      @RequestParam(required = false) Long attendeeId, //
-      @RequestParam(required = false) Long hostId, //
-      @RequestParam(required = false) String message, //
-      @RequestParam(required = false) Long creationTime, //
-      @RequestParam(required = false) Long minCreationTime, //
-      @RequestParam(required = false) Long maxCreationTime, //
-      @RequestParam(required = false) Long startTime, //
-      @RequestParam(required = false) Long minStartTime, //
-      @RequestParam(required = false) Long maxStartTime, //
-      @RequestParam(required = false) Long duration, //
-      @RequestParam(required = false) Long minDuration, //
-      @RequestParam(required = false) Long maxDuration, //
-      @RequestParam(required = false) Boolean attended, //
+
+  @RequestMapping("/apptRequest/")
+  public ResponseEntity<?> viewApptRequest( //
+      @RequestParam(required=false) Long sessionRequestId, //
+      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long attendeeId, //
+      @RequestParam(required=false) Long hostId, //
+      @RequestParam(required=false) String message, //
+      @RequestParam(required=false) Long creationTime, //
+      @RequestParam(required=false) Long minCreationTime, //
+      @RequestParam(required=false) Long maxCreationTime, //
+      @RequestParam(required=false) Long startTime, //
+      @RequestParam(required=false) Long minStartTime, //
+      @RequestParam(required=false) Long maxStartTime, //
+      @RequestParam(required=false) Long duration, //
+      @RequestParam(required=false) Long minDuration, //
+      @RequestParam(required=false) Long maxDuration, //
+      @RequestParam(required=false) Boolean responded, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey) {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    List<SessionRequest> list = sessionRequestService.query(//
+        sessionRequestId, //
+        creatorId, //
+        attendeeId, //
+        hostId, //
+        message, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        startTime, //
+        minStartTime, //
+        maxStartTime, //
+        duration, //
+        minDuration, //
+        maxDuration, //
+        responded, //
+        offset, // long offset,
+        count // long count)
+    ).stream().map(x -> innexgoService.fillSessionRequest(x)).collect(Collectors.toList());
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/sessionRequestResponse/")
+  public ResponseEntity<?> viewSessionRequestResponse( //
+      @RequestParam(required=false) Long sessionRequestId, //
+      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creationTime, //
+      @RequestParam(required=false) Long minCreationTime, //
+      @RequestParam(required=false) Long maxCreationTime, //
+      @RequestParam(required=false) String message, //
+      @RequestParam(required=false) Boolean accepted, //
+      @RequestParam(required=false) Long committmentId, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -533,39 +599,39 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Appt> list = apptService.query( //
-        apptRequestId, // Long apptRequestId,
-        attendeeId, // Long attendeeId,
-        hostId, // Long hostId,
-        message, // String message,
-        creationTime, // Long creationTime,
-        minCreationTime, // Long minCreationTime,
-        maxCreationTime, // Long maxCreationTime,
-        startTime, // Long time,
-        minStartTime, // Long minTime,
-        maxStartTime, // Long maxTime,
-        duration, // Long duration,
-        minDuration, // Long minDuration,
-        maxDuration, // Long maxDuration,
-        attended, // Boolean attended,
+    List<SessionRequestResponse> list = sessionRequestResponseService.query( //
+        sessionRequestId, //
+        creatorId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        message, //
+        accepted, //
+        committmentId, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillAppt(x)).collect(Collectors.toList());
+    ).stream().map(x -> innexgoService.fillSessionRequestResponse(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-  @RequestMapping("/attendance/")
-  public ResponseEntity<?> viewAttendance( //
-      @RequestParam(required = false) Long apptId, //
-      @RequestParam(required = false) Long attendeeId, //
-      @RequestParam(required = false) Long hostId, //
-      @RequestParam(required = false) Long creationTime, //
-      @RequestParam(required = false) Long minCreationTime, //
-      @RequestParam(required = false) Long maxCreationTime, //
-      @RequestParam(required = false) Long startTime, //
-      @RequestParam(required = false) Long minStartTime, //
-      @RequestParam(required = false) Long maxStartTime, //
-      @RequestParam(required = false) AttendanceKind kind, //
+  @RequestMapping("/committment/")
+  public ResponseEntity<?> viewCommittment( //
+      @RequestParam(required=false) Long committmentId, //
+      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creationTime, //
+      @RequestParam(required=false) Long minCreationTime, //
+      @RequestParam(required=false) Long maxCreationTime, //
+      @RequestParam(required=false) Long attendeeId, //
+      @RequestParam(required=false) Long sessionId, //
+      @RequestParam(required=false) Boolean cancellable, //
+      @RequestParam(required=false) Long hostId, //
+      @RequestParam(required=false) Long startTime, //
+      @RequestParam(required=false) Long minStartTime, //
+      @RequestParam(required=false) Long maxStartTime, //
+      @RequestParam(required=false) Long duration, //
+      @RequestParam(required=false) Long minDuration, //
+      @RequestParam(required=false) Long maxDuration, //
+      @RequestParam(required=false) Boolean responded, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -576,20 +642,73 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Attendance> list = attendanceService.query( //
-        apptId, // Long apptId,
-        attendeeId, // Long attendeeId
-        hostId, // Long hostId,
-        creationTime, // Long creationTime,
-        minCreationTime, // Long minCreationTime,
-        maxCreationTime, // Long maxCreationTime,
-        startTime, // Long startTime,
-        minStartTime, // Long minStartTime,
-        maxStartTime, // Long maxStartTime,
-        kind, // AttendanceKind kind,
+    List<Committment> list = committmentService.query( //
+        committmentId, //
+        creatorId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        attendeeId, //
+        sessionId, //
+        cancellable, //
+        hostId, //
+        startTime, //
+        minStartTime, //
+        maxStartTime, //
+        duration, //
+        minDuration, //
+        maxDuration, //
+        responded, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillAttendance(x)).collect(Collectors.toList());
+    ).stream().map(x -> innexgoService.fillCommittment(x)).collect(Collectors.toList());
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/committmentResponse/")
+  public ResponseEntity<?> viewCommittmentResponse( //
+      @RequestParam(required=false) Long committmentId, //
+      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creationTime, //
+      @RequestParam(required=false) Long minCreationTime, //
+      @RequestParam(required=false) Long maxCreationTime, //
+      @RequestParam(required=false) CommittmentResponseKind committmentResponseKind, //
+      @RequestParam(required=false) Long attendeeId, //
+      @RequestParam(required=false) Long hostId, //
+      @RequestParam(required=false) Long startTime, //
+      @RequestParam(required=false) Long minStartTime, //
+      @RequestParam(required=false) Long maxStartTime, //
+      @RequestParam(required=false) Long duration, //
+      @RequestParam(required=false) Long minDuration, //
+      @RequestParam(required=false) Long maxDuration, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey //
+  ) {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    List<CommittmentResponse> list = committmentResponseService.query( //
+        committmentId, //
+        creatorId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        committmentResponseKind, //
+        attendeeId, //
+        hostId, //
+        startTime, //
+        minStartTime, //
+        maxStartTime, //
+        duration, //
+        minDuration, //
+        maxDuration, //
+        offset, // long offset,
+        count // long count)
+    ).stream().map(x -> innexgoService.fillCommittmentResponse(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -600,7 +719,7 @@ public class ApiController {
       @RequestParam String oldPassword, //
       @RequestParam String newPassword, //
       @RequestParam String apiKey //
-  ) throws IOException {
+  ) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
@@ -642,11 +761,11 @@ public class ApiController {
   ) {
 
     String hashedResetKey = Utils.hashGeneratedKey(resetKey);
-    if (!resetPasswordKeyService.existsByResetKey(hashedResetKey)) {
+    if (!passwordResetKeyService.existsByResetKey(hashedResetKey)) {
       return Errors.PASSWORD_RESET_KEY_NONEXISTENT.getResponse();
     }
 
-    PasswordResetKey resetPasswordKey = resetPasswordKeyService.getByResetKey(hashedResetKey);
+    PasswordResetKey resetPasswordKey = passwordResetKeyService.getByResetKey(hashedResetKey);
 
     // deny if timed out
     if (System.currentTimeMillis() > (resetPasswordKey.creationTime + fifteenMinutes)) {
@@ -667,8 +786,7 @@ public class ApiController {
     u.passwordSetTime = System.currentTimeMillis();
     userService.update(u);
 
-    resetPasswordKey.used = true;
-    resetPasswordKeyService.update(resetPasswordKey);
+    passwordResetKeyService.use(resetPasswordKey);
 
     return Errors.OK.getResponse();
   }

@@ -56,7 +56,7 @@ create table session(
   host_id integer not null
   start_time integer not null,
   duration integer not null,
-  public integer not null       -- boolean
+  hidden integer not null       -- boolean
 );
 
 -- a request from a student to a course for a specific time

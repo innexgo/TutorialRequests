@@ -34,6 +34,7 @@ public class SessionRowMapper implements RowMapper<Session> {
     session.hostId = row.getLong("host_id");
     session.startTime = row.getLong("start_time");
     session.duration = row.getLong("duration");
+    session.hidden= row.getBoolean("hidden");
     return session;
   }
 }

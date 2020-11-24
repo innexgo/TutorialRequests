@@ -26,6 +26,7 @@ public class Session {
   long hostId;
   public long startTime;
   public long duration;
+  public boolean hidden;
 
   // for jackson
   public User creator;
