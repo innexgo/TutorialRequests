@@ -386,16 +386,16 @@ public class ApiController {
     if(keyCreator.kind == UserKind.STUDENT) {
       // Students may not create committments on others behalf
       if(keyCreator.id != attendeeId) {
-        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+        return Errors.COMMITTMENT_CANNOT_CREATE_FOR_OTHERS_STUDENT.getResponse();
       }
       Session s = sessionService.getBySessionId(sessionId);
       // Students may not create committments for hidden sessions
       if(s.hidden) {
-        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+        return Errors.COMMITTMENT_CANNOT_CREATE_HIDDEN_STUDENT.getResponse();
       }
       // Students may not create uncancellable committments
       if(!cancellable) {
-        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+        return Errors.COMMITTMENT_CANNOT_CREATE_UNCANCELLABLE_STUDENT.getResponse();
       }
     }
 
@@ -431,12 +431,12 @@ public class ApiController {
       Committment c = committmentService.getByCommittmentId(committmentId) ;
       // Students may only cancel their own committment
       if(keyCreator.id != c.attendeeId) {
-        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+        return Errors.COMMITTMENT_RESPONSE_CANNOT_CREATE_FOR_OTHERS_STUDENT.getResponse();
       }
 
       // Students may only cancel if their appointment is cancellable
       if(!c.cancellable) {
-        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+        return Errors.COMMITTMENT_RESPONSE_UNCANCELLABLE.getResponse();
       }
     }
 

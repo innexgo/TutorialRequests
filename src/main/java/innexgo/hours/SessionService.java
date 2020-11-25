@@ -116,7 +116,7 @@ public class SessionService {
             + (duration == null ? "" : " AND ses.duration = " + duration)
             + (minDuration == null ? "" : " AND ses.duration > " + minDuration)
             + (maxDuration == null ? "" : " AND ses.duration < " + maxDuration)
-            + (hidden == null ? "" : " AND ses.duration = " + (hidden ? 1 : 0))
+            + (hidden == null ? "" : " AND ses.duration = " + hidden)
             + (" ORDER BY ses.session_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

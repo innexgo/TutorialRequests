@@ -83,7 +83,7 @@ public class SessionRequestResponseService {
             + (minCreationTime == null ? "" : " AND sesreqre.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND sesreqre.creation_time < " + maxCreationTime)
             + (message == null ? "" : " AND sesreqre.message = " + Utils.escape(message))
-            + (accepted == null ? "" : " AND sesreqre.accepted = " + (accepted ? 1 : 0))
+            + (accepted == null ? "" : " AND sesreqre.accepted = " + accepted)
             + (committmentId == null ? "" : " AND sesreqre.accepted_committment_id= " + committmentId)
             + (" ORDER BY sesreqre.session_request_id")
             + (" LIMIT " + offset + ", " + count)
