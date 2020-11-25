@@ -110,6 +110,9 @@ public class UserService {
 
   public List<User> query(
       Long id,
+      Long creationTime,
+      Long minCreationTime,
+      Long maxCreationTime,
       UserKind kind,
       String name,
       String partialUserName,
@@ -122,14 +125,17 @@ public class UserService {
     String sql =
         "SELECT u.* FROM user u"
             + " WHERE 1=1 "
-            + (id == null ? "" : " AND u.id = " + id)
-            + (name == null ? "" : " AND u.name = " + Utils.escape(name))
-            + (partialUserName== null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
-            + (kind == null ? "" : " AND u.kind = " + kind.value)
-            + (passwordSetTime == null ? "" : " AND u.password_set_time = " + passwordSetTime)
+            + (id                == null ? "" : " AND u.id = " + id)
+            + (creationTime      == null ? "" : " AND u.creation_time = " + creationTime)
+            + (minCreationTime   == null ? "" : " AND u.creation_time > " + minCreationTime)
+            + (maxCreationTime   == null ? "" : " AND u.creation_time < " + maxCreationTime)
+            + (name              == null ? "" : " AND u.name = " + Utils.escape(name))
+            + (partialUserName   == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
+            + (kind              == null ? "" : " AND u.kind = " + kind.value)
+            + (passwordSetTime   == null ? "" : " AND u.password_set_time = " + passwordSetTime)
             + (minPasswordSetTime== null ? "" : " AND u.password_set_time > " + minPasswordSetTime)
             + (maxPasswordSetTime== null ? "" : " AND u.password_set_time < " + maxPasswordSetTime)
-            + (email == null ? "" : " AND u.email = " + Utils.escape(email))
+            + (email             == null ? "" : " AND u.email = " + Utils.escape(email))
             + (" ORDER BY u.id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

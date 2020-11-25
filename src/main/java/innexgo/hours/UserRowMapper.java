@@ -28,6 +28,7 @@ public class UserRowMapper implements RowMapper<User> {
   public User mapRow(ResultSet row, int rowNum) throws SQLException {
     User u = new User();
     u.id = row.getLong("id");
+    u.creationTime = row.getLong("creation_time");
     u.kind = UserKind.from(row.getInt("kind"));
     u.name = row.getString("name");
     u.email = row.getString("email");

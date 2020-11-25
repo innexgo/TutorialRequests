@@ -20,11 +20,12 @@ package innexgo.hours;
 
 public class User {
   public long id;
+  public long creationTime;
   public UserKind kind;
   public String name;
   public String email;
-  public long passwordSetTime;
   // not public so it doesn't get serialized to jackson
+  long passwordSetTime;
   String passwordHash;
 }
 

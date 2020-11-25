@@ -204,7 +204,7 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
-  @RequestMapping("/resetPasswordKey/new/")
+  @RequestMapping("/passwordResetKey/new/")
   public ResponseEntity<?> newPasswordResetKey(@RequestParam String userEmail) {
 
     if (!userService.existsByEmail(userEmail)) {
@@ -452,6 +452,9 @@ public class ApiController {
   @RequestMapping("/user/")
   public ResponseEntity<?> viewUser( //
       @RequestParam(required = false) Long userId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
       @RequestParam(required = false) UserKind userKind, //
       @RequestParam(required = false) String userName, //
       @RequestParam(required = false) String partialUserName, //
@@ -468,6 +471,9 @@ public class ApiController {
 
     List<User> list = userService.query( //
         userId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
         userKind, //
         userName, //
         partialUserName, //
@@ -530,8 +536,8 @@ public class ApiController {
   }
 
 
-  @RequestMapping("/apptRequest/")
-  public ResponseEntity<?> viewApptRequest( //
+  @RequestMapping("/sessionRequest/")
+  public ResponseEntity<?> viewSessionRequest( //
       @RequestParam(required=false) Long sessionRequestId, //
       @RequestParam(required=false) Long creatorId, //
       @RequestParam(required=false) Long attendeeId, //
@@ -754,8 +760,8 @@ public class ApiController {
     }, HttpStatus.OK);
   }
 
-  @RequestMapping("/misc/resetPassword/")
-  public ResponseEntity<?> resetPassword( //
+  @RequestMapping("/misc/usePasswordResetKey/")
+  public ResponseEntity<?> usePasswordResetKey( //
       @RequestParam String resetKey, //
       @RequestParam String newPassword //
   ) {

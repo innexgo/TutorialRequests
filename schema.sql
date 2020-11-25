@@ -29,6 +29,7 @@ create table email_verification_challenge(
 drop table if exists user;
 create table user(
   id integer not null primary key,
+  creation_time integer not null,
   kind integer not null,
   name varchar(100) not null,
   email varchar(100) not null unique,

@@ -25,7 +25,7 @@ public class SessionRequestResponse {
   public String message;
   public boolean accepted;
   // Only valid if accepted == true
-  public long committmentId;
+  long committmentId;
 
   // for jackson
   public User creator;
