@@ -67,6 +67,14 @@ public class SessionRequestResponseService {
       String message,
       Boolean accepted,
       Long committmentId,
+      Long attendeeId,
+      Long hostId,
+      Long startTime, //
+      Long minStartTime, //
+      Long maxStartTime, //
+      Long duration, //
+      Long minDuration, //
+      Long maxDuration, //
       long offset,
       long count) {
 
@@ -74,17 +82,29 @@ public class SessionRequestResponseService {
         accepted = true;
     }
 
+    boolean nojoin = attendeeId == null && hostId == null;
+
     String sql =
-        "SELECT sesreqre.* FROM session_request_response sesreqre"
+        "SELECT srr.* FROM session_request_response srr"
+            + (nojoin ? "" : " JOIN session_request sr ON sr.session_request_id = srr.session_request_id")
             + " WHERE 1=1 "
-            + (sessionRequestId == null ? "" : " AND sesreqre.session_request_id = " + sessionRequestId)
-            + (creatorId == null ? "" : " AND sesreqre.creator_id = " + creatorId)
-            + (creationTime == null ? "" : " AND sesreqre.creation_time = " + creationTime)
-            + (minCreationTime == null ? "" : " AND sesreqre.creation_time > " + minCreationTime)
-            + (maxCreationTime == null ? "" : " AND sesreqre.creation_time < " + maxCreationTime)
-            + (message == null ? "" : " AND sesreqre.message = " + Utils.escape(message))
-            + (accepted == null ? "" : " AND sesreqre.accepted = " + accepted)
-            + (committmentId == null ? "" : " AND sesreqre.accepted_committment_id= " + committmentId)
+            + (sessionRequestId == null ? "" : " AND srr.session_request_id = " + sessionRequestId)
+            + (creatorId        == null ? "" : " AND srr.creator_id = " + creatorId)
+            + (creationTime     == null ? "" : " AND srr.creation_time = " + creationTime)
+            + (minCreationTime  == null ? "" : " AND srr.creation_time > " + minCreationTime)
+            + (maxCreationTime  == null ? "" : " AND srr.creation_time < " + maxCreationTime)
+            + (message          == null ? "" : " AND srr.message = " + Utils.escape(message))
+            + (accepted         == null ? "" : " AND srr.accepted = " + accepted)
+            + (committmentId    == null ? "" : " AND srr.accepted_committment_id= " + committmentId)
+            + (attendeeId       == null ? "" : " AND sr.attendee_id = " + attendeeId)
+            + (hostId           == null ? "" : " AND sr.host_id = " + hostId)
+            + (startTime        == null ? "" : " AND sr.start_time = " + startTime)
+            + (minStartTime     == null ? "" : " AND sr.start_time > " + minStartTime)
+            + (maxStartTime     == null ? "" : " AND sr.start_time < " + maxStartTime)
+            + (duration         == null ? "" : " AND sr.duration = " + duration)
+            + (minDuration      == null ? "" : " AND sr.duration > " + minDuration)
+            + (maxDuration      == null ? "" : " AND sr.duration < " + maxDuration)
+
             + (" ORDER BY sesreqre.session_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

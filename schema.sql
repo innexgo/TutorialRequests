@@ -44,7 +44,7 @@ create table api_key(
   creation_time integer not null,
   duration integer not null,
   key_hash char(64) not null unique,
-  valid integer not null, -- boolean
+  valid integer not null -- boolean
 );
 
 -- Represents a specific instance of a course
@@ -54,7 +54,7 @@ create table session(
   creator_id integer not null,
   creation_time integer not null,
   name varchar(100) not null,
-  host_id integer not null
+  host_id integer not null,
   start_time integer not null,
   duration integer not null,
   hidden integer not null       -- boolean
@@ -82,7 +82,7 @@ create table session_request_response(
   creation_time integer not null,
   message varchar(100) not null,
   accepted integer not null, -- boolean
-  accepted_committment_id integer not null, -- only valid if accepted == true
+  accepted_committment_id integer not null -- only valid if accepted == true
 );
 
 -- a committment to attend a course session

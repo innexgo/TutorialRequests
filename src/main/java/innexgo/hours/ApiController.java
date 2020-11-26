@@ -253,6 +253,7 @@ public class ApiController {
       @RequestParam long hostId, //
       @RequestParam long startTime, //
       @RequestParam long duration, //
+      @RequestParam boolean hidden, //
       @RequestParam String apiKey) {
     User keyCreator = innexgoService.getUserIfValid(apiKey);
     if (keyCreator == null) {
@@ -278,6 +279,7 @@ public class ApiController {
     s.hostId = hostId;
     s.startTime = startTime;
     s.duration = duration;
+    s.hidden = hidden;
     sessionService.add(s);
     return new ResponseEntity<>(innexgoService.fillSession(s), HttpStatus.OK);
   }
@@ -595,6 +597,14 @@ public class ApiController {
       @RequestParam(required=false) String message, //
       @RequestParam(required=false) Boolean accepted, //
       @RequestParam(required=false) Long committmentId, //
+      @RequestParam(required=false) Long attendeeId, //
+      @RequestParam(required=false) Long hostId, //
+      @RequestParam(required=false) Long startTime, //
+      @RequestParam(required=false) Long minStartTime, //
+      @RequestParam(required=false) Long maxStartTime, //
+      @RequestParam(required=false) Long duration, //
+      @RequestParam(required=false) Long minDuration, //
+      @RequestParam(required=false) Long maxDuration, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -614,6 +624,14 @@ public class ApiController {
         message, //
         accepted, //
         committmentId, //
+        attendeeId, //
+        hostId, //
+        startTime, //
+        minStartTime, //
+        maxStartTime, //
+        duration, //
+        minDuration, //
+        maxDuration, //
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillSessionRequestResponse(x)).collect(Collectors.toList());
