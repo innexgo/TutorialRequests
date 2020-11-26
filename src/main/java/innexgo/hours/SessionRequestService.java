@@ -40,7 +40,7 @@ public class SessionRequestService {
   }
 
   public long nextId() {
-    String sql = "SELECT max(sesreq.session_request_id) FROM session_request sesreq";
+    String sql = "SELECT max(session_request_id) FROM session_request";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
     if(maxId == null) {
       return 0;
@@ -68,7 +68,7 @@ public class SessionRequestService {
   }
 
   public boolean existsBySessionRequestId(long sessionRequestId) {
-    String sql = "SELECT count(*) FROM session_request sesreq WHERE sesreq.session_request_id=?";
+    String sql = "SELECT count(*) FROM session_request sr WHERE sr.session_request_id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, sessionRequestId);
     return count != 0;
   }
@@ -93,25 +93,25 @@ public class SessionRequestService {
       long offset,
       long count) {
     String sql =
-        "SELECT sesreq.* FROM session_request sesreq"
-            + (responded == null ? "" : " LEFT JOIN session_request_response sesreqre ON sesreqre.session_request_id = sesreq.session_request_id")
+        "SELECT sr.* FROM session_request sr"
+            + (responded       == null ? "" : " LEFT JOIN session_request_response srr ON srr.session_request_id = sr.session_request_id")
             + " WHERE 1=1 "
-            + (responded == null ? "" : " AND ap.session_request_id IS" + (responded ? " NOT NULL" : " NULL"))
-            + (sessionRequestId== null ? "" : " AND sesreq.session_request_id = " + sessionRequestId)
-            + (creatorId == null ? "" : " AND sesreq.creator_id = " + creatorId)
-            + (attendeeId == null ? "" : " AND sesreq.attendee_id = " + attendeeId)
-            + (hostId == null ? "" : " AND sesreq.host_id = " + hostId)
-            + (message == null ? "" : " AND sesreq.message = " + Utils.escape(message))
-            + (creationTime == null ? "" : " AND sesreq.creation_time = " + creationTime)
-            + (minCreationTime == null ? "" : " AND sesreq.creation_time > " + minCreationTime)
-            + (maxCreationTime == null ? "" : " AND sesreq.creation_time < " + maxCreationTime)
-            + (startTime == null ? "" : " AND sesreq.start_time = " + startTime)
-            + (minStartTime == null ? "" : " AND sesreq.start_time > " + minStartTime)
-            + (maxStartTime == null ? "" : " AND sesreq.start_time < " + maxStartTime)
-            + (duration == null ? "" : " AND sesreq.duration = " + duration)
-            + (minDuration == null ? "" : " AND sesreq.duration > " + minDuration)
-            + (maxDuration == null ? "" : " AND sesreq.duration < " + maxDuration)
-            + (" ORDER BY sesreq.session_request_id")
+            + (responded       == null ? "" : " AND srr.session_request_id IS" + (responded ? " NOT NULL" : " NULL"))
+            + (sessionRequestId== null ? "" : " AND sr.session_request_id = " + sessionRequestId)
+            + (creatorId       == null ? "" : " AND sr.creator_id = " + creatorId)
+            + (attendeeId      == null ? "" : " AND sr.attendee_id = " + attendeeId)
+            + (hostId          == null ? "" : " AND sr.host_id = " + hostId)
+            + (message         == null ? "" : " AND sr.message = " + Utils.escape(message))
+            + (creationTime    == null ? "" : " AND sr.creation_time = " + creationTime)
+            + (minCreationTime == null ? "" : " AND sr.creation_time > " + minCreationTime)
+            + (maxCreationTime == null ? "" : " AND sr.creation_time < " + maxCreationTime)
+            + (startTime       == null ? "" : " AND sr.start_time = " + startTime)
+            + (minStartTime    == null ? "" : " AND sr.start_time > " + minStartTime)
+            + (maxStartTime    == null ? "" : " AND sr.start_time < " + maxStartTime)
+            + (duration        == null ? "" : " AND sr.duration = " + duration)
+            + (minDuration     == null ? "" : " AND sr.duration > " + minDuration)
+            + (maxDuration     == null ? "" : " AND sr.duration < " + maxDuration)
+            + (" ORDER BY sr.session_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
 

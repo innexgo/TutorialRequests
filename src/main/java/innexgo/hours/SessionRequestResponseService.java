@@ -104,8 +104,7 @@ public class SessionRequestResponseService {
             + (duration         == null ? "" : " AND sr.duration = " + duration)
             + (minDuration      == null ? "" : " AND sr.duration > " + minDuration)
             + (maxDuration      == null ? "" : " AND sr.duration < " + maxDuration)
-
-            + (" ORDER BY sesreqre.session_request_id")
+            + (" ORDER BY srr.session_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
 

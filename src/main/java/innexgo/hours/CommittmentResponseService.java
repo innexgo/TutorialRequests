@@ -72,11 +72,12 @@ public class CommittmentResponseService {
      Long duration,
      Long minDuration,
      Long maxDuration,
+     Long sessionId,
      long offset,
      long count)
  {
     // avoid joins to save performance
-    boolean joinc = attendeeId != null;
+    boolean joinc = attendeeId != null || sessionId != null;
     boolean joins = joinc ||
       startTime != null || minStartTime != null || maxStartTime != null ||
       duration != null || minDuration != null || maxDuration != null ||
@@ -94,6 +95,7 @@ public class CommittmentResponseService {
         + (maxCreationTime        == null ? "" : " AND cr.creation_time < " + maxCreationTime)
         + (committmentResponseKind== null ? "" : " AND cr.committment_response_kind = " + committmentResponseKind.value)
         + (attendeeId             == null ? "" : " AND c.attendee_id = " + attendeeId)
+        + (sessionId              == null ? "" : " AND c.session_id = " + sessionId)
         + (hostId                 == null ? "" : " AND s.host_id = " + hostId)
         + (startTime              == null ? "" : " AND s.start_time = " + startTime)
         + (minStartTime           == null ? "" : " AND s.start_time > " + minStartTime)
@@ -101,7 +103,7 @@ public class CommittmentResponseService {
         + (duration               == null ? "" : " AND s.duration = " + duration)
         + (minDuration            == null ? "" : " AND s.duration > " + minDuration)
         + (maxDuration            == null ? "" : " AND s.duration < " + maxDuration)
-        + (" ORDER BY at.committment_id")
+        + (" ORDER BY cr.committment_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 

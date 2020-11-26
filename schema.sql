@@ -50,7 +50,7 @@ create table api_key(
 -- Represents a specific instance of a course
 drop table if exists session;
 create table session(
-  id integer not null primary key,
+  session_id integer not null primary key,
   creator_id integer not null,
   creation_time integer not null,
   name varchar(100) not null,

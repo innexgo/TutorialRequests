@@ -705,6 +705,7 @@ public class ApiController {
       @RequestParam(required=false) Long duration, //
       @RequestParam(required=false) Long minDuration, //
       @RequestParam(required=false) Long maxDuration, //
+      @RequestParam(required=false) Long sessionId, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -730,6 +731,7 @@ public class ApiController {
         duration, //
         minDuration, //
         maxDuration, //
+        sessionId,  //
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillCommittmentResponse(x)).collect(Collectors.toList());

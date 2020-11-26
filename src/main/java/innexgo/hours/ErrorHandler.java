@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 package innexgo.hours;
 
 import org.springframework.http.ResponseEntity;
@@ -26,13 +25,16 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 @RestControllerAdvice
 public class ErrorHandler {
- @ExceptionHandler(value={NoHandlerFoundException.class})
- public ResponseEntity<?> notFoundHandler() {
+  @ExceptionHandler(value = { NoHandlerFoundException.class })
+  public ResponseEntity<?> notFoundHandler() {
     return Errors.NOT_FOUND.getResponse();
   }
 
- @ExceptionHandler(value={Exception.class})
- public ResponseEntity<?> generalHandler() {
+  // TODO use logger to log this
+
+  @ExceptionHandler(value = { Exception.class })
+  public ResponseEntity<?> generalHandler(Exception e) {
+    e.printStackTrace();
     return Errors.UNKNOWN.getResponse();
- }
+  }
 }

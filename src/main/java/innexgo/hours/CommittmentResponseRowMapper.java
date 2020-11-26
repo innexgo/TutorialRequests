@@ -30,7 +30,7 @@ public class CommittmentResponseRowMapper implements RowMapper<CommittmentRespon
     committmentResponse.committmentId = row.getLong("committment_id");
     committmentResponse.creatorId = row.getLong("creator_id");
     committmentResponse.creationTime = row.getLong("creation_time");
-    committmentResponse.kind = CommittmentResponseKind.from(row.getInt("committment_response_kind "));
+    committmentResponse.kind = CommittmentResponseKind.from(row.getInt("committment_response_kind"));
     return committmentResponse;
   }
 }

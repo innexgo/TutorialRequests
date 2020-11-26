@@ -39,7 +39,18 @@ public class CommittmentService {
     return committment;
   }
 
+  public long nextId() {
+    String sql = "SELECT max(committment_id) FROM committment";
+    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    if(maxId == null) {
+      return 0;
+    } else {
+      return maxId + 1;
+    }
+  }
+
   public void add(Committment committment) {
+    committment.committmentId = nextId();
     // Add committment
     String sql = "INSERT INTO committment values (?,?,?,?,?,?)";
     jdbcTemplate.update(
@@ -50,7 +61,6 @@ public class CommittmentService {
         committment.attendeeId,
         committment.sessionId,
         committment.cancellable);
-
   }
 
   public boolean existsByCommittmentId(long committmentId) {
@@ -105,7 +115,7 @@ public class CommittmentService {
         + (maxDuration     == null ? "" : " AND s.duration < " + maxDuration)
         + (hostId          == null ? "" : " AND s.host_id = " + hostId)
         + (responded       == null ? "" : " AND cr.committment_id IS" + (responded ? " NOT NULL" : " NULL"))
-        + (" ORDER BY at.committment_id")
+        + (" ORDER BY c.committment_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 

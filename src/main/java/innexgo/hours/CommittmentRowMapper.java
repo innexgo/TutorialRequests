@@ -27,11 +27,11 @@ public class CommittmentRowMapper implements RowMapper<Committment> {
   @Override
   public Committment mapRow(ResultSet row, int rowNum) throws SQLException {
     Committment committment = new Committment();
-    committment.committmentId = row.getLong("committmentId");
-    committment.creatorId = row.getLong("creatorId");
-    committment.creationTime = row.getLong("creationTime");
-    committment.attendeeId = row.getLong("attendeeId");
-    committment.sessionId = row.getLong("sessionId");
+    committment.committmentId = row.getLong("committment_id");
+    committment.creatorId = row.getLong("creator_id");
+    committment.creationTime = row.getLong("creation_time");
+    committment.attendeeId = row.getLong("attendee_id");
+    committment.sessionId = row.getLong("session_id");
     committment.cancellable = row.getBoolean("cancellable");
     return committment;
   }
