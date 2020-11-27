@@ -196,7 +196,7 @@ public class ApiController {
     u.name = evc.name;
     u.email = evc.email;
     u.passwordHash = evc.passwordHash;
-    u.passwordSetTime = now;
+    u.passwordResetKeyTime = now;
     u.kind = evc.kind;
 
     userService.add(u);
@@ -215,7 +215,7 @@ public class ApiController {
 
     final long now = System.currentTimeMillis();
 
-    if ((user.passwordSetTime + fiveMinutes) > now) {
+    if ((user.passwordResetKeyTime + fiveMinutes) > now) {
       return Errors.EMAIL_RATELIMIT.getResponse();
     }
 
@@ -240,9 +240,6 @@ public class ApiController {
             "<p>Password Change link: " + //
             innexgoHoursSite + "/reset_password?resetKey=" + rawKey + "</p>" //
     ); //
-
-    user.passwordSetTime = System.currentTimeMillis();
-    userService.update(user);
 
     return new ResponseEntity<>(innexgoService.fillPasswordResetKey(fp), HttpStatus.OK);
   }
@@ -339,7 +336,7 @@ public class ApiController {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if (sessionRequestService.existsBySessionRequestId(sessionRequestId)) {
+    if (sessionRequestResponseService.existsBySessionRequestId(sessionRequestId)) {
       return Errors.SESSION_REQUEST_RESPONSE_EXISTENT.getResponse();
     }
 
@@ -399,6 +396,32 @@ public class ApiController {
       if(!cancellable) {
         return Errors.COMMITTMENT_CANNOT_CREATE_UNCANCELLABLE_STUDENT.getResponse();
       }
+    }
+
+    // check that a unresponded committment does not already exist
+    List<Committment> preexisting = committmentService.query( //
+        null, // committmentId  
+        null, // creatorId  
+        null, // creationTime  
+        null, // minCreationTime  
+        null, // maxCreationTime  
+        attendeeId, //
+        sessionId, //
+        null, // cancellable
+        null, // hostId
+        null, // startTime
+        null, // minStartTime
+        null, // maxStartTime
+        null, // duration
+        null, // minDuration
+        null, // maxDuration
+        false, // responded
+        0, // long offset,
+        1 // long count)
+    );
+
+    if(preexisting.size() != 0) {
+      return Errors.COMMITTMENT_EXISTENT.getResponse();
     }
 
     Committment c = new Committment();
@@ -765,9 +788,7 @@ public class ApiController {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
 
-    user.passwordHash = Utils.encodePassword(newPassword);
-    user.passwordSetTime = System.currentTimeMillis();
-    userService.update(user);
+    userService.setPassword(user, newPassword);
 
     return Errors.OK.getResponse();
   }
@@ -808,9 +829,7 @@ public class ApiController {
     }
 
     User u = userService.getByEmail(resetPasswordKey.email);
-    u.passwordHash = Utils.encodePassword(newPassword);
-    u.passwordSetTime = System.currentTimeMillis();
-    userService.update(u);
+    userService.setPassword(u, newPassword);
 
     passwordResetKeyService.use(resetPasswordKey);
 
@@ -831,10 +850,11 @@ public class ApiController {
     // create user
     User user = new User();
     user.name = adminName;
+    user.creationTime = System.currentTimeMillis();
     user.email = adminEmail;
     user.kind = UserKind.ADMIN;
-    user.passwordHash = Utils.encodePassword(adminPassword);
     userService.add(user);
+    userService.setPassword(user, adminPassword);
 
     return new ResponseEntity<>(user, HttpStatus.OK);
   }

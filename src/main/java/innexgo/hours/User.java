@@ -25,7 +25,7 @@ public class User {
   public String name;
   public String email;
   // not public so it doesn't get serialized to jackson
-  long passwordSetTime;
+  long passwordResetKeyTime;
   String passwordHash;
 }
 

@@ -70,28 +70,27 @@ public class UserService {
     user.id = nextId();
     // Add user
     String sql =
-        "INSERT INTO user values (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO user values (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         user.id,
+        user.creationTime,
         user.kind.value,
         user.name,
         user.email,
-        user.passwordSetTime,
+        user.passwordResetKeyTime,
         user.passwordHash);
 
   }
 
-  public void update(User user) {
+  public void setPassword(User user, String password) {
+    user.passwordHash = Utils.encodePassword(password);
+    user.passwordResetKeyTime = System.currentTimeMillis();
     String sql =
-        "UPDATE user SET id=?, name=?, kind=?, email=?, password_set_time=?, password_hash=? WHERE id=?";
+        "UPDATE user SET password_reset_key_time=?, password_hash=? WHERE id=?";
     jdbcTemplate.update(
         sql,
-        user.id,
-        user.name,
-        user.kind.value,
-        user.email,
-        user.passwordSetTime,
+        user.passwordResetKeyTime,
         user.passwordHash,
         user.id);
   }
@@ -117,9 +116,9 @@ public class UserService {
       String name,
       String partialUserName,
       String email,
-      Long passwordSetTime,
-      Long minPasswordSetTime,
-      Long maxPasswordSetTime,
+      Long passwordResetKeyTime,
+      Long minPasswordResetKeyTime,
+      Long maxPasswordResetKeyTime,
       long offset,
       long count) {
     String sql =
@@ -132,9 +131,9 @@ public class UserService {
             + (name              == null ? "" : " AND u.name = " + Utils.escape(name))
             + (partialUserName   == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
             + (kind              == null ? "" : " AND u.kind = " + kind.value)
-            + (passwordSetTime   == null ? "" : " AND u.password_set_time = " + passwordSetTime)
-            + (minPasswordSetTime== null ? "" : " AND u.password_set_time > " + minPasswordSetTime)
-            + (maxPasswordSetTime== null ? "" : " AND u.password_set_time < " + maxPasswordSetTime)
+            + (passwordResetKeyTime   == null ? "" : " AND u.password_reset_key_time = " + passwordResetKeyTime)
+            + (minPasswordResetKeyTime== null ? "" : " AND u.password_reset_key_time > " + minPasswordResetKeyTime)
+            + (maxPasswordResetKeyTime== null ? "" : " AND u.password_reset_key_time < " + maxPasswordResetKeyTime)
             + (email             == null ? "" : " AND u.email = " + Utils.escape(email))
             + (" ORDER BY u.id")
             + (" LIMIT " + offset + ", " + count)

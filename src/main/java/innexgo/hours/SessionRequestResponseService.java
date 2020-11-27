@@ -51,7 +51,7 @@ public class SessionRequestResponseService {
         sessionRequestResponse.committmentId);
   }
 
-  public boolean existsBySessionRequestResponseRequestId(long sessionRequestId) {
+  public boolean existsBySessionRequestId(long sessionRequestId) {
     String sql = "SELECT count(*) FROM session_request_response WHERE session_request_id=?";
     int count = jdbcTemplate.queryForObject(sql, Integer.class, sessionRequestId);
     return count != 0;

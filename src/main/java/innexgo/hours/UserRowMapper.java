@@ -32,7 +32,7 @@ public class UserRowMapper implements RowMapper<User> {
     u.kind = UserKind.from(row.getInt("kind"));
     u.name = row.getString("name");
     u.email = row.getString("email");
-    u.passwordSetTime= row.getLong("password_set_time");
+    u.passwordResetKeyTime = row.getLong("password_reset_key_time");
     u.passwordHash = row.getString("password_hash");
     return u;
   }
