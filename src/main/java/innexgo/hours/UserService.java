@@ -67,6 +67,7 @@ public class UserService {
 
   public void add(User user) {
     // Set user id
+    user.creationTime = System.currentTimeMillis();
     user.id = nextId();
     // Add user
     String sql =

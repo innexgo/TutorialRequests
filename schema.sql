@@ -12,7 +12,7 @@ create table password_reset_key(
   email varchar(100) not null,
   creation_time integer not null,
   reset_key char(64) not null unique,
-  valid integer not null
+  used integer not null -- boolean
 );
 
 drop table if exists email_verification_challenge;

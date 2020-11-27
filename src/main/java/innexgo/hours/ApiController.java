@@ -196,7 +196,7 @@ public class ApiController {
     u.name = evc.name;
     u.email = evc.email;
     u.passwordHash = evc.passwordHash;
-    u.passwordResetKeyTime = now;
+    u.passwordResetKeyTime = 1;
     u.kind = evc.kind;
 
     userService.add(u);
