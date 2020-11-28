@@ -65,9 +65,11 @@ public class ApiController {
   @Value("${SCHOOL_NAME}")
   String schoolName;
 
-  // the school's domain (used for teacher validation)
-  @Value("${SCHOOL_DOMAIN}")
-  String schoolDomain;
+  // the school's student email suffix
+  @Value("${SCHOOL_STUDENT_EMAIL_SUFFIX}")
+  String emailStudentSuffix;
+  @Value("${SCHOOL_USER_EMAIL_SUFFIX}")
+  String emailUserSuffix;
 
   // the school's prefix used in their innexgo hours subdomain
   @Value("${SCHOOL_INNEXGO_PREFIX}")
@@ -131,13 +133,26 @@ public class ApiController {
     if (Utils.isEmpty(userEmail)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
+
+    if(userKind == UserKind.ADMIN) {
+      return Errors.NO_CAPABILITY.getResponse();
+    }
+
+    if(userKind == UserKind.STUDENT && !userEmail.endsWith("@"+emailStudentSuffix)){
+      return Errors.EMAIL_BLACKLISTED.getResponse();
+    }
+
+    if(userKind == UserKind.USER && !userEmail.endsWith("@"+emailUserSuffix)){
+      return Errors.EMAIL_BLACKLISTED.getResponse();
+    }
+
+
     if (Utils.isEmpty(userName)) {
       return Errors.USER_NAME_EMPTY.getResponse();
     }
     if (userService.existsByEmail(userEmail)) {
       return Errors.USER_EXISTENT.getResponse();
     }
-
     if (!Utils.securePassword(userPassword)) {
       return Errors.PASSWORD_INSECURE.getResponse();
     }
@@ -152,7 +167,7 @@ public class ApiController {
     }
 
     EmailVerificationChallenge evc = new EmailVerificationChallenge();
-    evc.name = userName;
+    evc.name = userName.toUpperCase();
     evc.email = userEmail;
     evc.creationTime = System.currentTimeMillis();
     String rawKey = Utils.generateKey();
@@ -797,7 +812,8 @@ public class ApiController {
   public ResponseEntity<?> viewSchool() {
     return new ResponseEntity<>(new Object() {
       public final String name = schoolName;
-      public final String domain = schoolDomain;
+      public final String studentEmailSuffix= emailStudentSuffix;
+      public final String userEmailSuffix = emailUserSuffix;
     }, HttpStatus.OK);
   }
 
