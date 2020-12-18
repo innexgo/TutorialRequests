@@ -56,8 +56,8 @@ public class CommittmentService {
     jdbcTemplate.update(
         sql,
         committment.committmentId,
-        committment.creatorId,
         committment.creationTime,
+        committment.creatorUserId,
         committment.attendeeId,
         committment.sessionId,
         committment.cancellable);
@@ -71,10 +71,10 @@ public class CommittmentService {
 
   public List<Committment> query(
      Long committmentId,
-     Long creatorId,
      Long creationTime,
      Long minCreationTime,
      Long maxCreationTime,
+     Long creatorUserId,
      Long attendeeId,
      Long sessionId,
      Boolean cancellable,
@@ -100,7 +100,7 @@ public class CommittmentService {
         + (responded == null ? "" : " LEFT JOIN committment_response cr ON cr.committment_id= c.committment_id")
         + " WHERE 1=1 "
         + (committmentId   == null ? "" : " AND c.committment_id = " + committmentId)
-        + (creatorId       == null ? "" : " AND c.creator_id = " + creatorId)
+        + (creatorUserId   == null ? "" : " AND c.creator_user_id = " + creatorUserId)
         + (creationTime    == null ? "" : " AND c.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND c.creation_time > " + minCreationTime)
         + (maxCreationTime == null ? "" : " AND c.creation_time < " + maxCreationTime)

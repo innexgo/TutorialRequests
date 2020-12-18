@@ -28,7 +28,7 @@ public class CommittmentRowMapper implements RowMapper<Committment> {
   public Committment mapRow(ResultSet row, int rowNum) throws SQLException {
     Committment committment = new Committment();
     committment.committmentId = row.getLong("committment_id");
-    committment.creatorId = row.getLong("creator_id");
+    committment.creatorUserId = row.getLong("creator_user_id");
     committment.creationTime = row.getLong("creation_time");
     committment.attendeeId = row.getLong("attendee_id");
     committment.sessionId = row.getLong("session_id");

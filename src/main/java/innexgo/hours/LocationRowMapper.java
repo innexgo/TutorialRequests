@@ -30,7 +30,7 @@ public class LocationRowMapper implements RowMapper<Location> {
     Location location = new Location();
     location.locationId = row.getLong("location_id");
     location.creationTime = row.getLong("creation_time");
-    location.creatorId = row.getLong("creator_id");
+    location.creatorUserId = row.getLong("creator_user_id");
     location.schoolId = row.getLong("school_id");
     location.name = row.getString("name");
     location.description = row.getString("description");

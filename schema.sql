@@ -16,7 +16,7 @@ create table password_reset_key(
 
 drop table if exists email_verification_challenge;
 create table email_verification_challenge(
-  email_verification_challenge_id integer not null primary key,
+  user_id integer not null primary key,
   creation_time integer not null,
   name integer not null,
   email varchar(100) not null,
@@ -30,7 +30,7 @@ create table school(
   creation_time integer not null,
   creator_user_id integer not null,
   name varchar(100) not null,
-  description varchar(100) not null
+  abbreviation varchar(100) not null
 );
 
 drop table if exists adminship;
@@ -151,8 +151,8 @@ create table session_request(
 drop table if exists session_request_response; 
 create table session_request_response(
   session_request_id integer not null primary key,
-  creator_user_id integer not null,
   creation_time integer not null,
+  creator_user_id integer not null,
   message varchar(100) not null,
   accepted integer not null, -- boolean
   accepted_committment_id integer not null -- only valid if accepted == true
@@ -162,8 +162,8 @@ create table session_request_response(
 drop table if exists committment;
 create table committment( 
   committment_id integer not null primary key,
-  creator_user_id integer not null,
   creation_time integer not null,
+  creator_user_id integer not null,
   attendee_id integer not null,
   session_id integer not null,
   cancellable integer not null -- boolean
@@ -173,7 +173,7 @@ create table committment(
 drop table if exists committment_response;
 create table committment_response(
   committment_id integer not null primary key,
-  creator_user_id integer not null,
   creation_time integer not null,
+  creator_user_id integer not null,
   committment_response_kind integer not null -- can be PRESENT(0), TARDY(1), ABSENT(2), CANCELLED(3)
 );

@@ -29,7 +29,7 @@ public class SchoolRowMapper implements RowMapper<School> {
     School school = new School();
     school.schoolId = row.getLong("school_id");
     school.creationTime = row.getLong("creation_time");
-    school.creatorId = row.getLong("creator_id");
+    school.creatorUserId = row.getLong("creator_user_id");
     school.name = row.getString("name");
     school.abbreviation = row.getString("abbreviation");
     return school;

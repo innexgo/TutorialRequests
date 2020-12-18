@@ -20,8 +20,8 @@ package innexgo.hours;
 
 public class Committment {
   public long committmentId;
-  long creatorId;
   public long creationTime;
+  long creatorUserId;
   long attendeeId;
   long sessionId;
   public boolean cancellable;

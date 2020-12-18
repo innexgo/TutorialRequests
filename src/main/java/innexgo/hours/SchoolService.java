@@ -58,7 +58,7 @@ public class SchoolService {
         sql,
         school.schoolId,
         school.creationTime,
-        school.creatorId,
+        school.creatorUserId,
         school.name,
         school.abbreviation);
   }
@@ -71,10 +71,10 @@ public class SchoolService {
 
   public List<School> query( //
      Long schoolId, //
-     Long creatorId, //
      Long creationTime, //
      Long minCreationTime, //
      Long maxCreationTime, //
+     Long creatorUserId, //
      String name, //
      String partialName, //
      String abbreviation, //
@@ -86,7 +86,7 @@ public class SchoolService {
       "SELECT s.* FROM school s"
         + " WHERE 1=1 "
         + (schoolId        == null ? "" : " AND c.school_id = " + schoolId)
-        + (creatorId       == null ? "" : " AND s.creator_id = " + creatorId)
+        + (creatorUserId   == null ? "" : " AND s.creator_user_id = " + creatorUserId)
         + (creationTime    == null ? "" : " AND s.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND s.creation_time > " + minCreationTime)
         + (maxCreationTime == null ? "" : " AND s.creation_time < " + maxCreationTime)

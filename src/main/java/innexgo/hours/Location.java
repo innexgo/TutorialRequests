@@ -21,7 +21,7 @@ package innexgo.hours;
 public class Location {
   public long locationId;
   public long creationTime;
-  long creatorId;
+  long creatorUserId;
   long schoolId;
   public String name;
   public String description;
