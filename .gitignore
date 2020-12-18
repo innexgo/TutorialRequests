@@ -38,3 +38,4 @@ node_modules/
 # Don't leak info
 settings.sh
 hours.db
+log.txt
