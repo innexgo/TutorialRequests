@@ -73,9 +73,8 @@ create table course(
   school_id integer not null,
   name varchar(100) not null,
   description varchar(100) not null,
-  course_password varchar(100) not null
+  password_hash char(64) not null
 );
-
 
 -- Many to Many mapper for users to course
 drop table if exists course_membership;

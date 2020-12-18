@@ -18,44 +18,15 @@
 
 package innexgo.hours;
 
-public class CourseMembership {
-  public long courseMembershipId;
+public class Adminship {
+  public long adminshipId;
   public long creationTime;
   long creatorUserId;
   long userId;
-  long courseId;
-  public CourseMembershipKind courseMembershipKind;
+  long schoolId;
   public boolean valid;
 
   User creator;
   User user;
-  Course course;
-}
-
-enum CourseMembershipKind {
-  STUDENT(0), INSTRUCTOR(1);
-
-  final int value;
-
-  private CourseMembershipKind(int value) {
-    this.value = value;
-  }
-
-  public static CourseMembershipKind from(int i) {
-    for (CourseMembershipKind courseMembershipKind : CourseMembershipKind.values()) {
-      if (courseMembershipKind.value == i) {
-        return courseMembershipKind;
-      }
-    }
-    return null;
-  }
-
-  public static boolean contains(String str) {
-    for (CourseMembershipKind courseMembershipKind : CourseMembershipKind.values()) {
-      if (courseMembershipKind.name().equals(str)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  School school;
 }
