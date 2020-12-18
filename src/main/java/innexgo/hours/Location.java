@@ -18,18 +18,16 @@
 
 package innexgo.hours;
 
-public class ApiKey {
-  public long apiKeyId;
-  long creatorUserId;
-
+public class Location {
+  public long locationId;
   public long creationTime;
-  public long duration;
+  long creatorId;
+  long schoolId;
+  public String name;
+  public String description;
   public boolean valid;
 
-  // not public
-  String keyHash;
-
-  // Initialized by jackson during serialization, but not persisted
-  public String key;
+  // for jackson
   public User creator;
+  public School school;
 }

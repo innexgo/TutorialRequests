@@ -18,18 +18,20 @@
 
 package innexgo.hours;
 
-public class ApiKey {
-  public long apiKeyId;
-  long creatorUserId;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  public long creationTime;
-  public long duration;
-  public boolean valid;
+public class SchoolRowMapper implements RowMapper<School> {
 
-  // not public
-  String keyHash;
-
-  // Initialized by jackson during serialization, but not persisted
-  public String key;
-  public User creator;
+  @Override
+  public School mapRow(ResultSet row, int rowNum) throws SQLException {
+    School school = new School();
+    school.schoolId = row.getLong("school_id");
+    school.creationTime = row.getLong("creation_time");
+    school.creatorId = row.getLong("creator_id");
+    school.name = row.getString("name");
+    school.abbreviation = row.getString("abbreviation");
+    return school;
+  }
 }

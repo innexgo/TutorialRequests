@@ -19,11 +19,10 @@
 package innexgo.hours;
 
 public class EmailVerificationChallenge {
-    public long id;
+    public long userId;
+    public long creationTime;
     public String name;
     public String email;
-    public long creationTime;
-    public UserKind kind;
     
     // not public so it doesn't get serialized to jackson
     String verificationKey;

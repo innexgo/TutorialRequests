@@ -19,9 +19,8 @@
 package innexgo.hours;
 
 public class User {
-  public long id;
+  public long userId;
   public long creationTime;
-  public UserKind kind;
   public String name;
   public String email;
   // not public so it doesn't get serialized to jackson
@@ -29,30 +28,3 @@ public class User {
   String passwordHash;
 }
 
-enum UserKind {
-  STUDENT(0), USER(1), ADMIN(2);
-
-  final int value;
-
-  private UserKind(int value) {
-    this.value = value;
-  }
-
-  public static UserKind from(int i) {
-    for (UserKind userKind : UserKind.values()) {
-      if (userKind.value == i) {
-        return userKind;
-      }
-    }
-    return null;
-  }
-
-  public static boolean contains(String str) {
-    for (UserKind userKind : UserKind.values()) {
-      if (userKind.name().equals(str)) {
-        return true;
-      }
-    }
-    return false;
-  }
-}

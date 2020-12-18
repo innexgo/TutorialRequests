@@ -1,3 +1,4 @@
+
 /*
  * Innexgo Website
  * Copyright (C) 2020 Innexgo LLC
@@ -18,18 +19,22 @@
 
 package innexgo.hours;
 
-public class ApiKey {
-  public long apiKeyId;
-  long creatorUserId;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  public long creationTime;
-  public long duration;
-  public boolean valid;
+public class LocationRowMapper implements RowMapper<Location> {
 
-  // not public
-  String keyHash;
-
-  // Initialized by jackson during serialization, but not persisted
-  public String key;
-  public User creator;
+  @Override
+  public Location mapRow(ResultSet row, int rowNum) throws SQLException {
+    Location location = new Location();
+    location.locationId = row.getLong("location_id");
+    location.creationTime = row.getLong("creation_time");
+    location.creatorId = row.getLong("creator_id");
+    location.schoolId = row.getLong("school_id");
+    location.name = row.getString("name");
+    location.description = row.getString("description");
+    location.valid= row.getBoolean("valid");
+    return location;
+  }
 }

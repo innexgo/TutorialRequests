@@ -34,13 +34,13 @@ public class EmailVerificationChallengeService {
 
   public List<EmailVerificationChallenge> getAll() {
     String sql =
-        "SELECT id, name, email, creation_time, verification_key, password_hash, kind FROM email_verification_challenge";
+        "SELECT * FROM email_verification_challenge";
     RowMapper<EmailVerificationChallenge> rowMapper = new EmailVerificationChallengeRowMapper();
     return jdbcTemplate.query(sql, rowMapper);
   }
 
   public long nextId() {
-    String sql = "SELECT max(id) FROM email_verification_challenge";
+    String sql = "SELECT max(user_id) FROM email_verification_challenge";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
     if(maxId == null) {
       return 0;
@@ -52,39 +52,23 @@ public class EmailVerificationChallengeService {
 
   public void add(EmailVerificationChallenge emailVerificationChallenge) {
     // Set user id
-    emailVerificationChallenge.id = nextId();
+    emailVerificationChallenge.userId= nextId();
     // Add user
     String sql =
-        "INSERT INTO email_verification_challenge (id, name, email, creation_time, verification_key, password_hash, kind) values (?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO email_verification_challenge values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
-        emailVerificationChallenge.id,
+        emailVerificationChallenge.userId,
+        emailVerificationChallenge.creationTime,
         emailVerificationChallenge.name,
         emailVerificationChallenge.email,
-        emailVerificationChallenge.creationTime,
         emailVerificationChallenge.verificationKey,
-        emailVerificationChallenge.passwordHash,
-        emailVerificationChallenge.kind.value);
-  }
-
-  public void update(EmailVerificationChallenge emailVerificationChallenge) {
-    String sql =
-    "UPDATE email_verification_challenge SET id=?, name=?, email=?, creation_time=?, verification_key=?, password_hash=?, kind=? WHERE id=?";
-    jdbcTemplate.update(
-        sql,
-        emailVerificationChallenge.id,
-        emailVerificationChallenge.name,
-        emailVerificationChallenge.email,
-        emailVerificationChallenge.creationTime,
-        emailVerificationChallenge.verificationKey,
-        emailVerificationChallenge.passwordHash,
-        emailVerificationChallenge.kind.value,
-        emailVerificationChallenge.id);
+        emailVerificationChallenge.passwordHash);
   }
 
   public EmailVerificationChallenge getByVerificationKey(String verificationKey) {
     String sql =
-        "SELECT id, name, email, creation_time, verification_key, password_hash, kind FROM email_verification_challenge WHERE verification_key=?";
+        "SELECT * FROM email_verification_challenge WHERE verification_key=?";
     RowMapper<EmailVerificationChallenge> rowMapper = new EmailVerificationChallengeRowMapper();
     EmailVerificationChallenge emailVerificationChallenge = jdbcTemplate.queryForObject(sql, rowMapper, verificationKey);
     return emailVerificationChallenge;

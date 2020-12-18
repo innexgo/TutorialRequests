@@ -27,13 +27,12 @@ public class EmailVerificationChallengeRowMapper implements RowMapper<EmailVerif
   @Override
   public EmailVerificationChallenge mapRow(ResultSet row, int rowNum) throws SQLException {
     EmailVerificationChallenge u = new EmailVerificationChallenge();
-    u.id = row.getLong("id");
+    u.userId = row.getLong("user_id");
+    u.creationTime = row.getLong("creation_time");
     u.name = row.getString("name");
     u.email = row.getString("email");
-    u.creationTime = row.getLong("creation_time");
     u.verificationKey = row.getString("verification_key");
     u.passwordHash = row.getString("password_hash");
-    u.kind = UserKind.from(row.getInt("kind"));
     return u;
   }
 }

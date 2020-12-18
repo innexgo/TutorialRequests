@@ -27,9 +27,8 @@ public class UserRowMapper implements RowMapper<User> {
   @Override
   public User mapRow(ResultSet row, int rowNum) throws SQLException {
     User u = new User();
-    u.id = row.getLong("id");
+    u.userId= row.getLong("user_id");
     u.creationTime = row.getLong("creation_time");
-    u.kind = UserKind.from(row.getInt("kind"));
     u.name = row.getString("name");
     u.email = row.getString("email");
     u.passwordResetKeyTime = row.getLong("password_reset_key_time");

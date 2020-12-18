@@ -55,7 +55,7 @@ public class ApiKeyService {
   }
 
  public long nextId() {
-    String sql = "SELECT max(id) FROM api_key";
+    String sql = "SELECT max(api_key_id) FROM api_key";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
     if(maxId == null) {
       return 0;
@@ -65,15 +65,15 @@ public class ApiKeyService {
   }
 
   public void add(ApiKey apiKey) {
-    apiKey.id = nextId();
+    apiKey.apiKeyId = nextId();
 
     String sql =
         "INSERT INTO api_key values (?,?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
-        apiKey.id,
-        apiKey.creatorId,
+        apiKey.apiKeyId,
         apiKey.creationTime,
+        apiKey.creatorUserId,
         apiKey.duration,
         apiKey.keyHash,
         apiKey.valid
@@ -82,13 +82,13 @@ public class ApiKeyService {
 
   public void revoke(ApiKey apiKey) {
     String sql =
-        "UPDATE api_key SET valid=? WHERE id=?";
-    jdbcTemplate.update(sql, false, apiKey.id);
+        "UPDATE api_key SET valid=? WHERE api_key_id=?";
+    jdbcTemplate.update(sql, false, apiKey.apiKeyId);
     apiKey.valid = false;
   }
 
   public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM api_key WHERE id=?";
+    String sql = "SELECT count(*) FROM api_key WHERE api_key_id=?";
     long count = jdbcTemplate.queryForObject(sql, Long.class, id);
     return count != 0;
   }
@@ -101,7 +101,7 @@ public class ApiKeyService {
 
   public List<ApiKey> query(
       Long id,
-      Long creatorId,
+      Long creatorUserId,
       Long minCreationTime,
       Long maxCreationTime,
       String keyHash,
@@ -110,13 +110,13 @@ public class ApiKeyService {
       long count) {
     String sql =
         "SELECT a.* FROM api_key a WHERE 1=1"
-            + (id == null ? "" : " AND a.id=" + id)
-            + (creatorId == null ? "" : " AND a.creator_id =" + creatorId)
+            + (id == null ? "" : " AND a.api_key_id=" + id)
+            + (creatorUserId == null ? "" : " AND a.creator_user_id =" + creatorUserId)
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND a.creation_time <= " + maxCreationTime)
             + (keyHash == null ? "" : " AND a.key_hash = " + Utils.escape(keyHash))
             + (valid == null ? "" : " AND a.valid = " + valid)
-            + (" ORDER BY a.id")
+            + (" ORDER BY a.api_key_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();

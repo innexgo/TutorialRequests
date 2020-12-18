@@ -33,7 +33,7 @@ public class UserService {
 
   public User getById(long id) {
     String sql =
-        "SELECT * FROM user WHERE id=?";
+        "SELECT * FROM user WHERE user_id=?";
     RowMapper<User> rowMapper = new UserRowMapper();
     User user = jdbcTemplate.queryForObject(sql, rowMapper, id);
     return user;
@@ -54,29 +54,16 @@ public class UserService {
     return jdbcTemplate.query(sql, rowMapper);
   }
 
-  public long nextId() {
-    String sql = "SELECT max(id) FROM user";
-    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-    if(maxId == null) {
-      return 0;
-    } else {
-      return maxId + 1;
-    }
-  }
-
-
   public void add(User user) {
     // Set user id
     user.creationTime = System.currentTimeMillis();
-    user.id = nextId();
     // Add user
     String sql =
-        "INSERT INTO user values (?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO user values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
-        user.id,
+        user.userId,
         user.creationTime,
-        user.kind.value,
         user.name,
         user.email,
         user.passwordResetKeyTime,
@@ -88,16 +75,16 @@ public class UserService {
     user.passwordHash = Utils.encodePassword(password);
     user.passwordResetKeyTime = System.currentTimeMillis();
     String sql =
-        "UPDATE user SET password_reset_key_time=?, password_hash=? WHERE id=?";
+        "UPDATE user SET password_reset_key_time=?, password_hash=? WHERE user_id=?";
     jdbcTemplate.update(
         sql,
         user.passwordResetKeyTime,
         user.passwordHash,
-        user.id);
+        user.userId);
   }
   
   public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM user WHERE id=?";
+    String sql = "SELECT count(*) FROM user WHERE user_id=?";
     long count = jdbcTemplate.queryForObject(sql, Long.class, id);
     return count != 0;
   }
@@ -113,7 +100,6 @@ public class UserService {
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
-      UserKind kind,
       String name,
       String partialUserName,
       String email,
@@ -125,18 +111,17 @@ public class UserService {
     String sql =
         "SELECT u.* FROM user u"
             + " WHERE 1=1 "
-            + (id                == null ? "" : " AND u.id = " + id)
+            + (id                == null ? "" : " AND u.user_id = " + id)
             + (creationTime      == null ? "" : " AND u.creation_time = " + creationTime)
             + (minCreationTime   == null ? "" : " AND u.creation_time > " + minCreationTime)
             + (maxCreationTime   == null ? "" : " AND u.creation_time < " + maxCreationTime)
             + (name              == null ? "" : " AND u.name = " + Utils.escape(name))
             + (partialUserName   == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%"))
-            + (kind              == null ? "" : " AND u.kind = " + kind.value)
             + (passwordResetKeyTime   == null ? "" : " AND u.password_reset_key_time = " + passwordResetKeyTime)
             + (minPasswordResetKeyTime== null ? "" : " AND u.password_reset_key_time > " + minPasswordResetKeyTime)
             + (maxPasswordResetKeyTime== null ? "" : " AND u.password_reset_key_time < " + maxPasswordResetKeyTime)
             + (email             == null ? "" : " AND u.email = " + Utils.escape(email))
-            + (" ORDER BY u.id")
+            + (" ORDER BY u.user_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";
 
