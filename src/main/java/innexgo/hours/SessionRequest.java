@@ -21,10 +21,10 @@ package innexgo.hours;
 
 public class SessionRequest {
   public long sessionRequestId;
-  long creatorId;
+  long creatorUserId;
   public long creationTime;
-  long attendeeId;
-  long hostId;
+  long attendeeUserId;
+  long courseId;
   public String message;
   public long startTime;
   public long duration;
@@ -32,5 +32,5 @@ public class SessionRequest {
   // for jackson
   public User creator;
   public User attendee;
-  public User host;
+  public Course course;
 }

@@ -59,21 +59,13 @@ public class ApiController {
   @Autowired
   PasswordResetKeyService passwordResetKeyService;
   @Autowired
+  AdminshipService adminshipService;
+  @Autowired
+  CourseService courseService;
+  @Autowired
+  CourseMembershipService CourseMembershipService;
+  @Autowired
   InnexgoService innexgoService;
-
-  // Human friendly name of school
-  @Value("${SCHOOL_NAME}")
-  String schoolName;
-
-  // the school's student email suffix
-  @Value("${SCHOOL_STUDENT_EMAIL_SUFFIX}")
-  String emailStudentSuffix;
-  @Value("${SCHOOL_USER_EMAIL_SUFFIX}")
-  String emailUserSuffix;
-
-  // the school's prefix used in their innexgo hours subdomain
-  @Value("${SCHOOL_INNEXGO_PREFIX}")
-  String schoolInnexgoPrefix;
 
   // The website where this application is hosted
   @Value("${INNEXGO_HOURS_SITE}")
@@ -114,7 +106,7 @@ public class ApiController {
 
     // now actually make apiKey
     ApiKey apiKey = new ApiKey();
-    apiKey.creatorId = u.id;
+    apiKey.creatorUserId = u.userId;
     apiKey.creationTime = System.currentTimeMillis();
     apiKey.duration = duration;
     apiKey.key = Utils.generateKey();
@@ -128,24 +120,10 @@ public class ApiController {
   public ResponseEntity<?> newEmailVerificationChallenge( //
       @RequestParam String userName, //
       @RequestParam String userEmail, //
-      @RequestParam UserKind userKind, //
       @RequestParam String userPassword) {
     if (Utils.isEmpty(userEmail)) {
       return Errors.USER_EMAIL_EMPTY.getResponse();
     }
-
-    if(userKind == UserKind.ADMIN) {
-      return Errors.NO_CAPABILITY.getResponse();
-    }
-
-    if(userKind == UserKind.STUDENT && !userEmail.endsWith("@"+emailStudentSuffix)){
-      return Errors.EMAIL_BLACKLISTED.getResponse();
-    }
-
-    if(userKind == UserKind.USER && !userEmail.endsWith("@"+emailUserSuffix)){
-      return Errors.EMAIL_BLACKLISTED.getResponse();
-    }
-
 
     if (Utils.isEmpty(userName)) {
       return Errors.USER_NAME_EMPTY.getResponse();
@@ -173,7 +151,6 @@ public class ApiController {
     String rawKey = Utils.generateKey();
     evc.verificationKey = Utils.hashGeneratedKey(rawKey);
     evc.passwordHash = Utils.encodePassword(userPassword);
-    evc.kind = userKind;
     emailVerificationChallengeService.add(evc);
     mailService.send(userEmail, "Innexgo Hours: Email Verification",
         "<p>Required email verification requested under the name: " + evc.name + "</p>" //
@@ -212,7 +189,6 @@ public class ApiController {
     u.email = evc.email;
     u.passwordHash = evc.passwordHash;
     u.passwordResetKeyTime = 1;
-    u.kind = evc.kind;
 
     userService.add(u);
 
@@ -285,7 +261,7 @@ public class ApiController {
     }
 
     Session s = new Session();
-    s.creatorId = keyCreator.id;
+    s.creatorUserId = keyCreator.id;
     s.creationTime = System.currentTimeMillis();
     s.name = name;
     s.hostId = hostId;
@@ -328,7 +304,7 @@ public class ApiController {
     }
 
     SessionRequest sr = new SessionRequest();
-    sr.creatorId = keyCreator.id;
+    sr.creatorUserId = keyCreator.id;
     sr.creationTime = System.currentTimeMillis();
     sr.attendeeId = attendeeId;
     sr.hostId = hostId;
@@ -366,7 +342,7 @@ public class ApiController {
 
     SessionRequestResponse srr = new SessionRequestResponse();
     srr.sessionRequestId = sessionRequestId;
-    srr.creatorId = keyCreator.id;
+    srr.creatorUserId = keyCreator.id;
     srr.message = message;
     srr.accepted = accepted;
     if (accepted) {
@@ -416,7 +392,7 @@ public class ApiController {
     // check that a unresponded committment does not already exist
     List<Committment> preexisting = committmentService.query( //
         null, // committmentId  
-        null, // creatorId  
+        null, // creatorUserId  
         null, // creationTime  
         null, // minCreationTime  
         null, // maxCreationTime  
@@ -440,7 +416,7 @@ public class ApiController {
     }
 
     Committment c = new Committment();
-    c.creatorId = keyCreator.id;
+    c.creatorUserId = keyCreator.id;
     c.creationTime = System.currentTimeMillis();
     c.attendeeId = attendeeId;
     c.sessionId = sessionId;
@@ -482,7 +458,7 @@ public class ApiController {
 
     CommittmentResponse a = new CommittmentResponse();
     a.committmentId = committmentId;
-    a.creatorId = keyCreator.id;
+    a.creatorUserId = keyCreator.id;
     a.creationTime = System.currentTimeMillis();
     a.kind = committmentResponseKind;
     committmentResponseService.add(a);
@@ -531,7 +507,7 @@ public class ApiController {
   @RequestMapping("/session/")
   public ResponseEntity<?> viewSession( //
       @RequestParam(required=false) Long sessionId, //
-      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creatorUserId, //
       @RequestParam(required=false) Long creationTime, //
       @RequestParam(required=false) Long minCreationTime, //
       @RequestParam(required=false) Long maxCreationTime, //
@@ -556,7 +532,7 @@ public class ApiController {
 
     List<Session> list = sessionService.query(//
         sessionId, //
-        creatorId, //
+        creatorUserId, //
         creationTime, //
         minCreationTime, //
         maxCreationTime, //
@@ -579,7 +555,7 @@ public class ApiController {
   @RequestMapping("/sessionRequest/")
   public ResponseEntity<?> viewSessionRequest( //
       @RequestParam(required=false) Long sessionRequestId, //
-      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creatorUserId, //
       @RequestParam(required=false) Long attendeeId, //
       @RequestParam(required=false) Long hostId, //
       @RequestParam(required=false) String message, //
@@ -605,7 +581,7 @@ public class ApiController {
 
     List<SessionRequest> list = sessionRequestService.query(//
         sessionRequestId, //
-        creatorId, //
+        creatorUserId, //
         attendeeId, //
         hostId, //
         message, //
@@ -628,7 +604,7 @@ public class ApiController {
   @RequestMapping("/sessionRequestResponse/")
   public ResponseEntity<?> viewSessionRequestResponse( //
       @RequestParam(required=false) Long sessionRequestId, //
-      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creatorUserId, //
       @RequestParam(required=false) Long creationTime, //
       @RequestParam(required=false) Long minCreationTime, //
       @RequestParam(required=false) Long maxCreationTime, //
@@ -655,7 +631,7 @@ public class ApiController {
 
     List<SessionRequestResponse> list = sessionRequestResponseService.query( //
         sessionRequestId, //
-        creatorId, //
+        creatorUserId, //
         creationTime, //
         minCreationTime, //
         maxCreationTime, //
@@ -679,7 +655,7 @@ public class ApiController {
   @RequestMapping("/committment/")
   public ResponseEntity<?> viewCommittment( //
       @RequestParam(required=false) Long committmentId, //
-      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creatorUserId, //
       @RequestParam(required=false) Long creationTime, //
       @RequestParam(required=false) Long minCreationTime, //
       @RequestParam(required=false) Long maxCreationTime, //
@@ -706,7 +682,7 @@ public class ApiController {
 
     List<Committment> list = committmentService.query( //
         committmentId, //
-        creatorId, //
+        creatorUserId, //
         creationTime, //
         minCreationTime, //
         maxCreationTime, //
@@ -730,7 +706,7 @@ public class ApiController {
   @RequestMapping("/committmentResponse/")
   public ResponseEntity<?> viewCommittmentResponse( //
       @RequestParam(required=false) Long committmentId, //
-      @RequestParam(required=false) Long creatorId, //
+      @RequestParam(required=false) Long creatorUserId, //
       @RequestParam(required=false) Long creationTime, //
       @RequestParam(required=false) Long minCreationTime, //
       @RequestParam(required=false) Long maxCreationTime, //
@@ -756,7 +732,7 @@ public class ApiController {
 
     List<CommittmentResponse> list = committmentResponseService.query( //
         committmentId, //
-        creatorId, //
+        creatorUserId, //
         creationTime, //
         minCreationTime, //
         maxCreationTime, //

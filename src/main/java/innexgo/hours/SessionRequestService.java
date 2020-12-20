@@ -51,16 +51,17 @@ public class SessionRequestService {
 
   public void add(SessionRequest apptRequest) {
     apptRequest.sessionRequestId = nextId();
+    apptRequest.creationTime = System.currentTimeMillis();
     // Add apptRequest
     String sql =
         "INSERT INTO session_request values (?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         apptRequest.sessionRequestId,
-        apptRequest.creatorId,
         apptRequest.creationTime,
-        apptRequest.attendeeId,
-        apptRequest.hostId,
+        apptRequest.creatorUserId,
+        apptRequest.attendeeUserId,
+        apptRequest.courseId,
         apptRequest.message,
         apptRequest.startTime,
         apptRequest.duration
@@ -76,13 +77,13 @@ public class SessionRequestService {
   // Restrict apptRequests by
   public List<SessionRequest> query(
       Long sessionRequestId,
-      Long creatorId,
-      Long attendeeId,
-      Long hostId,
-      String message,
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
+      Long creatorUserId,
+      Long attendeeUserId,
+      Long courseId,
+      String message,
       Long startTime,
       Long minStartTime,
       Long maxStartTime,
@@ -98,13 +99,13 @@ public class SessionRequestService {
             + " WHERE 1=1 "
             + (responded       == null ? "" : " AND srr.session_request_id IS" + (responded ? " NOT NULL" : " NULL"))
             + (sessionRequestId== null ? "" : " AND sr.session_request_id = " + sessionRequestId)
-            + (creatorId       == null ? "" : " AND sr.creator_id = " + creatorId)
-            + (attendeeId      == null ? "" : " AND sr.attendee_id = " + attendeeId)
-            + (hostId          == null ? "" : " AND sr.host_id = " + hostId)
-            + (message         == null ? "" : " AND sr.message = " + Utils.escape(message))
+            + (creatorUserId   == null ? "" : " AND sr.creator_user_id = " + creatorUserId)
             + (creationTime    == null ? "" : " AND sr.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND sr.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND sr.creation_time < " + maxCreationTime)
+            + (attendeeUserId  == null ? "" : " AND sr.attendee_user_id = " + attendeeUserId)
+            + (courseId        == null ? "" : " AND sr.course_id = " + courseId)
+            + (message         == null ? "" : " AND sr.message = " + Utils.escape(message))
             + (startTime       == null ? "" : " AND sr.start_time = " + startTime)
             + (minStartTime    == null ? "" : " AND sr.start_time > " + minStartTime)
             + (maxStartTime    == null ? "" : " AND sr.start_time < " + maxStartTime)

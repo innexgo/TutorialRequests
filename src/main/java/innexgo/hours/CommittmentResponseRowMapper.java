@@ -28,8 +28,8 @@ public class CommittmentResponseRowMapper implements RowMapper<CommittmentRespon
   public CommittmentResponse mapRow(ResultSet row, int rowNum) throws SQLException {
     CommittmentResponse committmentResponse = new CommittmentResponse();
     committmentResponse.committmentId = row.getLong("committment_id");
-    committmentResponse.creatorId = row.getLong("creator_id");
     committmentResponse.creationTime = row.getLong("creation_time");
+    committmentResponse.creatorUserId = row.getLong("creator_user_id");
     committmentResponse.kind = CommittmentResponseKind.from(row.getInt("committment_response_kind"));
     return committmentResponse;
   }

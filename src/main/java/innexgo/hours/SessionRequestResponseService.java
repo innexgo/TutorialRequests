@@ -44,7 +44,7 @@ public class SessionRequestResponseService {
     jdbcTemplate.update(
         sql,
         sessionRequestResponse.sessionRequestId,
-        sessionRequestResponse.creatorId,
+        sessionRequestResponse.creatorUserId,
         sessionRequestResponse.creationTime,
         sessionRequestResponse.message,
         sessionRequestResponse.accepted,
@@ -60,10 +60,10 @@ public class SessionRequestResponseService {
   // Restrict appts by
   public List<SessionRequestResponse> query(
       Long sessionRequestId,
-      Long creatorId,
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
+      Long creatorUserId,
       String message,
       Boolean accepted,
       Long committmentId,
@@ -89,7 +89,7 @@ public class SessionRequestResponseService {
             + (nojoin ? "" : " JOIN session_request sr ON sr.session_request_id = srr.session_request_id")
             + " WHERE 1=1 "
             + (sessionRequestId == null ? "" : " AND srr.session_request_id = " + sessionRequestId)
-            + (creatorId        == null ? "" : " AND srr.creator_id = " + creatorId)
+            + (creatorUserId        == null ? "" : " AND srr.creator_id = " + creatorUserId)
             + (creationTime     == null ? "" : " AND srr.creation_time = " + creationTime)
             + (minCreationTime  == null ? "" : " AND srr.creation_time > " + minCreationTime)
             + (maxCreationTime  == null ? "" : " AND srr.creation_time < " + maxCreationTime)

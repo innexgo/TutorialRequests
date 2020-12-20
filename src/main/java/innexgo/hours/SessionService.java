@@ -55,14 +55,15 @@ public class SessionService {
     session.sessionId = nextId();
     // Add session
     String sql =
-        "INSERT INTO session values (?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO session values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         session.sessionId,
-        session.creatorId,
         session.creationTime,
+        session.creatorUserId,
+        session.courseId,
+        session.locationId,
         session.name,
-        session.hostId,
         session.startTime,
         session.duration,
         session.hidden
@@ -85,12 +86,14 @@ public class SessionService {
   // Restrict sessions by
   public List<Session> query(
       Long sessionId,
-      Long creatorId,
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
+      Long creatorUserId,
+      Long courseId,
+      Long locationId,
       String name,
-      Long hostId,
+      String partialName,
       Long startTime,
       Long minStartTime,
       Long maxStartTime,
@@ -104,12 +107,14 @@ public class SessionService {
         "SELECT ses.* FROM session ses"
             + " WHERE 1=1 "
             + (sessionId       == null ? "" : " AND ses.session_id = " + sessionId)
-            + (creatorId       == null ? "" : " AND ses.creator_id = " + creatorId)
-            + (hostId          == null ? "" : " AND ses.host_id = " + hostId)
-            + (name            == null ? "" : " AND ses.name = " + Utils.escape(name))
             + (creationTime    == null ? "" : " AND ses.creation_time = " + creationTime)
             + (minCreationTime == null ? "" : " AND ses.creation_time > " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND ses.creation_time < " + maxCreationTime)
+            + (creatorUserId   == null ? "" : " AND ses.creator_id = " + creatorUserId)
+            + (courseId        == null ? "" : " AND ses.course_id = " + courseId)
+            + (locationId      == null ? "" : " AND ses.location_id = " + locationId)
+            + (name            == null ? "" : " AND ses.name = " + Utils.escape(name))
+            + (partialName     == null ? "" : " AND ses.name LIKE " + Utils.escape("%"+partialName+"%"))
             + (startTime       == null ? "" : " AND ses.start_time = " + startTime)
             + (minStartTime    == null ? "" : " AND ses.start_time > " + minStartTime)
             + (maxStartTime    == null ? "" : " AND ses.start_time < " + maxStartTime)

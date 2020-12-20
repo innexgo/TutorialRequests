@@ -125,7 +125,6 @@ create table session(
   course_id integer not null,
   location_id integer not null,
   name varchar(100) not null,
-  host_id integer not null,
   start_time integer not null,
   duration integer not null,
   hidden integer not null       -- boolean
@@ -138,8 +137,7 @@ create table session_request(
   session_request_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  attendee_id integer not null,
-  host_id integer not null,
+  attendee_user_id integer not null,
   course_id integer not null,
   message varchar(100) not null,
   start_time integer not null,
@@ -163,7 +161,7 @@ create table committment(
   committment_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  attendee_id integer not null,
+  attendee_user_id integer not null,
   session_id integer not null,
   cancellable integer not null -- boolean
 );

@@ -28,8 +28,8 @@ public class SessionRequestResponseRowMapper implements RowMapper<SessionRequest
   public SessionRequestResponse mapRow(ResultSet row, int rowNum) throws SQLException {
     SessionRequestResponse sessionRequestResponse = new SessionRequestResponse();
     sessionRequestResponse.sessionRequestId = row.getLong("session_request_id");
-    sessionRequestResponse.creatorId = row.getLong("creator_id");
     sessionRequestResponse.creationTime = row.getLong("creation_time");
+    sessionRequestResponse.creatorUserId= row.getLong("creator_user_id");
     sessionRequestResponse.message = row.getString("message");
     sessionRequestResponse.accepted = row.getBoolean("accepted");
     sessionRequestResponse.committmentId= row.getLong("accepted_committment_id");

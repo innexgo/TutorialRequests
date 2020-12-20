@@ -46,8 +46,8 @@ public class CommittmentResponseService {
     jdbcTemplate.update(
         sql,
         committmentResponse.committmentId,
-        committmentResponse.creatorId,
         committmentResponse.creationTime,
+        committmentResponse.creatorUserId,
         committmentResponse.kind.value);
   }
 
@@ -59,10 +59,10 @@ public class CommittmentResponseService {
 
   public List<CommittmentResponse> query(
      Long committmentId,
-     Long creatorId,
      Long creationTime,
      Long minCreationTime,
      Long maxCreationTime,
+     Long creatorUserId,
      CommittmentResponseKind committmentResponseKind,
      Long attendeeId,
      Long hostId,
@@ -89,7 +89,7 @@ public class CommittmentResponseService {
         + (!joins ? "" : " LEFT JOIN session s ON s.session_id = c.session_id")
         + " WHERE 1=1 "
         + (committmentId          == null ? "" : " AND cr.committment_id = " + committmentId)
-        + (creatorId              == null ? "" : " AND cr.creator_id = " + creatorId)
+        + (creatorUserId              == null ? "" : " AND cr.creator_id = " + creatorUserId)
         + (creationTime           == null ? "" : " AND cr.creation_time = " + creationTime)
         + (minCreationTime        == null ? "" : " AND cr.creation_time > " + minCreationTime)
         + (maxCreationTime        == null ? "" : " AND cr.creation_time < " + maxCreationTime)

@@ -85,18 +85,18 @@ public class CourseMembershipService {
  {
 
     String sql =
-      "SELECT l.* FROM course_membership cl"
+      "SELECT cm.* FROM course_membership cm"
         + " WHERE 1=1 "
-        + (courseMembershipId    == null ? "" : " AND cl.course_membership_id = " + courseMembershipId)
-        + (creationTime          == null ? "" : " AND cl.creation_time = " + creationTime)
-        + (minCreationTime       == null ? "" : " AND cl.creation_time > " + minCreationTime)
-        + (maxCreationTime       == null ? "" : " AND cl.creation_time < " + maxCreationTime)
-        + (creatorUserId         == null ? "" : " AND cl.creator_user_id = " + creatorUserId)
-        + (userId                == null ? "" : " AND cl.user_id = " + userId)
-        + (courseId              == null ? "" : " AND cl.course_id = " + courseId)
-        + (courseMembershipKind  == null ? "" : " AND cl.course_membeship_kind = " + courseMembershipKind.value)
-        + (valid                 == null ? "" : " AND cl.valid = " + valid)
-        + (" ORDER BY cl.course_membership_id")
+        + (courseMembershipId    == null ? "" : " AND cm.course_membership_id = " + courseMembershipId)
+        + (creationTime          == null ? "" : " AND cm.creation_time = " + creationTime)
+        + (minCreationTime       == null ? "" : " AND cm.creation_time > " + minCreationTime)
+        + (maxCreationTime       == null ? "" : " AND cm.creation_time < " + maxCreationTime)
+        + (creatorUserId         == null ? "" : " AND cm.creator_user_id = " + creatorUserId)
+        + (userId                == null ? "" : " AND cm.user_id = " + userId)
+        + (courseId              == null ? "" : " AND cm.course_id = " + courseId)
+        + (courseMembershipKind  == null ? "" : " AND cm.course_membership_kind = " + courseMembershipKind.value)
+        + (valid                 == null ? "" : " AND cm.valid = " + valid)
+        + (" ORDER BY cm.course_membership_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 

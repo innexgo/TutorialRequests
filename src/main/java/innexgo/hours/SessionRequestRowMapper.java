@@ -28,10 +28,10 @@ public class SessionRequestRowMapper implements RowMapper<SessionRequest> {
   public SessionRequest mapRow(ResultSet row, int rowNum) throws SQLException {
     SessionRequest sessionRequest = new SessionRequest();
     sessionRequest.sessionRequestId = row.getLong("session_request_id");
-    sessionRequest.creatorId = row.getLong("creator_id");
     sessionRequest.creationTime = row.getLong("creation_time");
-    sessionRequest.attendeeId = row.getLong("attendee_id");
-    sessionRequest.hostId = row.getLong("host_id");
+    sessionRequest.creatorUserId= row.getLong("creator_user_id");
+    sessionRequest.attendeeUserId = row.getLong("attendee_user_id");
+    sessionRequest.courseId  = row.getLong("course_id");
     sessionRequest.message = row.getString("message");
     sessionRequest.startTime = row.getLong("start_time");
     sessionRequest.duration = row.getLong("duration");

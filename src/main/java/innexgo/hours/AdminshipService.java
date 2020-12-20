@@ -83,7 +83,7 @@ public class AdminshipService {
  {
 
     String sql =
-      "SELECT l.* FROM adminship a"
+      "SELECT a.* FROM adminship a"
         + " WHERE 1=1 "
         + (adminshipId    == null ? "" : " AND a.adminship_id = " + adminshipId)
         + (creationTime          == null ? "" : " AND a.creation_time = " + creationTime)

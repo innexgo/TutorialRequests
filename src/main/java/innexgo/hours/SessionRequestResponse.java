@@ -20,8 +20,8 @@ package innexgo.hours;
 
 public class SessionRequestResponse {
   long sessionRequestId;
-  long creatorId;
   public long creationTime;
+  long creatorUserId;
   public String message;
   public boolean accepted;
   // Only valid if accepted == true

@@ -20,8 +20,8 @@ package innexgo.hours;
 
 public class CommittmentResponse {
   long committmentId;
-  long creatorId;
   public long creationTime;
+  long creatorUserId;
   public CommittmentResponseKind kind;
 
   // for jackson

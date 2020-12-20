@@ -20,16 +20,18 @@ package innexgo.hours;
 
 public class Session {
   public long sessionId;
-  long creatorId;
   public long creationTime;
+  long creatorUserId;
+  long courseId;
+  long locationId;
   public String name;
-  long hostId;
   public long startTime;
   public long duration;
   public boolean hidden;
 
   // for jackson
   public User creator;
-  public User host;
+  public Course course;
+  public Location location;
 }
 
