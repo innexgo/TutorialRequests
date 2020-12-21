@@ -53,6 +53,8 @@ public class ApiController {
   @Autowired
   SchoolService schoolService;
   @Autowired
+  LocationService locationService;
+  @Autowired
   CommittmentResponseService committmentResponseService;
   @Autowired
   EmailVerificationChallengeService emailVerificationChallengeService;
@@ -238,7 +240,7 @@ public class ApiController {
   }
 
   @RequestMapping("/courseMembership/new/")
-  public ResponseEntity<?> newSession( //
+  public ResponseEntity<?> newCourseMembership( //
       @RequestParam long userId, //
       @RequestParam long courseId, //
       @RequestParam CourseMembershipKind courseMembershipKind, //
@@ -285,6 +287,47 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillCourseMembership(cm), HttpStatus.OK);
   }
 
+  @RequestMapping("/adminship/new/")
+  public ResponseEntity<?> newAdminship( //
+      @RequestParam long userId, //
+      @RequestParam long schoolId, //
+      @RequestParam AdminshipKind adminshipKind, //
+      @RequestParam String apiKey) {
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that user exists
+    if (!userService.existsByUserId(userId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    // check that school exists
+    if (!schoolService.existsBySchoolId(schoolId)) {
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // check authorization
+    if (!adminshipService.isAdmin(keyCreator.userId, schoolId)) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // prevent admins from removing themselves
+    if (userId == keyCreator.userId && adminshipKind == AdminshipKind.CANCEL) {
+      return Errors.COURSEMEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
+    }
+
+    Adminship cm = new Adminship();
+    cm.creationTime = System.currentTimeMillis();
+    cm.creatorUserId = keyCreator.userId;
+    cm.schoolId = schoolId;
+    cm.userId = userId;
+    cm.adminshipKind = adminshipKind;
+    adminshipService.add(cm);
+    return new ResponseEntity<>(innexgoService.fillAdminship(cm), HttpStatus.OK);
+  }
+
   @RequestMapping("/session/new/")
   public ResponseEntity<?> newSession( //
       @RequestParam String name, //
@@ -303,11 +346,16 @@ public class ApiController {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
+    Course course = courseService.getByCourseId(courseId);
+
     if (!userService.existsByUserId(locationId)) {
       return Errors.LOCATION_NONEXISTENT.getResponse();
     }
+    Location location = locationService.getByLocationId(locationId);
 
-    // TODO check if location is owned by user (or is atleast in the same school)
+    if (location.schoolId != course.schoolId) {
+      return Errors.LOCATION_NONEXISTENT.getResponse();
+    }
 
     if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();
@@ -657,6 +705,109 @@ public class ApiController {
         offset, //
         count //
     ).stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/course/")
+  public ResponseEntity<?> viewCourse( //
+      @RequestParam(required = false) Long courseId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long schoolId, //
+      @RequestParam(required = false) String name, //
+      @RequestParam(required = false) String partialName, //
+      @RequestParam(required = false) String description, //
+      @RequestParam(required = false) String passwordHash, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey //
+  ) //
+  {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    List<Course> list = courseService.query( //
+        courseId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        creatorUserId, //
+        schoolId, //
+        name, //
+        partialName, //
+        description, //
+        passwordHash, //
+        offset, //
+        count //
+    ).stream().map(x -> innexgoService.fillCourse(x)).collect(Collectors.toList());
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/courseMembership/")
+  public ResponseEntity<?> viewCourseMembership( //
+      @RequestParam(required = false) Long courseMembershipId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long userId, //
+      @RequestParam(required = false) Long courseId, //
+      @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, @RequestParam String apiKey) //
+  {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    List<CourseMembership> list = courseMembershipService.query( //
+        courseMembershipId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        creatorUserId, //
+        userId, //
+        courseId, //
+        courseMembershipKind, //
+        offset, //
+        count).stream().map(x -> innexgoService.fillCourseMembership(x)).collect(Collectors.toList());
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/adminship/")
+  public ResponseEntity<?> viewAdminship( //
+      @RequestParam(required = false) Long adminshipId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long userId, //
+      @RequestParam(required = false) Long schoolId, //
+      @RequestParam(required = false) AdminshipKind adminshipKind, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, @RequestParam String apiKey) //
+  {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    List<Adminship> list = adminshipService.query( //
+        adminshipId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        creatorUserId, //
+        userId, //
+        schoolId, //
+        adminshipKind, //
+        offset, //
+        count).stream().map(x -> innexgoService.fillAdminship(x)).collect(Collectors.toList());
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
