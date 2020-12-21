@@ -31,7 +31,7 @@ public class UserService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public User getById(long id) {
+  public User getByUserId(long id) {
     String sql =
         "SELECT * FROM user WHERE user_id=?";
     RowMapper<User> rowMapper = new UserRowMapper();
@@ -83,7 +83,7 @@ public class UserService {
         user.userId);
   }
   
-  public boolean existsById(long id) {
+  public boolean existsByUserId(long id) {
     String sql = "SELECT count(*) FROM user WHERE user_id=?";
     long count = jdbcTemplate.queryForObject(sql, Long.class, id);
     return count != 0;

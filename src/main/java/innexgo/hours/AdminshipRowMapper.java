@@ -33,7 +33,7 @@ public class AdminshipRowMapper implements RowMapper<Adminship> {
     adminship.creatorUserId = row.getLong("creator_user_id");
     adminship.userId = row.getLong("user_id");
     adminship.schoolId = row.getLong("school_id");
-    adminship.valid= row.getBoolean("valid");
+    adminship.adminshipKind = AdminshipKind.from(row.getInt("adminship_kind"));
     return adminship;
   }
 }

@@ -40,7 +40,7 @@ create table adminship(
   creator_user_id integer not null,
   user_id integer not null,
   school_id integer not null,
-  valid integer not null -- boolean
+  adminship_kind integer not null -- ADMIN, CANCEL
 );
 
 drop table if exists user;
@@ -84,8 +84,7 @@ create table course_membership(
   creator_user_id integer not null,
   user_id integer not null,
   course_id integer not null,
-  course_membership_kind integer not null, -- STUDENT, INSTRUCTOR
-  valid integer not null -- boolean
+  course_membership_kind integer not null -- STUDENT, INSTRUCTOR, CANCEL
 );
 
 drop table if exists subscription;
@@ -172,5 +171,5 @@ create table committment_response(
   committment_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  committment_response_kind integer not null -- can be PRESENT(0), TARDY(1), ABSENT(2), CANCELLED(3)
+  committment_response_kind integer not null -- can be PRESENT(0), TARDY(1), ABSENT(2), CANCEL(3)
 );

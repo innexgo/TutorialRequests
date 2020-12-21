@@ -24,9 +24,38 @@ public class Adminship {
   long creatorUserId;
   long userId;
   long schoolId;
-  public boolean valid;
+  public AdminshipKind adminshipKind;
 
   User creator;
   User user;
   School school;
 }
+
+enum AdminshipKind {
+  ADMIN(0), CANCEL(1);
+
+  final int value;
+
+  private AdminshipKind(int value) {
+    this.value = value;
+  }
+
+  public static AdminshipKind from(int i) {
+    for (AdminshipKind adminshipKind : AdminshipKind.values()) {
+      if (adminshipKind.value == i) {
+        return adminshipKind;
+      }
+    }
+    return null;
+  }
+
+  public static boolean contains(String str) {
+    for (AdminshipKind adminshipKind : AdminshipKind.values()) {
+      if (adminshipKind.name().equals(str)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+

@@ -63,7 +63,7 @@ public class ApiController {
   @Autowired
   CourseService courseService;
   @Autowired
-  CourseMembershipService CourseMembershipService;
+  CourseMembershipService courseMembershipService;
   @Autowired
   InnexgoService innexgoService;
 
@@ -71,7 +71,7 @@ public class ApiController {
   @Value("${INNEXGO_HOURS_SITE}")
   String innexgoHoursSite;
 
-  final static int fiveMinutes =     5 * 60 * 1000;
+  final static int fiveMinutes = 5 * 60 * 1000;
   final static int fifteenMinutes = 15 * 60 * 1000;
 
   /**
@@ -235,10 +235,59 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillPasswordResetKey(fp), HttpStatus.OK);
   }
 
+  @RequestMapping("/courseMembership/new/")
+  public ResponseEntity<?> newSession( //
+      @RequestParam long userId, //
+      @RequestParam long courseId, //
+      @RequestParam CourseMembershipKind courseMembershipKind, //
+      @RequestParam String apiKey) {
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that user exists
+    if (!userService.existsByUserId(userId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    // check that course exists
+    if (!courseService.existsByCourseId(courseId)) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+    // if so retrieve course
+    boolean creatorAdmin = adminshipService.isAdmin(keyCreator.userId, courseService.getByCourseId(courseId).schoolId);
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
+        courseId);
+    boolean creatorInstructor = creatorCourseMembershipKind != null
+        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+
+    // check if the creator is an admin of this course's school or a teacher of this
+    // course
+    if (!creatorAdmin && !creatorInstructor) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // prevent teacher from removing themselves from a course
+    if (!creatorAdmin && courseMembershipKind == CourseMembershipKind.CANCEL) {
+      return Errors.COURSEMEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
+    }
+
+    CourseMembership cm = new CourseMembership();
+    cm.creationTime = System.currentTimeMillis();
+    cm.creatorUserId = keyCreator.userId;
+    cm.courseId = courseId;
+    cm.userId = userId;
+    cm.courseMembershipKind = courseMembershipKind;
+    courseMembershipService.add(cm);
+    return new ResponseEntity<>(innexgoService.fillCourseMembership(cm), HttpStatus.OK);
+  }
+
   @RequestMapping("/session/new/")
   public ResponseEntity<?> newSession( //
       @RequestParam String name, //
-      @RequestParam long hostId, //
+      @RequestParam long courseId, //
+      @RequestParam long locationId, //
       @RequestParam long startTime, //
       @RequestParam long duration, //
       @RequestParam boolean hidden, //
@@ -248,23 +297,36 @@ public class ApiController {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if (keyCreator.kind == UserKind.STUDENT) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    if (!userService.existsByUserId(courseId)) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
-    if (!userService.existsById(hostId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
+    if (!userService.existsByUserId(locationId)) {
+      return Errors.LOCATION_NONEXISTENT.getResponse();
     }
+
+    // TODO check if location is owned by user (or is atleast in the same school)
 
     if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
 
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
+        courseId);
+    boolean creatorInstructor = creatorCourseMembershipKind != null
+        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+
+    // creator must be an instructor of this course
+    if (!creatorInstructor) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
     Session s = new Session();
-    s.creatorUserId = keyCreator.id;
+    s.creatorUserId = keyCreator.userId;
     s.creationTime = System.currentTimeMillis();
     s.name = name;
-    s.hostId = hostId;
+    s.courseId = courseId;
+    s.locationId = locationId;
     s.startTime = startTime;
     s.duration = duration;
     s.hidden = hidden;
@@ -274,8 +336,7 @@ public class ApiController {
 
   @RequestMapping("/sessionRequest/new/")
   public ResponseEntity<?> newSessionRequest( //
-      @RequestParam long attendeeId, //
-      @RequestParam long hostId, //
+      @RequestParam long courseId, //
       @RequestParam String message, //
       @RequestParam long startTime, //
       @RequestParam long duration, //
@@ -285,29 +346,26 @@ public class ApiController {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if (!userService.existsById(hostId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
-    }
-
-    if (!userService.existsById(attendeeId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
-    }
-
-    // Students can only create appointments for themselves (may want to change this
-    // as we develop a more fine grained permissioning system)
-    if ((keyCreator.kind == UserKind.STUDENT) && attendeeId != keyCreator.id) {
-      return Errors.SESSION_CANNOT_CREATE_FOR_OTHERS_STUDENT.getResponse();
-    }
-
     if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
 
+    if (!courseService.existsByCourseId(courseId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    // creator must be a student of this course can create a session request for it
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
+        courseId);
+    if (creatorCourseMembershipKind == null || creatorCourseMembershipKind != CourseMembershipKind.STUDENT) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
     SessionRequest sr = new SessionRequest();
-    sr.creatorUserId = keyCreator.id;
+    sr.creatorUserId = keyCreator.userId;
     sr.creationTime = System.currentTimeMillis();
-    sr.attendeeId = attendeeId;
-    sr.hostId = hostId;
+    sr.attendeeUserId = keyCreator.userId;
+    sr.courseId = courseId;
     sr.message = message;
     sr.startTime = startTime;
     sr.duration = duration;
@@ -315,12 +373,10 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillSessionRequest(sr), HttpStatus.OK);
   }
 
-  @RequestMapping("/sessionRequestResponse/new/")
-  public ResponseEntity<?> newSessionRequestResponse( //
+  @RequestMapping("/sessionRequestResponse/newReject/")
+  public ResponseEntity<?> newSessionRequestResponseReject( //
       @RequestParam long sessionRequestId, //
       @RequestParam String message, //
-      @RequestParam boolean accepted, //
-      @RequestParam(required = false) Long committmentId, //
       @RequestParam String apiKey) {
     User keyCreator = innexgoService.getUserIfValid(apiKey);
     if (keyCreator == null) {
@@ -331,27 +387,78 @@ public class ApiController {
       return Errors.SESSION_REQUEST_RESPONSE_EXISTENT.getResponse();
     }
 
-    // students are not allowed to accept their own appointments
-    if (keyCreator.kind == UserKind.STUDENT && accepted) {
-      return Errors.SESSION_REQUEST_RESPONSE_CANNOT_CANCEL_STUDENT.getResponse();
+    if (!sessionRequestService.existsBySessionRequestId(sessionRequestId)) {
+      return Errors.SESSION_REQUEST_NONEXISTENT.getResponse();
     }
 
-    if (accepted && committmentId == null) {
-      return Errors.COMMITTMENT_NONEXISTENT.getResponse();
+    // check if creator is the sessionRequest's attendee
+    // sessionRequest's course's instructor
+    SessionRequest sr = sessionRequestService.getBySessionRequestId(sessionRequestId);
+    boolean creatorIsAttendee = sr.attendeeUserId == keyCreator.userId;
+
+    if (!creatorIsAttendee) {
+      // if the creator isn't the attendee
+      CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
+          sr.courseId);
+
+      boolean creatorIsInstructor = creatorCourseMembershipKind != null
+          && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+      if (!creatorIsInstructor) {
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
     }
 
     SessionRequestResponse srr = new SessionRequestResponse();
+    srr.creationTime = System.currentTimeMillis();
     srr.sessionRequestId = sessionRequestId;
-    srr.creatorUserId = keyCreator.id;
+    srr.creatorUserId = keyCreator.userId;
     srr.message = message;
-    srr.accepted = accepted;
-    if (accepted) {
-      srr.committmentId = committmentId;
-    }
+    srr.accepted = false;
     sessionRequestResponseService.add(srr);
     return new ResponseEntity<>(innexgoService.fillSessionRequestResponse(srr), HttpStatus.OK);
   }
 
+  @RequestMapping("/sessionRequestResponse/newAccept")
+  public ResponseEntity<?> newSessionRequestResponseAccept( //
+      @RequestParam long sessionRequestId, //
+      @RequestParam String message, //
+      @RequestParam long committmentId, //
+      @RequestParam String apiKey) {
+    User keyCreator = innexgoService.getUserIfValid(apiKey);
+    if (keyCreator == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    if (!committmentService.existsByCommittmentId(committmentId)) {
+      return Errors.COMMITTMENT_NONEXISTENT.getResponse();
+    }
+
+    if (sessionRequestResponseService.existsBySessionRequestId(sessionRequestId)) {
+      return Errors.SESSION_REQUEST_RESPONSE_EXISTENT.getResponse();
+    }
+
+    // check if creator is the sessionRequest's attendee
+    // sessionRequest's course's instructor
+    SessionRequest sr = sessionRequestService.getBySessionRequestId(sessionRequestId);
+
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
+        sr.courseId);
+
+    boolean creatorIsInstructor = creatorCourseMembershipKind != null
+        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+    if (!creatorIsInstructor) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    SessionRequestResponse srr = new SessionRequestResponse();
+    srr.sessionRequestId = sessionRequestId;
+    srr.creatorUserId = keyCreator.userId;
+    srr.message = message;
+    srr.accepted = true;
+    srr.committmentId = committmentId;
+    sessionRequestResponseService.add(srr);
+    return new ResponseEntity<>(innexgoService.fillSessionRequestResponse(srr), HttpStatus.OK);
+  }
 
   @RequestMapping("/committment/new/")
   public ResponseEntity<?> newCommittment( //
@@ -364,59 +471,67 @@ public class ApiController {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if(!userService.existsById(attendeeId)) {
+    if (!userService.existsByUserId(attendeeId)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
-    if(!sessionService.existsBySessionId(sessionId)) {
+    if (!sessionService.existsBySessionId(sessionId)) {
       return Errors.SESSION_NONEXISTENT.getResponse();
     }
+    Session s = sessionService.getBySessionId(sessionId);
 
+    // creator must be an instructor of the session
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId, s.courseId);
 
-    if(keyCreator.kind == UserKind.STUDENT) {
-      // Students may not create committments on others behalf
-      if(keyCreator.id != attendeeId) {
-        return Errors.COMMITTMENT_CANNOT_CREATE_FOR_OTHERS_STUDENT.getResponse();
-      }
-      Session s = sessionService.getBySessionId(sessionId);
-      // Students may not create committments for hidden sessions
-      if(s.hidden) {
-        return Errors.COMMITTMENT_CANNOT_CREATE_HIDDEN_STUDENT.getResponse();
-      }
-      // Students may not create uncancellable committments
-      if(!cancellable) {
-        return Errors.COMMITTMENT_CANNOT_CREATE_UNCANCELLABLE_STUDENT.getResponse();
-      }
+    boolean creatorIsInstructor = creatorCourseMembershipKind != null
+        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+
+    if(!creatorIsInstructor) {
+       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
+
+    // TODO for when we develop student stuff
+    // // Students may not create committments on others behalf
+    // if (keyCreator.userId != attendeeId) {
+    //   return Errors.COMMITTMENT_CANNOT_CREATE_FOR_OTHERS_STUDENT.getResponse();
+    // }
+    // // Students may not create committments for hidden sessions
+    // if (s.hidden) {
+    //   return Errors.COMMITTMENT_CANNOT_CREATE_HIDDEN_STUDENT.getResponse();
+    // }
+    // // Students may not create uncancellable committments
+    // if (!cancellable) {
+    //   return Errors.COMMITTMENT_CANNOT_CREATE_UNCANCELLABLE_STUDENT.getResponse();
+    // }
 
     // check that a unresponded committment does not already exist
     List<Committment> preexisting = committmentService.query( //
-        null, // committmentId  
-        null, // creatorUserId  
-        null, // creationTime  
-        null, // minCreationTime  
-        null, // maxCreationTime  
-        attendeeId, //
-        sessionId, //
-        null, // cancellable
-        null, // hostId
-        null, // startTime
-        null, // minStartTime
-        null, // maxStartTime
-        null, // duration
-        null, // minDuration
-        null, // maxDuration
-        false, // responded
-        0, // long offset,
-        1 // long count)
+     null, // Long committmentId,
+     null, // Long creationTime,
+     null, // Long minCreationTime,
+     null, // Long maxCreationTime,
+     null, // Long creatorUserId,
+     attendeeId, // Long attendeeId,
+     sessionId, // Long sessionId,
+     null, // Boolean cancellable,
+     null, // Long hostId,
+     null, // Long startTime,
+     null, // Long minStartTime,
+     null, // Long maxStartTime,
+     null, // Long duration,
+     null, // Long minDuration,
+     null, // Long maxDuration,
+     null, // Boolean responded,
+     0, // long offset,
+     1 // long count
     );
 
-    if(preexisting.size() != 0) {
+    if (preexisting.size() != 0) {
       return Errors.COMMITTMENT_EXISTENT.getResponse();
     }
 
     Committment c = new Committment();
-    c.creatorUserId = keyCreator.id;
+    c.creatorUserId = keyCreator.userId;
     c.creationTime = System.currentTimeMillis();
     c.attendeeId = attendeeId;
     c.sessionId = sessionId;
@@ -424,6 +539,7 @@ public class ApiController {
     committmentService.add(c);
     return new ResponseEntity<>(innexgoService.fillCommittment(c), HttpStatus.OK);
   }
+
 
   @RequestMapping("/committmentResponse/new/")
   public ResponseEntity<?> newCommittmentResponse( //
@@ -435,7 +551,7 @@ public class ApiController {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if(!committmentService.existsByCommittmentId(committmentId) ) {
+    if (!committmentService.existsByCommittmentId(committmentId)) {
       return Errors.COMMITTMENT_NONEXISTENT.getResponse();
     }
 
@@ -443,22 +559,31 @@ public class ApiController {
       return Errors.COMMITTMENT_RESPONSE_EXISTENT.getResponse();
     }
 
-    if (keyCreator.kind == UserKind.STUDENT) {
-      Committment c = committmentService.getByCommittmentId(committmentId) ;
+
+    // people permitted to accept a committment are the committment's session's course's instructors
+
+    // both the comittment's session's course's instructors and the committment's attendee may cancel committments
+
+    // check if key creator is committment's session's course's instructors
+    Committment c = committmentService.getByCommittmentId(committmentId);
+    Session s = sessionService.getBySessionId(c.sessionId);
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId, s.courseId);
+
+    if () {
       // Students may only cancel their own committment
-      if(keyCreator.id != c.attendeeId) {
+      if (keyCreator.userId != c.attendeeId) {
         return Errors.COMMITTMENT_RESPONSE_CANNOT_CREATE_FOR_OTHERS_STUDENT.getResponse();
       }
 
       // Students may only cancel if their appointment is cancellable
-      if(!c.cancellable) {
+      if (!c.cancellable) {
         return Errors.COMMITTMENT_RESPONSE_UNCANCELLABLE.getResponse();
       }
     }
 
     CommittmentResponse a = new CommittmentResponse();
     a.committmentId = committmentId;
-    a.creatorUserId = keyCreator.id;
+    a.creatorUserId = keyCreator.userId;
     a.creationTime = System.currentTimeMillis();
     a.kind = committmentResponseKind;
     committmentResponseService.add(a);
@@ -503,23 +628,22 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-
   @RequestMapping("/session/")
   public ResponseEntity<?> viewSession( //
-      @RequestParam(required=false) Long sessionId, //
-      @RequestParam(required=false) Long creatorUserId, //
-      @RequestParam(required=false) Long creationTime, //
-      @RequestParam(required=false) Long minCreationTime, //
-      @RequestParam(required=false) Long maxCreationTime, //
-      @RequestParam(required=false) String name, //
-      @RequestParam(required=false) Long hostId, //
-      @RequestParam(required=false) Long startTime, //
-      @RequestParam(required=false) Long minStartTime, //
-      @RequestParam(required=false) Long maxStartTime, //
-      @RequestParam(required=false) Long duration, //
-      @RequestParam(required=false) Long minDuration, //
-      @RequestParam(required=false) Long maxDuration, //
-      @RequestParam(required=false) Boolean hidden, //
+      @RequestParam(required = false) Long sessionId, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) String name, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Boolean hidden, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) {
@@ -551,24 +675,23 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-
   @RequestMapping("/sessionRequest/")
   public ResponseEntity<?> viewSessionRequest( //
-      @RequestParam(required=false) Long sessionRequestId, //
-      @RequestParam(required=false) Long creatorUserId, //
-      @RequestParam(required=false) Long attendeeId, //
-      @RequestParam(required=false) Long hostId, //
-      @RequestParam(required=false) String message, //
-      @RequestParam(required=false) Long creationTime, //
-      @RequestParam(required=false) Long minCreationTime, //
-      @RequestParam(required=false) Long maxCreationTime, //
-      @RequestParam(required=false) Long startTime, //
-      @RequestParam(required=false) Long minStartTime, //
-      @RequestParam(required=false) Long maxStartTime, //
-      @RequestParam(required=false) Long duration, //
-      @RequestParam(required=false) Long minDuration, //
-      @RequestParam(required=false) Long maxDuration, //
-      @RequestParam(required=false) Boolean responded, //
+      @RequestParam(required = false) Long sessionRequestId, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long attendeeId, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) String message, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Boolean responded, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) {
@@ -603,22 +726,22 @@ public class ApiController {
 
   @RequestMapping("/sessionRequestResponse/")
   public ResponseEntity<?> viewSessionRequestResponse( //
-      @RequestParam(required=false) Long sessionRequestId, //
-      @RequestParam(required=false) Long creatorUserId, //
-      @RequestParam(required=false) Long creationTime, //
-      @RequestParam(required=false) Long minCreationTime, //
-      @RequestParam(required=false) Long maxCreationTime, //
-      @RequestParam(required=false) String message, //
-      @RequestParam(required=false) Boolean accepted, //
-      @RequestParam(required=false) Long committmentId, //
-      @RequestParam(required=false) Long attendeeId, //
-      @RequestParam(required=false) Long hostId, //
-      @RequestParam(required=false) Long startTime, //
-      @RequestParam(required=false) Long minStartTime, //
-      @RequestParam(required=false) Long maxStartTime, //
-      @RequestParam(required=false) Long duration, //
-      @RequestParam(required=false) Long minDuration, //
-      @RequestParam(required=false) Long maxDuration, //
+      @RequestParam(required = false) Long sessionRequestId, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) String message, //
+      @RequestParam(required = false) Boolean accepted, //
+      @RequestParam(required = false) Long committmentId, //
+      @RequestParam(required = false) Long attendeeId, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -654,22 +777,22 @@ public class ApiController {
 
   @RequestMapping("/committment/")
   public ResponseEntity<?> viewCommittment( //
-      @RequestParam(required=false) Long committmentId, //
-      @RequestParam(required=false) Long creatorUserId, //
-      @RequestParam(required=false) Long creationTime, //
-      @RequestParam(required=false) Long minCreationTime, //
-      @RequestParam(required=false) Long maxCreationTime, //
-      @RequestParam(required=false) Long attendeeId, //
-      @RequestParam(required=false) Long sessionId, //
-      @RequestParam(required=false) Boolean cancellable, //
-      @RequestParam(required=false) Long hostId, //
-      @RequestParam(required=false) Long startTime, //
-      @RequestParam(required=false) Long minStartTime, //
-      @RequestParam(required=false) Long maxStartTime, //
-      @RequestParam(required=false) Long duration, //
-      @RequestParam(required=false) Long minDuration, //
-      @RequestParam(required=false) Long maxDuration, //
-      @RequestParam(required=false) Boolean responded, //
+      @RequestParam(required = false) Long committmentId, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long attendeeId, //
+      @RequestParam(required = false) Long sessionId, //
+      @RequestParam(required = false) Boolean cancellable, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Boolean responded, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -705,21 +828,21 @@ public class ApiController {
 
   @RequestMapping("/committmentResponse/")
   public ResponseEntity<?> viewCommittmentResponse( //
-      @RequestParam(required=false) Long committmentId, //
-      @RequestParam(required=false) Long creatorUserId, //
-      @RequestParam(required=false) Long creationTime, //
-      @RequestParam(required=false) Long minCreationTime, //
-      @RequestParam(required=false) Long maxCreationTime, //
-      @RequestParam(required=false) CommittmentResponseKind committmentResponseKind, //
-      @RequestParam(required=false) Long attendeeId, //
-      @RequestParam(required=false) Long hostId, //
-      @RequestParam(required=false) Long startTime, //
-      @RequestParam(required=false) Long minStartTime, //
-      @RequestParam(required=false) Long maxStartTime, //
-      @RequestParam(required=false) Long duration, //
-      @RequestParam(required=false) Long minDuration, //
-      @RequestParam(required=false) Long maxDuration, //
-      @RequestParam(required=false) Long sessionId, //
+      @RequestParam(required = false) Long committmentId, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) CommittmentResponseKind committmentResponseKind, //
+      @RequestParam(required = false) Long attendeeId, //
+      @RequestParam(required = false) Long hostId, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Long sessionId, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -745,7 +868,7 @@ public class ApiController {
         duration, //
         minDuration, //
         maxDuration, //
-        sessionId,  //
+        sessionId, //
         offset, // long offset,
         count // long count)
     ).stream().map(x -> innexgoService.fillCommittmentResponse(x)).collect(Collectors.toList());
@@ -765,11 +888,11 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    if (!userService.existsById(userId)) {
+    if (!userService.existsByUserId(userId)) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
-    User user = userService.getById(userId);
+    User user = userService.getByUserId(userId);
 
     if (!Utils.matchesPassword(oldPassword, user.passwordHash)) {
       return Errors.PASSWORD_INCORRECT.getResponse();
@@ -782,15 +905,6 @@ public class ApiController {
     userService.setPassword(user, newPassword);
 
     return Errors.OK.getResponse();
-  }
-
-  @RequestMapping("/misc/info/school/")
-  public ResponseEntity<?> viewSchool() {
-    return new ResponseEntity<>(new Object() {
-      public final String name = schoolName;
-      public final String studentEmailSuffix= emailStudentSuffix;
-      public final String userEmailSuffix = emailUserSuffix;
-    }, HttpStatus.OK);
   }
 
   @RequestMapping("/misc/usePasswordResetKey/")
@@ -827,28 +941,4 @@ public class ApiController {
 
     return Errors.OK.getResponse();
   }
-
-  @RequestMapping("/misc/initializeRoot/")
-  public ResponseEntity<?> populateUsers( //
-      @RequestParam("adminEmail") String adminEmail, //
-      @RequestParam("adminName") String adminName, //
-      @RequestParam("adminPassword") String adminPassword //
-  ) {
-
-    if (userService.getAll().size() > 0) {
-      return Errors.DATABASE_INITIALIZED.getResponse();
-    }
-
-    // create user
-    User user = new User();
-    user.name = adminName;
-    user.creationTime = System.currentTimeMillis();
-    user.email = adminEmail;
-    user.kind = UserKind.ADMIN;
-    userService.add(user);
-    userService.setPassword(user, adminPassword);
-
-    return new ResponseEntity<>(user, HttpStatus.OK);
-  }
-
 }

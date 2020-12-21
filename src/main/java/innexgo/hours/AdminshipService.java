@@ -29,11 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class AdminshipService {
 
-  @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   public Adminship getByAdminshipId(long adminshipId) {
-    String sql =
-        "SELECT * FROM adminship WHERE adminship_id=?";
+    String sql = "SELECT * FROM adminship WHERE adminship_id=?";
     RowMapper<Adminship> rowMapper = new AdminshipRowMapper();
     Adminship adminship = jdbcTemplate.queryForObject(sql, rowMapper, adminshipId);
     return adminship;
@@ -42,7 +42,7 @@ public class AdminshipService {
   public long nextId() {
     String sql = "SELECT max(adminship_id) FROM adminship";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-    if(maxId == null) {
+    if (maxId == null) {
       return 0;
     } else {
       return maxId + 1;
@@ -53,14 +53,13 @@ public class AdminshipService {
     adminship.adminshipId = nextId();
     // Add adminship
     String sql = "INSERT INTO adminship values (?,?,?,?,?,?)";
-    jdbcTemplate.update(
-        sql,
-        adminship.adminshipId,
-        adminship.creationTime,
-        adminship.creatorUserId,
-        adminship.userId,
-        adminship.schoolId,
-        adminship.valid);
+    jdbcTemplate.update(sql,
+                        adminship.adminshipId,
+                        adminship.creationTime,
+                        adminship.creatorUserId,
+                        adminship.userId,
+                        adminship.schoolId,
+                        adminship.adminshipKind);
   }
 
   public boolean existsByAdminshipId(long adminshipId) {
@@ -69,35 +68,46 @@ public class AdminshipService {
     return count != 0;
   }
 
- public List<Adminship> query( //
-     Long adminshipId, //
-     Long creationTime, //
-     Long minCreationTime, //
-     Long maxCreationTime, //
-     Long creatorUserId, //
-     Long userId, //
-     Long schoolId, //
-     Boolean valid, //
-     long offset, //
-     long count) //
- {
+  public List<Adminship> query( //
+      Long adminshipId, //
+      Long creationTime, //
+      Long minCreationTime, //
+      Long maxCreationTime, //
+      Long creatorUserId, //
+      Long userId, //
+      Long schoolId, //
+      AdminshipKind adminshipKind, //
+      long offset, //
+      long count) //
+  {
 
-    String sql =
-      "SELECT a.* FROM adminship a"
-        + " WHERE 1=1 "
-        + (adminshipId    == null ? "" : " AND a.adminship_id = " + adminshipId)
-        + (creationTime          == null ? "" : " AND a.creation_time = " + creationTime)
-        + (minCreationTime       == null ? "" : " AND a.creation_time > " + minCreationTime)
-        + (maxCreationTime       == null ? "" : " AND a.creation_time < " + maxCreationTime)
-        + (creatorUserId         == null ? "" : " AND a.creator_user_id = " + creatorUserId)
-        + (userId                == null ? "" : " AND a.user_id = " + userId)
-        + (schoolId              == null ? "" : " AND a.school_id = " + schoolId)
-        + (valid                 == null ? "" : " AND a.valid = " + valid)
-        + (" ORDER BY a.adminship_id")
-        + (" LIMIT " + offset + ", " + count)
-        + ";";
+    String sql = "SELECT a.* FROM adminship a" + " WHERE 1=1 "
+        + (adminshipId == null ? "" : " AND a.adminship_id = " + adminshipId)
+        + (creationTime == null ? "" : " AND a.creation_time = " + creationTime)
+        + (minCreationTime == null ? "" : " AND a.creation_time > " + minCreationTime)
+        + (maxCreationTime == null ? "" : " AND a.creation_time < " + maxCreationTime)
+        + (creatorUserId == null ? "" : " AND a.creator_user_id = " + creatorUserId)
+        + (userId == null ? "" : " AND a.user_id = " + userId)
+        + (schoolId == null ? "" : " AND a.school_id = " + schoolId)
+        + (adminshipKind == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
+        + (" ORDER BY a.adminship_id") + (" LIMIT " + offset + ", " + count) + ";";
 
     RowMapper<Adminship> rowMapper = new AdminshipRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
   }
+
+  public boolean isAdmin(long userId, long schoolId) {
+   String sql = "SELECT * FROM adminship WHERE 1=1 " +
+     (" AND user_id = " + userId) +
+     (" AND school_id = " + schoolId) +
+     " ORDER BY adminship_id LIMIT 1;";
+    RowMapper<Adminship> rowMapper = new AdminshipRowMapper();
+    List<Adminship> adminships = this.jdbcTemplate.query(sql, rowMapper);
+    if(adminships.size() == 0) {
+        return false;
+    }
+
+    return adminships.get(0).adminshipKind == AdminshipKind.ADMIN;
+  }
+
 }

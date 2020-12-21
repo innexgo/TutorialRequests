@@ -52,7 +52,7 @@ public class CourseMembershipService {
   public void add(CourseMembership courseMembership) {
     courseMembership.courseMembershipId = nextId();
     // Add course_membership
-    String sql = "INSERT INTO course_membership values (?,?,?,?,?,?,?)";
+    String sql = "INSERT INTO course_membership values (?,?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
         courseMembership.courseMembershipId,
@@ -60,8 +60,7 @@ public class CourseMembershipService {
         courseMembership.creatorUserId,
         courseMembership.userId,
         courseMembership.courseId,
-        courseMembership.courseMembershipKind.value,
-        courseMembership.valid);
+        courseMembership.courseMembershipKind.value);
   }
 
   public boolean existsByCourseMembershipId(long courseMembershipId) {
@@ -79,7 +78,6 @@ public class CourseMembershipService {
      Long userId, //
      Long courseId, //
      CourseMembershipKind courseMembershipKind, //
-     Boolean valid, //
      long offset, //
      long count) //
  {
@@ -95,12 +93,24 @@ public class CourseMembershipService {
         + (userId                == null ? "" : " AND cm.user_id = " + userId)
         + (courseId              == null ? "" : " AND cm.course_id = " + courseId)
         + (courseMembershipKind  == null ? "" : " AND cm.course_membership_kind = " + courseMembershipKind.value)
-        + (valid                 == null ? "" : " AND cm.valid = " + valid)
         + (" ORDER BY cm.course_membership_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper);
+  }
+
+  public CourseMembershipKind getCourseMembership(long userId, long courseId) {
+   String sql = "SELECT * FROM course_membership WHERE 1=1 " +
+     (" AND user_id = " + userId) +
+     (" AND course_id = " + courseId) +
+     " ORDER BY course_membership_id LIMIT 1;";
+    RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
+    List<CourseMembership> memberships = this.jdbcTemplate.query(sql, rowMapper);
+    if(memberships.size() == 0) {
+      return null;
+    }
+    return memberships.get(0).courseMembershipKind;
   }
 }

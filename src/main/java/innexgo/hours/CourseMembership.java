@@ -25,7 +25,6 @@ public class CourseMembership {
   long userId;
   long courseId;
   public CourseMembershipKind courseMembershipKind;
-  public boolean valid;
 
   User creator;
   User user;
@@ -33,7 +32,7 @@ public class CourseMembership {
 }
 
 enum CourseMembershipKind {
-  STUDENT(0), INSTRUCTOR(1);
+  STUDENT(0), INSTRUCTOR(1), CANCEL(2);
 
   final int value;
 
