@@ -22,7 +22,7 @@ public class Committment {
   public long committmentId;
   public long creationTime;
   long creatorUserId;
-  long attendeeId;
+  long attendeeUserId;
   long sessionId;
   public boolean cancellable;
 

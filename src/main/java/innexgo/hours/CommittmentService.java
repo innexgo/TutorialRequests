@@ -58,7 +58,7 @@ public class CommittmentService {
         committment.committmentId,
         committment.creationTime,
         committment.creatorUserId,
-        committment.attendeeId,
+        committment.attendeeUserId,
         committment.sessionId,
         committment.cancellable);
   }
@@ -75,10 +75,10 @@ public class CommittmentService {
      Long minCreationTime,
      Long maxCreationTime,
      Long creatorUserId,
-     Long attendeeId,
+     Long attendeeUserId,
      Long sessionId,
      Boolean cancellable,
-     Long hostId,
+     Long courseId,
      Long startTime,
      Long minStartTime,
      Long maxStartTime,
@@ -92,7 +92,7 @@ public class CommittmentService {
     boolean nojoin =
        startTime == null && minStartTime == null && maxStartTime == null &&
        duration == null && minDuration == null && maxDuration == null &&
-       hostId == null;
+       courseId == null;
 
     String sql=
       "SELECT c.* FROM committment c"
@@ -104,7 +104,7 @@ public class CommittmentService {
         + (creationTime    == null ? "" : " AND c.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND c.creation_time > " + minCreationTime)
         + (maxCreationTime == null ? "" : " AND c.creation_time < " + maxCreationTime)
-        + (attendeeId      == null ? "" : " AND c.attendee_id = " + attendeeId)
+        + (attendeeUserId      == null ? "" : " AND c.attendee_user_id = " + attendeeUserId)
         + (sessionId       == null ? "" : " AND c.session_id = " + sessionId)
         + (cancellable     == null ? "" : " AND c.cancellable = " + cancellable)
         + (startTime       == null ? "" : " AND s.start_time = " + startTime)
@@ -113,7 +113,7 @@ public class CommittmentService {
         + (duration        == null ? "" : " AND s.duration = " + duration)
         + (minDuration     == null ? "" : " AND s.duration > " + minDuration)
         + (maxDuration     == null ? "" : " AND s.duration < " + maxDuration)
-        + (hostId          == null ? "" : " AND s.host_id = " + hostId)
+        + (courseId          == null ? "" : " AND s.course_id = " + courseId)
         + (responded       == null ? "" : " AND cr.committment_id IS" + (responded ? " NOT NULL" : " NULL"))
         + (" ORDER BY c.committment_id")
         + (" LIMIT " + offset + ", " + count)

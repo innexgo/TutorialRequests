@@ -67,8 +67,8 @@ public class SessionRequestResponseService {
       String message,
       Boolean accepted,
       Long committmentId,
-      Long attendeeId,
-      Long hostId,
+      Long attendeeUserId,
+      Long courseId,
       Long startTime, //
       Long minStartTime, //
       Long maxStartTime, //
@@ -82,22 +82,22 @@ public class SessionRequestResponseService {
         accepted = true;
     }
 
-    boolean nojoin = attendeeId == null && hostId == null;
+    boolean nojoin = attendeeUserId == null && courseId == null;
 
     String sql =
         "SELECT srr.* FROM session_request_response srr"
             + (nojoin ? "" : " JOIN session_request sr ON sr.session_request_id = srr.session_request_id")
             + " WHERE 1=1 "
             + (sessionRequestId == null ? "" : " AND srr.session_request_id = " + sessionRequestId)
-            + (creatorUserId        == null ? "" : " AND srr.creator_id = " + creatorUserId)
+            + (creatorUserId        == null ? "" : " AND srr.creator_user_id = " + creatorUserId)
             + (creationTime     == null ? "" : " AND srr.creation_time = " + creationTime)
             + (minCreationTime  == null ? "" : " AND srr.creation_time > " + minCreationTime)
             + (maxCreationTime  == null ? "" : " AND srr.creation_time < " + maxCreationTime)
             + (message          == null ? "" : " AND srr.message = " + Utils.escape(message))
             + (accepted         == null ? "" : " AND srr.accepted = " + accepted)
             + (committmentId    == null ? "" : " AND srr.accepted_committment_id= " + committmentId)
-            + (attendeeId       == null ? "" : " AND sr.attendee_id = " + attendeeId)
-            + (hostId           == null ? "" : " AND sr.host_id = " + hostId)
+            + (attendeeUserId       == null ? "" : " AND sr.attendeee_user_id = " + attendeeUserId)
+            + (courseId           == null ? "" : " AND sr.course_id = " + courseId)
             + (startTime        == null ? "" : " AND sr.start_time = " + startTime)
             + (minStartTime     == null ? "" : " AND sr.start_time > " + minStartTime)
             + (maxStartTime     == null ? "" : " AND sr.start_time < " + maxStartTime)

@@ -64,8 +64,8 @@ public class CommittmentResponseService {
      Long maxCreationTime,
      Long creatorUserId,
      CommittmentResponseKind committmentResponseKind,
-     Long attendeeId,
-     Long hostId,
+     Long attendeeUserId,
+     Long courseId,
      Long startTime,
      Long minStartTime,
      Long maxStartTime,
@@ -77,11 +77,11 @@ public class CommittmentResponseService {
      long count)
  {
     // avoid joins to save performance
-    boolean joinc = attendeeId != null || sessionId != null;
+    boolean joinc = attendeeUserId != null || sessionId != null;
     boolean joins = joinc ||
       startTime != null || minStartTime != null || maxStartTime != null ||
       duration != null || minDuration != null || maxDuration != null ||
-      hostId != null;
+      courseId != null;
 
     String sql=
       "SELECT cr.* FROM committment_response cr"
@@ -89,14 +89,14 @@ public class CommittmentResponseService {
         + (!joins ? "" : " LEFT JOIN session s ON s.session_id = c.session_id")
         + " WHERE 1=1 "
         + (committmentId          == null ? "" : " AND cr.committment_id = " + committmentId)
-        + (creatorUserId              == null ? "" : " AND cr.creator_id = " + creatorUserId)
+        + (creatorUserId          == null ? "" : " AND cr.creator_id = " + creatorUserId)
         + (creationTime           == null ? "" : " AND cr.creation_time = " + creationTime)
         + (minCreationTime        == null ? "" : " AND cr.creation_time > " + minCreationTime)
         + (maxCreationTime        == null ? "" : " AND cr.creation_time < " + maxCreationTime)
         + (committmentResponseKind== null ? "" : " AND cr.committment_response_kind = " + committmentResponseKind.value)
-        + (attendeeId             == null ? "" : " AND c.attendee_id = " + attendeeId)
+        + (attendeeUserId         == null ? "" : " AND c.attendee_user_id = " + attendeeUserId)
         + (sessionId              == null ? "" : " AND c.session_id = " + sessionId)
-        + (hostId                 == null ? "" : " AND s.host_id = " + hostId)
+        + (courseId               == null ? "" : " AND s.course_id = " + courseId)
         + (startTime              == null ? "" : " AND s.start_time = " + startTime)
         + (minStartTime           == null ? "" : " AND s.start_time > " + minStartTime)
         + (maxStartTime           == null ? "" : " AND s.start_time < " + maxStartTime)

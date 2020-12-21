@@ -11,6 +11,16 @@ public class InnexgoService {
   @Autowired
   ApiKeyService apiKeyService;
   @Autowired
+  LocationService locationService;
+  @Autowired
+  SchoolService schoolService;
+  @Autowired
+  CourseService courseService;
+  @Autowired
+  CourseMembershipService courseMembershipService;
+  @Autowired
+  AdminshipService adminshipService;
+  @Autowired
   UserService userService;
   @Autowired
   SessionService sessionService;
@@ -34,7 +44,7 @@ public class InnexgoService {
    * @return apiKey with filled jackson objects
    */
   ApiKey fillApiKey(ApiKey apiKey) {
-    apiKey.creator = fillUser(userService.getById(apiKey.creatorId));
+    apiKey.creator = fillUser(userService.getByUserId(apiKey.creatorUserId));
     return apiKey;
   }
 
@@ -47,6 +57,18 @@ public class InnexgoService {
   User fillUser(User user) {
     return user;
   }
+
+  /**
+   * Fills in jackson objects for School
+   *
+   * @param school - School object
+   * @return School object with filled jackson objects
+   */
+  School fillSchool(School school) {
+    school.creator = fillUser(userService.getByUserId(school.creatorUserId));
+    return school;
+  }
+
 
   /**
    * Fills in jackson objects for PasswordResetKey
@@ -69,15 +91,66 @@ public class InnexgoService {
   }
 
   /**
+   * Fills in jackson objects for Location
+   *
+   * @param location - Location object
+   * @return Location object with filled jackson objects
+   */
+  Location fillLocation(Location location) {
+    location.creator = fillUser(userService.getByUserId(location.creatorUserId));
+    location.school = fillSchool(schoolService.getBySchoolId(location.schoolId) );
+    return location;
+  }
+
+  /**
+   * Fills in jackson objects for Course
+   *
+   * @param course - Course object
+   * @return Course object with filled jackson objects
+   */
+  Course fillCourse(Course course) {
+    course.creator = fillUser(userService.getByUserId(course.creatorUserId));
+    course.school = fillSchool(schoolService.getBySchoolId(course.schoolId) );
+    return course;
+  }
+
+
+  /**
+   * Fills in jackson objects for CourseMembership
+   *
+   * @param courseMembership - CourseMembership object
+   * @return CourseMembership object with filled jackson objects
+   */
+  CourseMembership fillCourseMembership(CourseMembership courseMembership) {
+    courseMembership.creator = fillUser(userService.getByUserId(courseMembership.creatorUserId));
+    courseMembership.user = fillUser(userService.getByUserId(courseMembership.userId));
+    courseMembership.course = fillCourse(courseService.getByCourseId(courseMembership.courseId));
+    return courseMembership;
+  }
+
+  /**
+   * Fills in jackson objects for Adminship
+   *
+   * @param adminship - Adminship object
+   * @return Adminship object with filled jackson objects
+   */
+  Adminship fillAdminship(Adminship adminship) {
+    adminship.creator = fillUser(userService.getByUserId(adminship.creatorUserId));
+    adminship.user = fillUser(userService.getByUserId(adminship.userId));
+    adminship.school = fillSchool(schoolService.getBySchoolId(adminship.schoolId));
+    return adminship;
+  }
+
+  /**
    * Fills in jackson objects for SessionRequest
    *
    * @param sessionRequest - SessionRequest object
    * @return SessionRequest object with recursively filled jackson objects
    */
   SessionRequest fillSessionRequest(SessionRequest sessionRequest) {
-    sessionRequest.creator = fillUser(userService.getById(sessionRequest.creatorId));
-    sessionRequest.attendee = fillUser(userService.getById(sessionRequest.attendeeId));
-    sessionRequest.host = fillUser(userService.getById(sessionRequest.hostId));
+    sessionRequest.creator = fillUser(userService.getByUserId(sessionRequest.creatorUserId));
+    sessionRequest.attendee = fillUser(userService.getByUserId(sessionRequest.attendeeUserId));
+    sessionRequest.course = fillCourse(courseService.getByCourseId(sessionRequest.courseId));
     return sessionRequest;
   }
 
@@ -88,7 +161,7 @@ public class InnexgoService {
    * @return SessionRequestResponse object with recursively filled jackson objects
    */
   SessionRequestResponse fillSessionRequestResponse(SessionRequestResponse sessionRequestResponse) {
-    sessionRequestResponse.creator = fillUser(userService.getById(sessionRequestResponse.creatorId));
+    sessionRequestResponse.creator = fillUser(userService.getByUserId(sessionRequestResponse.creatorUserId));
     sessionRequestResponse.sessionRequest = fillSessionRequest(
         sessionRequestService.getBySessionRequestId(sessionRequestResponse.sessionRequestId));
 
@@ -109,8 +182,9 @@ public class InnexgoService {
    * @return Session object with recursively filled jackson objects
    */
   Session fillSession(Session session) {
-    session.creator = fillUser(userService.getById(session.creatorId));
-    session.host = fillUser(userService.getById(session.hostId));
+    session.creator = fillUser(userService.getByUserId(session.creatorUserId));
+    session.course = fillCourse(courseService.getByCourseId(session.courseId));
+    session.location = fillLocation(locationService.getByLocationId(session.locationId));
     return session;
   }
 
@@ -121,8 +195,8 @@ public class InnexgoService {
    * @return Committment object with recursively filled jackson objects
    */
   Committment fillCommittment(Committment committment) {
-    committment.creator = fillUser(userService.getById(committment.creatorId));
-    committment.attendee = fillUser(userService.getById(committment.attendeeId));
+    committment.creator = fillUser(userService.getByUserId(committment.creatorUserId));
+    committment.attendee = fillUser(userService.getByUserId(committment.attendeeUserId));
     committment.session = fillSession(sessionService.getBySessionId(committment.sessionId));
     return committment;
   }
@@ -134,7 +208,7 @@ public class InnexgoService {
    * @return CommittmentResponse object with recursively filled jackson objects
    */
   CommittmentResponse fillCommittmentResponse(CommittmentResponse committmentResponse) {
-    committmentResponse.creator = fillUser(userService.getById(committmentResponse.creatorId));
+    committmentResponse.creator = fillUser(userService.getByUserId(committmentResponse.creatorUserId));
     committmentResponse.committment = fillCommittment(
         committmentService.getByCommittmentId(committmentResponse.committmentId));
 
@@ -169,26 +243,11 @@ public class InnexgoService {
     if (apiKeyService.existsByKeyHash(hash)) {
       ApiKey apiKey = apiKeyService.getByKeyHash(hash);
       if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
-        if (userService.existsById(apiKey.creatorId)) {
-          return userService.getById(apiKey.creatorId);
+        if (userService.existsByUserId(apiKey.creatorUserId)) {
+          return userService.getByUserId(apiKey.creatorUserId);
         }
       }
     }
     return null;
-  }
-
-  boolean isAdministrator(String key) {
-    User u = getUserIfValid(key);
-    return u != null && u.kind == UserKind.ADMIN;
-  }
-
-  boolean isUser(String key) {
-    User u = getUserIfValid(key);
-    return u != null && (u.kind == UserKind.USER || u.kind == UserKind.ADMIN);
-  }
-
-  boolean isStudent(String key) {
-    User u = getUserIfValid(key);
-    return u != null && u.kind == UserKind.STUDENT;
   }
 }

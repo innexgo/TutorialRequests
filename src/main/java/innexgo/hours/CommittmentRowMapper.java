@@ -30,7 +30,7 @@ public class CommittmentRowMapper implements RowMapper<Committment> {
     committment.committmentId = row.getLong("committment_id");
     committment.creatorUserId = row.getLong("creator_user_id");
     committment.creationTime = row.getLong("creation_time");
-    committment.attendeeId = row.getLong("attendee_id");
+    committment.attendeeUserId= row.getLong("attendee_user_id");
     committment.sessionId = row.getLong("session_id");
     committment.cancellable = row.getBoolean("cancellable");
     return committment;
