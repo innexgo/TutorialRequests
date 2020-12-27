@@ -61,7 +61,9 @@ public class ApiController {
   @Autowired
   MailService mailService;
   @Autowired
-  PasswordResetService passwordResetKeyService;
+  PasswordService passwordService;
+  @Autowired
+  PasswordResetService passwordResetService;
   @Autowired
   AdminshipService adminshipService;
   @Autowired
@@ -118,7 +120,7 @@ public class ApiController {
     apiKey.creationTime = System.currentTimeMillis();
     apiKey.duration = duration;
     apiKey.key = key;
-    apiKey.valid = true;
+    apiKey.apiKeyKind = ApiKeyKind.VALID;
     apiKeyService.add(apiKey);
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
   }
@@ -180,59 +182,49 @@ public class ApiController {
         .getByVerificationChallengeKeyHash(Utils.hashGeneratedKey(verificationChallengeKey));
 
     if (evc == null) {
-      return Errors.EMAIL_VERIFICATION_CHALLENGE_KEY_NONEXISTENT.getResponse();
+      return Errors.VERIFICATION_CHALLENGE_NONEXISTENT.getResponse();
+    }
+
+    if (userService.existsByVerificationChallengeKeyHash(evc.verificationChallengeKeyHash)) {
+      return Errors.USER_EXISTENT.getResponse();
     }
 
     final long now = System.currentTimeMillis();
 
     if ((evc.creationTime + fifteenMinutes) < now) {
-      return Errors.EMAIL_VERIFICATION_CHALLENGE_KEY_TIMED_OUT.getResponse();
-    }
-
-    if (userService.existsByEmail(evc.email)) {
-      return Errors.USER_EXISTENT.getResponse();
+      return Errors.VERIFICATION_CHALLENGE_TIMED_OUT.getResponse();
     }
 
     User u = new User();
+    u.creationTime = System.currentTimeMillis();
     u.name = evc.name;
     u.email = evc.email;
-    u.passwordHash = evc.passwordHash;
-    u.passwordResetKeyTime = 1;
+    u.verificationChallengeKeyHash = evc.verificationChallengeKeyHash;
 
     userService.add(u);
-
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
   @RequestMapping("/passwordReset/new/")
   public ResponseEntity<?> newPasswordReset(@RequestParam String userEmail) {
-
-    if (!userService.existsByEmail(userEmail)) {
-      return Errors.USER_NONEXISTENT.getResponse();
-    }
-
-    User user = userService.getByEmail(userEmail);
-
-    final long now = System.currentTimeMillis();
-
-    if ((user.passwordResetKeyTime + fiveMinutes) > now) {
-      return Errors.EMAIL_RATELIMIT.getResponse();
-    }
-
     if (mailService.emailExistsInBlacklist(userEmail)) {
       return Errors.EMAIL_BLACKLISTED.getResponse();
     }
 
+    List<User> users = userService.getByEmail(userEmail);
+    if (users.size() == 0) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    User user = users.get(0);
+
     // generate raw random key
     String rawKey = Utils.generateKey();
 
-    PasswordReset fp = new PasswordReset();
-    fp.creationTime = now;
-    fp.creationUserId = user.userId;
-    fp.used = false;
-    fp.passwordResetKeyHash = Utils.hashGeneratedKey(rawKey);
-
-    passwordResetKeyService.add(fp);
+    PasswordReset pr = new PasswordReset();
+    pr.passwordResetKeyHash = Utils.hashGeneratedKey(rawKey);
+    pr.creationTime = System.currentTimeMillis();
+    pr.creatorUserId = user.userId;
 
     mailService.send(user.email, "Innexgo Hours: Password Reset", //
         "<p>Requested password reset service.</p>" + //
@@ -243,7 +235,81 @@ public class ApiController {
             innexgoHoursSite + "/reset_password?resetKey=" + rawKey + "</p>" //
     ); //
 
-    return new ResponseEntity<>(innexgoService.fillPasswordReset(fp), HttpStatus.OK);
+    passwordResetService.add(pr);
+    return new ResponseEntity<>(innexgoService.fillPasswordReset(pr), HttpStatus.OK);
+  }
+
+  // This method updates the password for same user only
+  @RequestMapping("/password/newChange/")
+  public ResponseEntity<?> newPasswordChange( //
+      @RequestParam long userId, //
+      @RequestParam String newPassword, //
+      @RequestParam String apiKey //
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // TODO later we'd like admins / mods to be able to set user's passwords
+
+    if (key.creatorUserId != userId) {
+      return Errors.PASSWORD_CANNOT_CREATE_FOR_OTHERS.getResponse();
+    }
+
+    if (!Utils.securePassword(newPassword)) {
+      return Errors.PASSWORD_INSECURE.getResponse();
+    }
+
+    Password password = new Password();
+    password.creationTime = System.currentTimeMillis();
+    password.creatorUserId = key.creatorUserId;
+    password.userId = key.creatorUserId;
+    password.passwordKind = PasswordKind.CHANGE;
+    password.passwordHash = Utils.encodePassword(newPassword);
+    password.passwordResetKeyHash = "";
+
+    passwordService.add(password);
+    return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
+  }
+
+  @RequestMapping("/password/newReset/")
+  public ResponseEntity<?> newPasswordReset( //
+      @RequestParam String passwordResetKey, //
+      @RequestParam String newPassword //
+  ) {
+
+    PasswordReset psr = passwordResetService.getByPasswordResetKeyHash(Utils.hashGeneratedKey(passwordResetKey));
+
+    if (psr == null) {
+      return Errors.PASSWORD_RESET_NONEXISTENT.getResponse();
+    }
+
+    // deny if timed out
+    if (System.currentTimeMillis() > (psr.creationTime + fifteenMinutes)) {
+      return Errors.PASSWORD_RESET_TIMED_OUT.getResponse();
+    }
+
+    // deny if password already exists created from this psr
+    if (passwordService.existsByPasswordResetKeyHash(psr.passwordResetKeyHash)) {
+      return Errors.PASSWORD_EXISTENT.getResponse();
+    }
+
+    // reject insecure passwords
+    if (!Utils.securePassword(newPassword)) {
+      return Errors.PASSWORD_INSECURE.getResponse();
+    }
+
+    Password password = new Password();
+    password.creationTime = System.currentTimeMillis();
+    password.creatorUserId = psr.creatorUserId;
+    password.userId = psr.creatorUserId;
+    password.passwordKind = PasswordKind.RESET;
+    password.passwordHash = Utils.encodePassword(newPassword);
+    password.passwordResetKeyHash = psr.passwordResetKeyHash;
+
+    passwordService.add(password);
+    return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
   }
 
   @RequestMapping("/courseMembership/new/")
@@ -252,8 +318,8 @@ public class ApiController {
       @RequestParam long courseId, //
       @RequestParam CourseMembershipKind courseMembershipKind, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -263,13 +329,14 @@ public class ApiController {
     }
 
     // check that course exists
-    if (!courseService.existsByCourseId(courseId)) {
+    Course course =courseService.getByCourseId(courseId);
+    if (course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
-    // if so retrieve course
-    boolean creatorAdmin = adminshipService.isAdmin(keyCreator.userId, courseService.getByCourseId(courseId).schoolId);
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
-        courseId);
+
+    // if so check if key creator is user id
+    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, course.schoolId);
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId, courseId);
     boolean creatorInstructor = creatorCourseMembershipKind != null
         && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
 
@@ -286,7 +353,7 @@ public class ApiController {
 
     CourseMembership cm = new CourseMembership();
     cm.creationTime = System.currentTimeMillis();
-    cm.creatorUserId = keyCreator.userId;
+    cm.creatorUserId = key.creatorUserId;
     cm.courseId = courseId;
     cm.userId = userId;
     cm.courseMembershipKind = courseMembershipKind;
@@ -300,8 +367,8 @@ public class ApiController {
       @RequestParam long schoolId, //
       @RequestParam AdminshipKind adminshipKind, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key  == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -316,18 +383,18 @@ public class ApiController {
     }
 
     // check authorization
-    if (!adminshipService.isAdmin(keyCreator.userId, schoolId)) {
+    if (!adminshipService.isAdmin(key.creatorUserId, schoolId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     // prevent admins from removing themselves
-    if (userId == keyCreator.userId && adminshipKind == AdminshipKind.CANCEL) {
+    if (userId == key.creatorUserId && adminshipKind == AdminshipKind.CANCEL) {
       return Errors.COURSEMEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
     }
 
     Adminship cm = new Adminship();
     cm.creationTime = System.currentTimeMillis();
-    cm.creatorUserId = keyCreator.userId;
+    cm.creatorUserId = key.creatorUserId;
     cm.schoolId = schoolId;
     cm.userId = userId;
     cm.adminshipKind = adminshipKind;
@@ -407,8 +474,8 @@ public class ApiController {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
 
-    if (!courseService.existsByCourseId(courseId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
+    if (courseService.getByCourseId(courseId) == null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
     // creator must be a student of this course can create a session request for it
@@ -706,9 +773,6 @@ public class ApiController {
         userName, //
         partialUserName, //
         userEmail, //
-        null, //
-        null, // Don't expose password reset times to external Api
-        null, //
         offset, //
         count //
     ).stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
@@ -726,7 +790,6 @@ public class ApiController {
       @RequestParam(required = false) String name, //
       @RequestParam(required = false) String partialName, //
       @RequestParam(required = false) String description, //
-      @RequestParam(required = false) String passwordHash, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -747,7 +810,6 @@ public class ApiController {
         name, //
         partialName, //
         description, //
-        passwordHash, //
         offset, //
         count //
     ).stream().map(x -> innexgoService.fillCourse(x)).collect(Collectors.toList());
@@ -1069,68 +1131,4 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-  // This method updates the password for same user only
-  @RequestMapping("/misc/updatePassword/")
-  public ResponseEntity<?> updatePassword( //
-      @RequestParam long userId, //
-      @RequestParam String oldPassword, //
-      @RequestParam String newPassword, //
-      @RequestParam String apiKey //
-  ) {
-    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
-    }
-
-    if (!userService.existsByUserId(userId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
-    }
-
-    User user = userService.getByUserId(userId);
-
-    if (!Utils.matchesPassword(oldPassword, user.passwordHash)) {
-      return Errors.PASSWORD_INCORRECT.getResponse();
-    }
-
-    if (!Utils.securePassword(newPassword)) {
-      return Errors.PASSWORD_INSECURE.getResponse();
-    }
-
-    userService.setPassword(user, newPassword);
-
-    return Errors.OK.getResponse();
-  }
-
-  @RequestMapping("/misc/usePasswordReset/")
-  public ResponseEntity<?> usePasswordReset( //
-      @RequestParam String passwordResetKey, //
-      @RequestParam String newPassword //
-  ) {
-    PasswordReset passwordReset = passwordResetKeyService
-        .getByPasswordResetKeyHash(Utils.hashGeneratedKey(passwordResetKey));
-    if (passwordReset == null) {
-      return Errors.PASSWORD_RESET_KEY_NONEXISTENT.getResponse();
-    }
-
-    // deny if timed out
-    if (System.currentTimeMillis() > (passwordReset.creationTime + fifteenMinutes)) {
-      return Errors.PASSWORD_RESET_KEY_TIMED_OUT.getResponse();
-    }
-
-    // deny if already used
-    if (passwordReset.used) {
-      return Errors.PASSWORD_RESET_KEY_INVALID.getResponse();
-    }
-
-    if (!Utils.securePassword(newPassword)) {
-      return Errors.PASSWORD_INSECURE.getResponse();
-    }
-
-    User u = userService.getByUserId(passwordReset.creationUserId);
-    userService.setPassword(u, newPassword);
-
-    passwordResetKeyService.use(passwordReset);
-
-    return Errors.OK.getResponse();
-  }
 }

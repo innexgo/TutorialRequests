@@ -9,7 +9,16 @@ create table password_reset(
   password_reset_key_hash char(64) not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  used integer not null -- boolean
+);
+
+drop table if exists password( 
+  password_id integer not null primary key,
+  creation_time integer not null,
+  creator_user_id integer not null,
+  user_id integer not null,
+  password_kind integer not null, -- CHANGE | RESET | CANCEL
+  password_hash char(64) not null, -- only valid if RESET | CANCEL
+  password_reset_key_hash char(64) not null -- only valid if password_kind == RESET
 );
 
 drop table if exists verification_challenge;
@@ -19,6 +28,15 @@ create table verification_challenge(
   name varchar(100) not null,
   email varchar(100) not null,
   password_hash char(64) not null
+);
+
+drop table if exists user;
+create table user(
+  user_id integer not null primary key,
+  creation_time integer not null,
+  name varchar(100) not null,
+  email varchar(100) not null unique,
+  verification_challenge_key_hash char(64) not null
 );
 
 drop table if exists school;
@@ -40,16 +58,6 @@ create table adminship(
   adminship_kind integer not null -- ADMIN, CANCEL
 );
 
-drop table if exists user;
-create table user(
-  user_id integer not null primary key,
-  creation_time integer not null,
-  name varchar(100) not null,
-  email varchar(100) not null unique,
-  password_reset_key_time integer not null,
-  password_hash char(64) not null
-);
-
 drop table if exists location;
 create table location(
   location_id integer not null primary key,
@@ -69,8 +77,15 @@ create table course(
   school_id integer not null,
   name varchar(100) not null,
   description varchar(100) not null,
-  course_joinable integer not null, -- boolean
-  course_join_password_hash char(64) not null
+);
+
+drop table if exists course_join;
+create table course_join(
+  course_join_id integer not null primary key,
+  creation_time integer not null,
+  creator_user_id integer not null,
+  course_join_kind integer not null, -- PASSWORD | CANCEL
+  course_join_password integer not null -- only valid if course_join_kind == PASSWORD
 );
 
 -- Many to Many mapper for users to course
@@ -104,11 +119,11 @@ create table invoice(
 
 drop table if exists api_key;
 create table api_key(
-  api_key_hash char(64) not null primary key,
+  api_key_hash char(64) not null,
   creation_time integer not null,
   creator_user_id integer not null,
   duration integer not null,
-  valid integer not null -- boolean
+  api_key_kind integer not null -- VALID, CANCEL
 );
 
 -- Represents a specific instance of a course

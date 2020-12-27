@@ -18,41 +18,41 @@
 
 package innexgo.hours;
 
-public class ApiKey {
-
-  String apiKeyHash;
+public class CoursePassword {
+  public long coursePasswordId;
   public long creationTime;
   long creatorUserId;
+  long courseId;
+  public CoursePasswordKind coursePasswordKind;
+  // not public so that jackson doesn't serialize it
+  String passwordHash; // only valid if coursePasswordKind == CHANGE 
 
-  public long duration;
-  public ApiKeyKind apiKeyKind;
-
-  // Initialized by jackson during serialization, but not persisted
-  public String key;
-  public User creator;
+  // Jackson
+  User creator;
+  Course course;
 }
 
-enum ApiKeyKind {
-  VALID(0), CANCEL(1);
+enum CoursePasswordKind {
+  CHANGE(0), CANCEL(1);
 
   final int value;
 
-  private ApiKeyKind(int value) {
+  private CoursePasswordKind(int value) {
     this.value = value;
   }
 
-  public static ApiKeyKind from(int i) {
-    for (ApiKeyKind apiKeyKind : ApiKeyKind.values()) {
-      if (apiKeyKind.value == i) {
-        return apiKeyKind;
+  public static CoursePasswordKind from(int i) {
+    for (CoursePasswordKind coursePasswordKind : CoursePasswordKind.values()) {
+      if (coursePasswordKind.value == i) {
+        return coursePasswordKind;
       }
     }
     return null;
   }
 
   public static boolean contains(String str) {
-    for (ApiKeyKind apiKeyKind : ApiKeyKind.values()) {
-      if (apiKeyKind.name().equals(str)) {
+    for (CoursePasswordKind coursePasswordKind : CoursePasswordKind.values()) {
+      if (coursePasswordKind.name().equals(str)) {
         return true;
       }
     }

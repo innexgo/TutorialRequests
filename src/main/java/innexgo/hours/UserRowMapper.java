@@ -31,8 +31,7 @@ public class UserRowMapper implements RowMapper<User> {
     u.creationTime = row.getLong("creation_time");
     u.name = row.getString("name");
     u.email = row.getString("email");
-    u.passwordResetKeyTime = row.getLong("password_reset_key_time");
-    u.passwordHash = row.getString("password_hash");
+    u.verificationChallengeKeyHash = row.getString("verification_challenge_key_hash");
     return u;
   }
 }

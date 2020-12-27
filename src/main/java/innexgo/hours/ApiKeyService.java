@@ -32,17 +32,12 @@ public class ApiKeyService {
 
   // Gets the last created key with the keyhash
   public ApiKey getByApiKeyHash(String keyHash) {
+    // order by is probably cheap bc there are at most 2
     String sql =
-        "SELECT * FROM api_key WHERE api_key_hash=?";
+        "SELECT * FROM api_key WHERE api_key_hash=? ORDER BY creation_time DESC LIMIT 1";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     List<ApiKey> apiKeys = jdbcTemplate.query(sql, rowMapper, keyHash);
     return apiKeys.size() > 0 ? apiKeys.get(0) : null;
-  }
-
-  public boolean existsByApiKeyHash(String keyHash) {
-    String sql = "SELECT count(*) FROM api_key WHERE api_key_hash=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, keyHash);
-    return count != 0;
   }
 
   public List<ApiKey> getAll() {
@@ -63,15 +58,8 @@ public class ApiKeyService {
         apiKey.creationTime,
         apiKey.creatorUserId,
         apiKey.duration,
-        apiKey.valid
+        apiKey.apiKeyKind.value
     );
-  }
-
-  public void revoke(ApiKey apiKey) {
-    String sql =
-        "UPDATE api_key SET valid=? WHERE api_key_hash=?";
-    jdbcTemplate.update(sql, false, apiKey.apiKeyHash);
-    apiKey.valid = false;
   }
 
   public List<ApiKey> query(
@@ -79,16 +67,16 @@ public class ApiKeyService {
       Long creatorUserId,
       Long minCreationTime,
       Long maxCreationTime,
-      Boolean valid,
+      ApiKeyKind apiKeyKind,
       long offset,
       long count) {
     String sql =
         "SELECT a.* FROM api_key a WHERE 1=1"
-            + (apiKeyHash == null ? "" : " AND a.api_key_hash = " + Utils.escape(apiKeyHash))
-            + (creatorUserId == null ? "" : " AND a.creator_user_id =" + creatorUserId)
+            + (apiKeyHash      == null ? "" : " AND a.api_key_hash = " + Utils.escape(apiKeyHash))
+            + (creatorUserId   == null ? "" : " AND a.creator_user_id =" + creatorUserId)
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND a.creation_time <= " + maxCreationTime)
-            + (valid == null ? "" : " AND a.valid = " + valid)
+            + (apiKeyKind      == null ? "" : " AND a.api_key_kind = " + apiKeyKind.value)
             + (" ORDER BY a.creation_time")
             + (" LIMIT " + offset + ", " + count)
             + ";";

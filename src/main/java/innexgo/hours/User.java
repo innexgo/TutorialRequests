@@ -23,8 +23,6 @@ public class User {
   public long creationTime;
   public String name;
   public String email;
-  // not public so it doesn't get serialized to jackson
-  long passwordResetKeyTime;
-  String passwordHash;
+  String verificationChallengeKeyHash;
 }
 

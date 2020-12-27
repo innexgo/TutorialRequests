@@ -33,6 +33,8 @@ public class InnexgoService {
   @Autowired
   CommittmentResponseService committmentResponseService;
   @Autowired
+  PasswordService passwordService;
+  @Autowired
   PasswordResetService passwordResetService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
@@ -77,6 +79,19 @@ public class InnexgoService {
    */
   PasswordReset fillPasswordReset(PasswordReset passwordReset) {
     return passwordReset;
+  }
+
+  /**
+   * Fills in jackson objects for Password
+   *
+   * @param password - Password object
+   * @return Password object with filled jackson objects
+   */
+  Password fillPassword(Password password) {
+    password.creator = fillUser(userService.getByUserId(password.creatorUserId));
+    password.user = fillUser(userService.getByUserId(password.userId));
+    password.passwordReset = fillPasswordReset(passwordResetService.getByPasswordResetKeyHash(password.passwordResetKeyHash)); 
+    return password;
   }
 
   /**

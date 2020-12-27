@@ -34,7 +34,8 @@ public class CourseRowMapper implements RowMapper<Course> {
     course.schoolId = row.getLong("school_id");
     course.name = row.getString("name");
     course.description = row.getString("description");
-    course.passwordHash = row.getString("password_hash ");
+    course.joinable = row.getBoolean("joinable");
+    course.joinPasswordHash = row.getString("join_password_hash ");
     return course;
   }
 }

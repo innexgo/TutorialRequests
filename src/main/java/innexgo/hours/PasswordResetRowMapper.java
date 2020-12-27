@@ -29,8 +29,7 @@ public class PasswordResetRowMapper implements RowMapper<PasswordReset> {
     PasswordReset ps = new PasswordReset();
     ps.passwordResetKeyHash = row.getString("password_reset_key_hash");
     ps.creationTime = row.getLong("creation_time");
-    ps.creationUserId= row.getLong("creation_user_id");
-    ps.used  = row.getBoolean("used");
+    ps.creatorUserId= row.getLong("creator_user_id");
     return ps;
   }
 }

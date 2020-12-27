@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -35,8 +36,8 @@ public class CourseService {
     String sql =
         "SELECT * FROM course WHERE course_id=?";
     RowMapper<Course> rowMapper = new CourseRowMapper();
-    Course course = jdbcTemplate.queryForObject(sql, rowMapper, courseId);
-    return course;
+    List<Course> courses = jdbcTemplate.query(sql, rowMapper, courseId);
+    return courses.size() > 0 ? courses.get(0) : null;
   }
 
   public long nextId() {
@@ -52,7 +53,7 @@ public class CourseService {
   public void add(Course course) {
     course.courseId = nextId();
     // Add course
-    String sql = "INSERT INTO course values (?,?,?,?,?,?,?)";
+    String sql = "INSERT INTO course values (?,?,?,?,?,?,?,?)";
     jdbcTemplate.update(
         sql,
         course.courseId,
@@ -61,13 +62,9 @@ public class CourseService {
         course.schoolId,
         course.name,
         course.description,
-        course.passwordHash);
-  }
-
-  public boolean existsByCourseId(long courseId) {
-    String sql = "SELECT count(*) FROM course WHERE course_id=?";
-    int count = jdbcTemplate.queryForObject(sql, Integer.class, courseId);
-    return count != 0;
+        course.joinable,
+        course.joinPasswordHash
+    );
   }
 
  public List<Course> query( //
@@ -80,24 +77,35 @@ public class CourseService {
      String name, //
      String partialName, //
      String description, //
-     String passwordHash, //
+     Boolean joinable, //
+     String joinPasswordHash, //
      long offset, //
      long count) //
  {
 
+    if(joinPasswordHash != null) {
+      if(joinable == null) {
+        joinable = true;
+      } else if(joinable == false) {
+        // can't specify a join password hash while looking for ones that arent joinable
+        return new ArrayList<Course>();
+      }
+    }
+
     String sql =
       "SELECT s.* FROM course s"
         + " WHERE 1=1 "
-        + (courseId      == null ? "" : " AND s.course_id = " + courseId)
-        + (creationTime    == null ? "" : " AND s.creation_time = " + creationTime)
-        + (minCreationTime == null ? "" : " AND s.creation_time > " + minCreationTime)
-        + (maxCreationTime == null ? "" : " AND s.creation_time < " + maxCreationTime)
-        + (creatorUserId   == null ? "" : " AND s.creator_user_id = " + creatorUserId)
-        + (schoolId        == null ? "" : " AND s.school_id = " + schoolId)
-        + (name            == null ? "" : " AND s.name = " + Utils.escape(name))
-        + (partialName     == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialName+"%"))
-        + (description     == null ? "" : " AND s.description = " + Utils.escape(description))
-        + (passwordHash           == null ? "" : " AND s.password_hash = " + Utils.escape(passwordHash))
+        + (courseId          == null ? "" : " AND s.course_id = " + courseId)
+        + (creationTime      == null ? "" : " AND s.creation_time = " + creationTime)
+        + (minCreationTime   == null ? "" : " AND s.creation_time > " + minCreationTime)
+        + (maxCreationTime   == null ? "" : " AND s.creation_time < " + maxCreationTime)
+        + (creatorUserId     == null ? "" : " AND s.creator_user_id = " + creatorUserId)
+        + (schoolId          == null ? "" : " AND s.school_id = " + schoolId)
+        + (name              == null ? "" : " AND s.name = " + Utils.escape(name))
+        + (partialName       == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialName+"%"))
+        + (description       == null ? "" : " AND s.description = " + Utils.escape(description))
+        + (joinable          == null ? "" : " AND s.joinable = " + joinable) 
+        + (joinPasswordHash  == null ? "" : " AND s.join_password_hash = " + Utils.escape(joinPasswordHash))
         + (" ORDER BY s.course_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";

@@ -1,3 +1,12 @@
+-- export SCHOOL_NAME='Squidward Community College'
+-- export SCHOOL_STUDENT_EMAIL_SUFFIX='students.esuhsd.org'
+-- export SCHOOL_USER_EMAIL_SUFFIX='esuhsd.org'
+-- export SCHOOL_INNEXGO_PREFIX='sqcc'
+
+
+INSERT INTO school 
+
+
 INSERT INTO user VALUES(0,1,2,'root',             'root@example.com',    1, '$2a$10$kteCMggOjaT1lJWybiFwMewtFvec7QB35lo6Rjk7IjNJFVJBoyDQ.');
 INSERT INTO user VALUES(1,1,1,'BOB JOHNSON',      'bob@example.com',     1, '$2a$10$kteCMggOjaT1lJWybiFwMewtFvec7QB35lo6Rjk7IjNJFVJBoyDQ.');
 INSERT INTO user VALUES(2,1,1,'SARAH DOE',        'sarah@example.com',   1, '$2a$10$kteCMggOjaT1lJWybiFwMewtFvec7QB35lo6Rjk7IjNJFVJBoyDQ.');

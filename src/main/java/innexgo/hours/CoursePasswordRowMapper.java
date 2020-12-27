@@ -18,8 +18,21 @@
 
 package innexgo.hours;
 
-public class PasswordReset {
-    String passwordResetKeyHash;
-    public long creationTime;
-    long creatorUserId;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
+
+public class CoursePasswordRowMapper implements RowMapper<CoursePassword> {
+
+  @Override
+  public CoursePassword mapRow(ResultSet row, int rowNum) throws SQLException {
+    CoursePassword ps = new CoursePassword();
+    ps.coursePasswordId= row.getLong("course_password_id");
+    ps.creationTime = row.getLong("creation_time");
+    ps.creatorUserId = row.getLong("creator_user_id");
+    ps.courseId = row.getLong("course_id");
+    ps.coursePasswordKind = CoursePasswordKind.from(row.getInt("course_password_kind"));
+    ps.passwordHash = row.getString("password_hash");
+    return ps;
+  }
 }

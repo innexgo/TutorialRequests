@@ -53,18 +53,12 @@ public class VerificationChallengeService {
         verificationChallenge.passwordHash);
   }
 
-  public boolean existsByVerificationChallengeKeyHash(String verificationKeyHash) {
-    String sql = "SELECT count(*) FROM verification_challenge WHERE verification_challenge_key_hash=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, verificationKeyHash);
-    return count != 0;
-  }
-
   public VerificationChallenge getByVerificationChallengeKeyHash(String verificationKey) {
     String sql =
-        "SELECT * FROM verification_challenge WHERE verification_challenge_key_hash=?";
+        "SELECT * FROM verification_challenge WHERE verification_challenge_key_hash=? ORDER BY creation_time DESC";
     RowMapper<VerificationChallenge> rowMapper = new VerificationChallengeRowMapper();
-    VerificationChallenge verificationChallenge = jdbcTemplate.queryForObject(sql, rowMapper, verificationKey);
-    return verificationChallenge;
+    List<VerificationChallenge> verificationChallenges = jdbcTemplate.query(sql, rowMapper, verificationKey);
+    return verificationChallenges.size() > 0 ? verificationChallenges.get(0) : null;
   }
 
   public Long getLastCreationTimeByEmail(String email) {

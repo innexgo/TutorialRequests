@@ -32,41 +32,21 @@ public class PasswordResetService {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  public List<PasswordReset> getAll() {
-    String sql =
-        "SELECT * FROM password_reset";
-    RowMapper<PasswordReset> rowMapper = new PasswordResetRowMapper();
-    return jdbcTemplate.query(sql, rowMapper);
-  }
-
   public void add(PasswordReset user) {
-    // Set user id
-    user.used = false;
     user.creationTime = System.currentTimeMillis();
     // Add user
     String sql =
-        "INSERT INTO password_reset values (?, ?, ?, ?)";
+        "INSERT INTO password_reset values (?, ?, ?)";
     jdbcTemplate.update(
         sql,
         user.passwordResetKeyHash,
         user.creationTime,
-        user.creationUserId,
-        user.used);
-  }
-
-  public void use(PasswordReset user) {
-    String sql =
-    "UPDATE password_reset SET used=? WHERE password_reset_key_hash=?";
-    jdbcTemplate.update(
-        sql,
-        true,
-        user.passwordResetKeyHash);
-    user.used = true;
+        user.creatorUserId);
   }
 
   public PasswordReset getByPasswordResetKeyHash(String resetKey) {
     String sql =
-        "SELECT * FROM password_reset WHERE password_reset_key_hash=?";
+        "SELECT * FROM password_reset WHERE password_reset_key_hash=? ORDER BY creation_time DESC";
     RowMapper<PasswordReset> rowMapper = new PasswordResetRowMapper();
     List<PasswordReset> passwordResets  = jdbcTemplate.query(sql, rowMapper, resetKey);
     // return first element if found, otherwise none
