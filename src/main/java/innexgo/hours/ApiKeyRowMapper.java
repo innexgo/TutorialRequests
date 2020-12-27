@@ -26,11 +26,10 @@ public class ApiKeyRowMapper implements RowMapper<ApiKey> {
   @Override
   public ApiKey mapRow(ResultSet row, int rowNum) throws SQLException {
     ApiKey apiKey = new ApiKey();
-    apiKey.apiKeyId= row.getLong("api_key_id");
+    apiKey.apiKeyHash = row.getString("api_key_hash");
     apiKey.creationTime = row.getLong("creation_time");
     apiKey.creatorUserId = row.getLong("creator_user_id");
     apiKey.duration= row.getLong("duration");
-    apiKey.keyHash = row.getString("key_hash");
     apiKey.valid= row.getBoolean("valid");
     return apiKey;
   }

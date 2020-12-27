@@ -30,21 +30,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class ApiKeyService {
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public ApiKey getById(long id) {
-    String sql =
-        "SELECT * FROM api_key WHERE id=?";
-    RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
-    ApiKey apiKey = jdbcTemplate.queryForObject(sql, rowMapper, id);
-    return apiKey;
-  }
-
   // Gets the last created key with the keyhash
-  public ApiKey getByKeyHash(String keyHash) {
+  public ApiKey getByApiKeyHash(String keyHash) {
     String sql =
-        "SELECT * FROM api_key WHERE key_hash=? ORDER BY creation_time DESC";
+        "SELECT * FROM api_key WHERE api_key_hash=?";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
     List<ApiKey> apiKeys = jdbcTemplate.query(sql, rowMapper, keyHash);
     return apiKeys.size() > 0 ? apiKeys.get(0) : null;
+  }
+
+  public boolean existsByApiKeyHash(String keyHash) {
+    String sql = "SELECT count(*) FROM api_key WHERE api_key_hash=?";
+    long count = jdbcTemplate.queryForObject(sql, Long.class, keyHash);
+    return count != 0;
   }
 
   public List<ApiKey> getAll() {
@@ -54,69 +52,44 @@ public class ApiKeyService {
     return this.jdbcTemplate.query(sql, rowMapper);
   }
 
- public long nextId() {
-    String sql = "SELECT max(api_key_id) FROM api_key";
-    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-    if(maxId == null) {
-      return 0;
-    } else {
-      return maxId + 1;
-    }
-  }
-
   public void add(ApiKey apiKey) {
-    apiKey.apiKeyId = nextId();
+    apiKey.creationTime= System.currentTimeMillis();
 
     String sql =
-        "INSERT INTO api_key values (?,?,?,?,?,?)";
+        "INSERT INTO api_key values (?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
-        apiKey.apiKeyId,
+        apiKey.apiKeyHash,
         apiKey.creationTime,
         apiKey.creatorUserId,
         apiKey.duration,
-        apiKey.keyHash,
         apiKey.valid
     );
   }
 
   public void revoke(ApiKey apiKey) {
     String sql =
-        "UPDATE api_key SET valid=? WHERE api_key_id=?";
-    jdbcTemplate.update(sql, false, apiKey.apiKeyId);
+        "UPDATE api_key SET valid=? WHERE api_key_hash=?";
+    jdbcTemplate.update(sql, false, apiKey.apiKeyHash);
     apiKey.valid = false;
   }
 
-  public boolean existsById(long id) {
-    String sql = "SELECT count(*) FROM api_key WHERE api_key_id=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, id);
-    return count != 0;
-  }
-
-  public boolean existsByKeyHash(String keyHash) {
-    String sql = "SELECT count(*) FROM api_key WHERE key_hash=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, keyHash);
-    return count != 0;
-  }
-
   public List<ApiKey> query(
-      Long id,
+      String apiKeyHash,
       Long creatorUserId,
       Long minCreationTime,
       Long maxCreationTime,
-      String keyHash,
       Boolean valid,
       long offset,
       long count) {
     String sql =
         "SELECT a.* FROM api_key a WHERE 1=1"
-            + (id == null ? "" : " AND a.api_key_id=" + id)
+            + (apiKeyHash == null ? "" : " AND a.api_key_hash = " + Utils.escape(apiKeyHash))
             + (creatorUserId == null ? "" : " AND a.creator_user_id =" + creatorUserId)
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND a.creation_time <= " + maxCreationTime)
-            + (keyHash == null ? "" : " AND a.key_hash = " + Utils.escape(keyHash))
             + (valid == null ? "" : " AND a.valid = " + valid)
-            + (" ORDER BY a.api_key_id")
+            + (" ORDER BY a.creation_time")
             + (" LIMIT " + offset + ", " + count)
             + ";";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();

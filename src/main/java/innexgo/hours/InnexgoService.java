@@ -33,7 +33,7 @@ public class InnexgoService {
   @Autowired
   CommittmentResponseService committmentResponseService;
   @Autowired
-  PasswordResetKeyService passwordResetKeyService;
+  PasswordResetService passwordResetService;
 
   Logger logger = LoggerFactory.getLogger(InnexgoService.class);
 
@@ -69,25 +69,24 @@ public class InnexgoService {
     return school;
   }
 
-
   /**
-   * Fills in jackson objects for PasswordResetKey
+   * Fills in jackson objects for PasswordReset
    *
-   * @param passwordResetKey - PasswordResetKey object
-   * @return PasswordResetKey object with filled jackson objects
+   * @param passwordReset - PasswordReset object
+   * @return PasswordReset object with filled jackson objects
    */
-  PasswordResetKey fillPasswordResetKey(PasswordResetKey passwordResetKey) {
-    return passwordResetKey;
+  PasswordReset fillPasswordReset(PasswordReset passwordReset) {
+    return passwordReset;
   }
 
   /**
-   * Fills in jackson objects for EmailVerificationChallenge
+   * Fills in jackson objects for VerificationChallenge
    *
-   * @param emailVerificationChallenge - EmailVerificationChallenge object
-   * @return EmailVerificationChallenge object with filled jackson objects
+   * @param emailVerificationChallenge - VerificationChallenge object
+   * @return VerificationChallenge object with filled jackson objects
    */
-  EmailVerificationChallenge fillEmailVerificationChallenge(EmailVerificationChallenge emailVerificationChallenge) {
-    return emailVerificationChallenge;
+  VerificationChallenge fillVerificationChallenge(VerificationChallenge verificationChallenge) {
+    return verificationChallenge;
   }
 
   /**
@@ -98,7 +97,7 @@ public class InnexgoService {
    */
   Location fillLocation(Location location) {
     location.creator = fillUser(userService.getByUserId(location.creatorUserId));
-    location.school = fillSchool(schoolService.getBySchoolId(location.schoolId) );
+    location.school = fillSchool(schoolService.getBySchoolId(location.schoolId));
     return location;
   }
 
@@ -110,10 +109,9 @@ public class InnexgoService {
    */
   Course fillCourse(Course course) {
     course.creator = fillUser(userService.getByUserId(course.creatorUserId));
-    course.school = fillSchool(schoolService.getBySchoolId(course.schoolId) );
+    course.school = fillSchool(schoolService.getBySchoolId(course.schoolId));
     return course;
   }
-
 
   /**
    * Fills in jackson objects for CourseMembership
@@ -222,12 +220,9 @@ public class InnexgoService {
    * @return ApiKey or null if invalid
    */
   ApiKey getApiKeyIfValid(String key) {
-    String hash = Utils.hashGeneratedKey(key);
-    if (apiKeyService.existsByKeyHash(hash)) {
-      ApiKey apiKey = apiKeyService.getByKeyHash(hash);
-      if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
-        return apiKey;
-      }
+    ApiKey apiKey = apiKeyService.getByApiKeyHash(Utils.hashGeneratedKey(key));
+    if (apiKey != null && apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
+      return apiKey;
     }
     return null;
   }
@@ -239,14 +234,9 @@ public class InnexgoService {
    * @return User or null if invalid
    */
   User getUserIfValid(String key) {
-    String hash = Utils.hashGeneratedKey(key);
-    if (apiKeyService.existsByKeyHash(hash)) {
-      ApiKey apiKey = apiKeyService.getByKeyHash(hash);
-      if (apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
-        if (userService.existsByUserId(apiKey.creatorUserId)) {
-          return userService.getByUserId(apiKey.creatorUserId);
-        }
-      }
+    ApiKey apiKey = getApiKeyIfValid(key);
+    if (apiKey != null) {
+      return userService.getByUserId(apiKey.creatorUserId);
     }
     return null;
   }

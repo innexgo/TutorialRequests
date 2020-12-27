@@ -19,15 +19,13 @@
 package innexgo.hours;
 
 public class ApiKey {
-  public long apiKeyId;
+
+  String apiKeyHash;
+  public long creationTime;
   long creatorUserId;
 
-  public long creationTime;
   public long duration;
   public boolean valid;
-
-  // not public
-  String keyHash;
 
   // Initialized by jackson during serialization, but not persisted
   public String key;

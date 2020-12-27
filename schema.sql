@@ -4,23 +4,20 @@
 -- Creator User Id (if applicable)
 
 
-drop table if exists password_reset_key;
-create table password_reset_key(
-  password_reset_key_id integer not null primary key,
+drop table if exists password_reset;
+create table password_reset(
+  password_reset_key_hash char(64) not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  email varchar(100) not null,
-  reset_key char(64) not null unique,
   used integer not null -- boolean
 );
 
-drop table if exists email_verification_challenge;
-create table email_verification_challenge(
-  user_id integer not null primary key,
+drop table if exists verification_challenge;
+create table verification_challenge(
+  verification_challenge_key_hash char(64) not null primary key,
   creation_time integer not null,
-  name integer not null,
+  name varchar(100) not null,
   email varchar(100) not null,
-  verification_key char(64) not null unique,
   password_hash char(64) not null
 );
 
@@ -47,7 +44,6 @@ drop table if exists user;
 create table user(
   user_id integer not null primary key,
   creation_time integer not null,
-  email_verification_challenge_id integer not null,
   name varchar(100) not null,
   email varchar(100) not null unique,
   password_reset_key_time integer not null,
@@ -73,7 +69,8 @@ create table course(
   school_id integer not null,
   name varchar(100) not null,
   description varchar(100) not null,
-  password_hash char(64) not null
+  course_joinable integer not null, -- boolean
+  course_join_password_hash char(64) not null
 );
 
 -- Many to Many mapper for users to course
@@ -107,11 +104,10 @@ create table invoice(
 
 drop table if exists api_key;
 create table api_key(
-  api_key_id integer not null primary key,
+  api_key_hash char(64) not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
   duration integer not null,
-  key_hash char(64) not null unique,
   valid integer not null -- boolean
 );
 
