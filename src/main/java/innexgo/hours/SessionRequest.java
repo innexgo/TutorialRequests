@@ -21,8 +21,8 @@ package innexgo.hours;
 
 public class SessionRequest {
   public long sessionRequestId;
-  long creatorUserId;
   public long creationTime;
+  long creatorUserId;
   long attendeeUserId;
   long courseId;
   public String message;

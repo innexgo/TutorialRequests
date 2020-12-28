@@ -97,8 +97,8 @@ public class ApiController {
    * @throws ResponseEntity with HttpStatus.BAD_REQUEST if the process is
    *                        unsuccessful
    */
-  @RequestMapping("/apiKey/new/")
-  public ResponseEntity<?> newApiKey( //
+  @RequestMapping("/apiKey/newValid/")
+  public ResponseEntity<?> newApiKeyValid( //
       @RequestParam String userEmail, //
       @RequestParam String userPassword, //
       @RequestParam long duration) {
@@ -125,6 +125,39 @@ public class ApiController {
     apiKey.apiKeyKind = ApiKeyKind.VALID;
     apiKeyService.add(apiKey);
     return new ResponseEntity<>(innexgoService.fillApiKey(apiKey), HttpStatus.OK);
+  }
+
+  @RequestMapping("/apiKey/newCancel/")
+  public ResponseEntity<?> newApiKeyCancel( //
+      @RequestParam String apiKeyToRevoke, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // check if api key to cancel is valid
+    ApiKey toCancel = innexgoService.getApiKey(apiKeyToRevoke);
+    if(toCancel == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that both creators are the same
+    if(key.creatorUserId != toCancel.creatorUserId) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // now actually make apiKey
+    ApiKey newApiKey = new ApiKey();
+    newApiKey.apiKeyHash = Utils.hashGeneratedKey(apiKeyToRevoke);
+    newApiKey.creatorUserId = key.creatorUserId;
+    newApiKey.creationTime = System.currentTimeMillis();
+    newApiKey.key = apiKeyToRevoke;
+    newApiKey.apiKeyKind = ApiKeyKind.VALID;
+    newApiKey.duration = 0;
+
+    apiKeyService.add(newApiKey);
+    return new ResponseEntity<>(innexgoService.fillApiKey(newApiKey), HttpStatus.OK);
   }
 
   @RequestMapping("/verificationChallenge/new/")
