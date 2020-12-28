@@ -33,18 +33,44 @@ public class PasswordService {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
+
+  public long nextId() {
+    String sql = "SELECT max(password_id) FROM password";
+    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    if(maxId == null) {
+      return 0;
+    } else {
+      return maxId + 1;
+    }
+  }
+
   public void add(Password user) {
+    user.passwordId = nextId();
     user.creationTime = System.currentTimeMillis();
     // Add user
     String sql = "INSERT INTO password values (?, ?, ?, ?, ?, ?, ?)";
-    jdbcTemplate.update(sql, user.passwordId, user.creationTime, user.creatorUserId, user.userId,
-        user.passwordKind.value, user.passwordHash, user.passwordResetKeyHash);
+    jdbcTemplate.update(sql,
+        user.passwordId,
+        user.creationTime,
+        user.creatorUserId,
+        user.userId,
+        user.passwordKind.value,
+        user.passwordHash,
+        user.passwordResetKeyHash);
   }
 
   public Password getByPasswordId(long passwordId) {
     String sql = "SELECT * FROM password WHERE password_id=?";
     RowMapper<Password> rowMapper = new PasswordRowMapper();
     List<Password> passwords = jdbcTemplate.query(sql, rowMapper, passwordId);
+    return passwords.size() > 0 ? passwords.get(0) : null;
+  }
+
+  // get most recent password
+  public Password getByUserId(long userId) {
+      String sql = "SELECT * FROM password WHERE user_id=? ORDER BY password_id";
+    RowMapper<Password> rowMapper = new PasswordRowMapper();
+    List<Password> passwords = jdbcTemplate.query(sql, rowMapper, userId);
     return passwords.size() > 0 ? passwords.get(0) : null;
   }
 

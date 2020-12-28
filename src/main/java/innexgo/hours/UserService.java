@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -39,15 +40,27 @@ public class UserService {
     return user;
   }
 
-  public List<User> getByEmail(String email) {
+  public User getByEmail(String email) {
     String sql =
         "SELECT * FROM user WHERE email=?";
     RowMapper<User> rowMapper = new UserRowMapper();
-    return jdbcTemplate.query(sql, rowMapper, email);
+    List<User> users = jdbcTemplate.query(sql, rowMapper, email);
+    return users.size() > 0 ? users.get(0) : null;
+  }
+
+  public long nextId() {
+    String sql = "SELECT max(user_id) FROM user";
+    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    if(maxId == null) {
+      return 0;
+    } else {
+      return maxId + 1;
+    }
   }
 
   public void add(User user) {
     // Set user id
+    user.userId = nextId();
     user.creationTime = System.currentTimeMillis();
     // Add user
     String sql =
@@ -62,6 +75,12 @@ public class UserService {
 
   }
 
+  public boolean existsByEmail(String email) {
+    String sql = "SELECT count(*) FROM user WHERE email=?";
+    long count = jdbcTemplate.queryForObject(sql, Long.class, email);
+    return count != 0;
+  }
+
   public boolean existsByUserId(long id) {
     String sql = "SELECT count(*) FROM user WHERE user_id=?";
     long count = jdbcTemplate.queryForObject(sql, Long.class, id);
@@ -74,13 +93,7 @@ public class UserService {
     return count != 0;
   }
 
-  public boolean existsByEmail(String email) {
-    String sql = "SELECT count(*) FROM user WHERE email=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, email);
-    return count != 0;
-  }
-
-  public List<User> query(
+  public Stream<User> query(
       Long id,
       Long creationTime,
       Long minCreationTime,
@@ -105,6 +118,6 @@ public class UserService {
             + ";";
 
     RowMapper<User> rowMapper = new UserRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 }

@@ -19,7 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
-import java.util.ArrayList;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -33,7 +33,18 @@ public class CoursePasswordService {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
+  public long nextId() {
+    String sql = "SELECT max(course_password_id) FROM course_password";
+    Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+    if (maxId == null) {
+      return 0;
+    } else {
+      return maxId + 1;
+    }
+  }
+
   public void add(CoursePassword user) {
+    user.coursePasswordId = nextId();
     user.creationTime = System.currentTimeMillis();
     // Add user
     String sql = "INSERT INTO course_password values (?, ?, ?, ?, ?, ?)";
@@ -53,7 +64,15 @@ public class CoursePasswordService {
     return passwords.size() > 0 ? passwords.get(0) : null;
   }
 
-  public List<CoursePassword> query( //
+  // get most recent course password
+  public CoursePassword getByCourseId(long courseId) {
+      String sql = "SELECT * FROM course_password WHERE course_id=? ORDER BY course_password_id";
+    RowMapper<CoursePassword> rowMapper = new CoursePasswordRowMapper();
+    List<CoursePassword> passwords = jdbcTemplate.query(sql, rowMapper, courseId);
+    return passwords.size() > 0 ? passwords.get(0) : null;
+  }
+
+  public Stream<CoursePassword> query( //
       Long coursePasswordId, //
       Long creationTime, //
       Long minCreationTime, //
@@ -66,19 +85,19 @@ public class CoursePasswordService {
 
     String sql = "SELECT p.* FROM course_password p" //
         + " WHERE 1=1 " //
-        + (coursePasswordId   == null ? "" : " AND p.course_password_id = " + coursePasswordId) //
-        + (creationTime       == null ? "" : " AND p.creation_time = " + creationTime) //
-        + (minCreationTime    == null ? "" : " AND p.creation_time > " + minCreationTime) //
-        + (maxCreationTime    == null ? "" : " AND p.creation_time < " + maxCreationTime) //
-        + (creatorUserId      == null ? "" : " AND p.creator_user_id = " + creatorUserId) //
-        + (courseId           == null ? "" : " AND p.course_id = " + courseId) //
+        + (coursePasswordId == null ? "" : " AND p.course_password_id = " + coursePasswordId) //
+        + (creationTime == null ? "" : " AND p.creation_time = " + creationTime) //
+        + (minCreationTime == null ? "" : " AND p.creation_time > " + minCreationTime) //
+        + (maxCreationTime == null ? "" : " AND p.creation_time < " + maxCreationTime) //
+        + (creatorUserId == null ? "" : " AND p.creator_user_id = " + creatorUserId) //
+        + (courseId == null ? "" : " AND p.course_id = " + courseId) //
         + (coursePasswordKind == null ? "" : " AND p.course_password_kind = " + coursePasswordKind.value) //
         + (" ORDER BY p.course_password_id") //
         + (" LIMIT " + offset + ", " + count) //
         + ";"; //
 
     RowMapper<CoursePassword> rowMapper = new CoursePasswordRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 
 }

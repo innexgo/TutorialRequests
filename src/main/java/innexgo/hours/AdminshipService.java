@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -68,7 +69,7 @@ public class AdminshipService {
     return count != 0;
   }
 
-  public List<Adminship> query( //
+  public Stream<Adminship> query( //
       Long adminshipId, //
       Long creationTime, //
       Long minCreationTime, //
@@ -93,7 +94,7 @@ public class AdminshipService {
         + (" ORDER BY a.adminship_id") + (" LIMIT " + offset + ", " + count) + ";";
 
     RowMapper<Adminship> rowMapper = new AdminshipRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 
   public boolean isAdmin(long userId, long schoolId) {

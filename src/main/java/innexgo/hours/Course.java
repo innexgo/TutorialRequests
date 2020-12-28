@@ -25,9 +25,6 @@ public class Course {
   long schoolId;
   public String name;
   public String description;
-  public boolean joinable;
-  // not public so that jackson doesn't serialize it
-  String joinPasswordHash;
 
   // for jackson
   public User creator;

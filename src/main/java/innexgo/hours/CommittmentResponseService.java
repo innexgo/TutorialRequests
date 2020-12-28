@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -57,7 +58,7 @@ public class CommittmentResponseService {
     return count != 0;
   }
 
-  public List<CommittmentResponse> query(
+  public Stream<CommittmentResponse> query(
      Long committmentId,
      Long creationTime,
      Long minCreationTime,
@@ -108,6 +109,6 @@ public class CommittmentResponseService {
         + ";";
 
     RowMapper<CommittmentResponse> rowMapper = new CommittmentResponseRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 }

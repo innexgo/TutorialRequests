@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -75,7 +76,7 @@ public class SessionRequestService {
   }
 
   // Restrict apptRequests by
-  public List<SessionRequest> query(
+  public Stream<SessionRequest> query(
       Long sessionRequestId,
       Long creationTime,
       Long minCreationTime,
@@ -117,6 +118,6 @@ public class SessionRequestService {
             + ";";
 
     RowMapper<SessionRequest> rowMapper = new SessionRequestRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 }

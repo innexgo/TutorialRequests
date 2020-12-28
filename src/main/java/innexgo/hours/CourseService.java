@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.stream.Stream;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,21 +54,19 @@ public class CourseService {
   public void add(Course course) {
     course.courseId = nextId();
     // Add course
-    String sql = "INSERT INTO course values (?,?,?,?,?,?,?,?)";
-    jdbcTemplate.update(
-        sql,
-        course.courseId,
-        course.creationTime,
-        course.creatorUserId,
-        course.schoolId,
-        course.name,
-        course.description,
-        course.joinable,
-        course.joinPasswordHash
+    String sql = "INSERT INTO course values (?,?,?,?,?,?)";
+    jdbcTemplate.update( //
+        sql, //
+        course.courseId, //
+        course.creationTime, //
+        course.creatorUserId, //
+        course.schoolId, //
+        course.name, //
+        course.description //
     );
   }
 
- public List<Course> query( //
+ public Stream<Course> query( //
      Long courseId, //
      Long creationTime, //
      Long minCreationTime, //
@@ -77,20 +76,9 @@ public class CourseService {
      String name, //
      String partialName, //
      String description, //
-     Boolean joinable, //
-     String joinPasswordHash, //
      long offset, //
      long count) //
  {
-
-    if(joinPasswordHash != null) {
-      if(joinable == null) {
-        joinable = true;
-      } else if(joinable == false) {
-        // can't specify a join password hash while looking for ones that arent joinable
-        return new ArrayList<Course>();
-      }
-    }
 
     String sql =
       "SELECT s.* FROM course s"
@@ -104,13 +92,11 @@ public class CourseService {
         + (name              == null ? "" : " AND s.name = " + Utils.escape(name))
         + (partialName       == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialName+"%"))
         + (description       == null ? "" : " AND s.description = " + Utils.escape(description))
-        + (joinable          == null ? "" : " AND s.joinable = " + joinable) 
-        + (joinPasswordHash  == null ? "" : " AND s.join_password_hash = " + Utils.escape(joinPasswordHash))
         + (" ORDER BY s.course_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 
     RowMapper<Course> rowMapper = new CourseRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 }

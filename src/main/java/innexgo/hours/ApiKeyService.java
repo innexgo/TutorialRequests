@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -62,7 +63,7 @@ public class ApiKeyService {
     );
   }
 
-  public List<ApiKey> query(
+  public Stream<ApiKey> query(
       String apiKeyHash,
       Long creatorUserId,
       Long minCreationTime,
@@ -81,6 +82,6 @@ public class ApiKeyService {
             + (" LIMIT " + offset + ", " + count)
             + ";";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 }

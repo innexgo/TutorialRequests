@@ -19,6 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -69,7 +70,7 @@ public class CourseMembershipService {
     return count != 0;
   }
 
- public List<CourseMembership> query( //
+ public Stream<CourseMembership> query( //
      Long courseMembershipId, //
      Long creationTime, //
      Long minCreationTime, //
@@ -98,7 +99,7 @@ public class CourseMembershipService {
         + ";";
 
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 
   public CourseMembershipKind getCourseMembership(long userId, long courseId) {

@@ -36,7 +36,7 @@ create table user(
   creation_time integer not null,
   name varchar(100) not null,
   email varchar(100) not null unique,
-  verification_challenge_key_hash char(64) not null
+  verification_challenge_key_hash char(64) not null unique
 );
 
 drop table if exists school;
@@ -79,13 +79,13 @@ create table course(
   description varchar(100) not null,
 );
 
-drop table if exists course_join;
-create table course_join(
-  course_join_id integer not null primary key,
+drop table if exists course_password;
+create table course_password(
+  course_password_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  course_join_kind integer not null, -- PASSWORD | CANCEL
-  course_join_password integer not null -- only valid if course_join_kind == PASSWORD
+  course_password_kind integer not null, -- CHANGE | CANCEL
+  password_hash integer not null -- only valid if course_join_kind == PASSWORD
 );
 
 -- Many to Many mapper for users to course

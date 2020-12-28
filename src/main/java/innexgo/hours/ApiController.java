@@ -19,7 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +67,8 @@ public class ApiController {
   @Autowired
   AdminshipService adminshipService;
   @Autowired
+  CoursePasswordService coursePasswordService;
+  @Autowired
   CourseService courseService;
   @Autowired
   CourseMembershipService courseMembershipService;
@@ -100,13 +102,13 @@ public class ApiController {
       @RequestParam String userEmail, //
       @RequestParam String userPassword, //
       @RequestParam long duration) {
-    // Ensure user exists
-    if (!userService.existsByEmail(userEmail)) {
+    // Ensure user is valid
+    User u = userService.getByEmail(userEmail);
+    if (u == null) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
-    // Ensure password is valid
-    User u = userService.getByEmail(userEmail);
-    if (!Utils.matchesPassword(userPassword, u.passwordHash)) {
+
+    if (!innexgoService.isValidPassword(u.userId, userPassword)) {
       return Errors.PASSWORD_INCORRECT.getResponse();
     }
 
@@ -189,6 +191,10 @@ public class ApiController {
       return Errors.USER_EXISTENT.getResponse();
     }
 
+    if (userService.existsByEmail(evc.email)) {
+      return Errors.USER_EXISTENT.getResponse();
+    }
+
     final long now = System.currentTimeMillis();
 
     if ((evc.creationTime + fifteenMinutes) < now) {
@@ -211,12 +217,10 @@ public class ApiController {
       return Errors.EMAIL_BLACKLISTED.getResponse();
     }
 
-    List<User> users = userService.getByEmail(userEmail);
-    if (users.size() == 0) {
+    User user = userService.getByEmail(userEmail);
+    if (user == null) {
       return Errors.USER_NONEXISTENT.getResponse();
     }
-
-    User user = users.get(0);
 
     // generate raw random key
     String rawKey = Utils.generateKey();
@@ -273,6 +277,36 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
   }
 
+  // This method updates the password for same user only
+  @RequestMapping("/password/newCancel/")
+  public ResponseEntity<?> newPasswordCancel( //
+      @RequestParam long userId, //
+      @RequestParam String apiKey //
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // TODO later we'd like admins / mods to be able to set user's passwords
+
+    if (key.creatorUserId != userId) {
+      return Errors.PASSWORD_CANNOT_CREATE_FOR_OTHERS.getResponse();
+    }
+
+    Password password = new Password();
+    password.creationTime = System.currentTimeMillis();
+    password.creatorUserId = key.creatorUserId;
+    password.userId = key.creatorUserId;
+    password.passwordKind = PasswordKind.CANCEL;
+    password.passwordHash = "";
+    password.passwordResetKeyHash = "";
+
+    passwordService.add(password);
+    return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
+  }
+
+
   @RequestMapping("/password/newReset/")
   public ResponseEntity<?> newPasswordReset( //
       @RequestParam String passwordResetKey, //
@@ -312,6 +346,125 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
   }
 
+
+  @RequestMapping("/course/new/")
+  public ResponseEntity<?> newCourse( //
+      @RequestParam long schoolId, //
+      @RequestParam String name, //
+      @RequestParam String description, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that school exists
+    if (!schoolService.existsBySchoolId(schoolId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    // if so check if key creator is admin
+    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, schoolId);
+    if (!creatorAdmin) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    Course course = new Course();
+    course.creationTime = System.currentTimeMillis();
+    course.creatorUserId = key.creatorUserId;
+    course.schoolId = schoolId;
+    course.name = name;
+    course.description = description;
+    courseService.add(course);
+
+    return new ResponseEntity<>(innexgoService.fillCourse(course), HttpStatus.OK);
+  }
+
+  // This method enables signing in with a password on courses
+  @RequestMapping("/coursePassword/newChange/")
+  public ResponseEntity<?> newCoursePasswordChange( //
+      @RequestParam long courseId, //
+      @RequestParam String newPassword, //
+      @RequestParam String apiKey //
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+   // check that course exists
+    Course course = courseService.getByCourseId(courseId);
+    if (course == null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // if so check if key creator is user id
+    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, course.schoolId);
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId,
+        courseId);
+    boolean creatorInstructor = creatorCourseMembershipKind != null
+        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+
+    // check if the creator is an admin of this course's school or a teacher of this
+    // course
+    if (!creatorAdmin && !creatorInstructor) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // note course password doesnt have to be secure, anyone can join
+
+    CoursePassword cp = new CoursePassword();
+    cp.creationTime = System.currentTimeMillis();
+    cp.creatorUserId = key.creatorUserId;
+    cp.courseId = courseId;
+    cp.coursePasswordKind = CoursePasswordKind.CHANGE;
+    cp.passwordHash = Utils.encodePassword(newPassword);
+
+    coursePasswordService.add(cp);
+    return new ResponseEntity<>(innexgoService.fillCoursePassword(cp), HttpStatus.OK);
+  }
+
+  // This method disables signing in with a password
+  @RequestMapping("/coursePassword/newCancel/")
+  public ResponseEntity<?> newCoursePasswordCancel( //
+      @RequestParam long courseId, //
+      @RequestParam String apiKey //
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+   // check that course exists
+    Course course = courseService.getByCourseId(courseId);
+    if (course == null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // if so check if key creator is user id
+    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, course.schoolId);
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId,
+        courseId);
+    boolean creatorInstructor = creatorCourseMembershipKind != null
+        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+
+    // check if the creator is an admin of this course's school or a teacher of this
+    // course
+    if (!creatorAdmin && !creatorInstructor) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    CoursePassword cp = new CoursePassword();
+    cp.creationTime = System.currentTimeMillis();
+    cp.creatorUserId = key.creatorUserId;
+    cp.courseId = courseId;
+    cp.coursePasswordKind = CoursePasswordKind.CANCEL;
+    cp.passwordHash = "";
+
+    coursePasswordService.add(cp);
+    return new ResponseEntity<>(innexgoService.fillCoursePassword(cp), HttpStatus.OK);
+  }
+
   @RequestMapping("/courseMembership/new/")
   public ResponseEntity<?> newCourseMembership( //
       @RequestParam long userId, //
@@ -329,14 +482,15 @@ public class ApiController {
     }
 
     // check that course exists
-    Course course =courseService.getByCourseId(courseId);
+    Course course = courseService.getByCourseId(courseId);
     if (course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
     // if so check if key creator is user id
     boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, course.schoolId);
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId, courseId);
+    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId,
+        courseId);
     boolean creatorInstructor = creatorCourseMembershipKind != null
         && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
 
@@ -368,7 +522,7 @@ public class ApiController {
       @RequestParam AdminshipKind adminshipKind, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key  == null) {
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -630,28 +784,12 @@ public class ApiController {
     // }
 
     // check that a unresponded committment does not already exist
-    List<Committment> preexisting = committmentService.query( //
-        null, // Long committmentId,
-        null, // Long creationTime,
-        null, // Long minCreationTime,
-        null, // Long maxCreationTime,
-        null, // Long creatorUserId,
+    boolean preexisting = committmentService.unrespondedExistsByAttendeeIdSessionId( //
         attendeeUserId, // Long attendeeUserId,
-        sessionId, // Long sessionId,
-        null, // Boolean cancellable,
-        null, // Long hostId,
-        null, // Long startTime,
-        null, // Long minStartTime,
-        null, // Long maxStartTime,
-        null, // Long duration,
-        null, // Long minDuration,
-        null, // Long maxDuration,
-        null, // Boolean responded,
-        0, // long offset,
-        1 // long count
+        sessionId// Long sessionId,
     );
 
-    if (preexisting.size() != 0) {
+    if (preexisting) {
       return Errors.COMMITTMENT_EXISTENT.getResponse();
     }
 
@@ -731,7 +869,7 @@ public class ApiController {
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count) //
   {
-    List<School> list = schoolService.query( //
+    Stream<School> list = schoolService.query( //
         schoolId, //
         creationTime, //
         minCreationTime, //
@@ -742,7 +880,7 @@ public class ApiController {
         abbreviation, //
         offset, //
         count //
-    ).stream().map(x -> innexgoService.fillSchool(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillSchool(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -765,7 +903,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<User> list = userService.query( //
+    Stream<User> list = userService.query( //
         userId, //
         creationTime, //
         minCreationTime, //
@@ -775,7 +913,7 @@ public class ApiController {
         userEmail, //
         offset, //
         count //
-    ).stream().map(x -> innexgoService.fillUser(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillUser(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -800,7 +938,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Course> list = courseService.query( //
+    Stream<Course> list = courseService.query( //
         courseId, //
         creationTime, //
         minCreationTime, //
@@ -812,7 +950,7 @@ public class ApiController {
         description, //
         offset, //
         count //
-    ).stream().map(x -> innexgoService.fillCourse(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillCourse(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -834,7 +972,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<CourseMembership> list = courseMembershipService.query( //
+    Stream<CourseMembership> list = courseMembershipService.query( //
         courseMembershipId, //
         creationTime, //
         minCreationTime, //
@@ -844,7 +982,7 @@ public class ApiController {
         courseId, //
         courseMembershipKind, //
         offset, //
-        count).stream().map(x -> innexgoService.fillCourseMembership(x)).collect(Collectors.toList());
+        count).map(x -> innexgoService.fillCourseMembership(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -866,7 +1004,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Adminship> list = adminshipService.query( //
+    Stream<Adminship> list = adminshipService.query( //
         adminshipId, //
         creationTime, //
         minCreationTime, //
@@ -876,7 +1014,7 @@ public class ApiController {
         schoolId, //
         adminshipKind, //
         offset, //
-        count).stream().map(x -> innexgoService.fillAdminship(x)).collect(Collectors.toList());
+        count).map(x -> innexgoService.fillAdminship(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -908,7 +1046,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Session> list = sessionService.query(//
+    Stream<Session> list = sessionService.query(//
         sessionId, //
         creationTime, //
         minCreationTime, //
@@ -927,7 +1065,7 @@ public class ApiController {
         hidden, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillSession(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillSession(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -958,7 +1096,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<SessionRequest> list = sessionRequestService.query(//
+    Stream<SessionRequest> list = sessionRequestService.query(//
         sessionRequestId, //
         creationTime, //
         minCreationTime, //
@@ -976,7 +1114,7 @@ public class ApiController {
         responded, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillSessionRequest(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillSessionRequest(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1008,7 +1146,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<SessionRequestResponse> list = sessionRequestResponseService.query( //
+    Stream<SessionRequestResponse> list = sessionRequestResponseService.query( //
         sessionRequestId, //
         creatorUserId, //
         creationTime, //
@@ -1027,7 +1165,7 @@ public class ApiController {
         maxDuration, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillSessionRequestResponse(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillSessionRequestResponse(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1059,7 +1197,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<Committment> list = committmentService.query( //
+    Stream<Committment> list = committmentService.query( //
         committmentId, //
         creationTime, //
         minCreationTime, //
@@ -1078,7 +1216,7 @@ public class ApiController {
         responded, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillCommittment(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillCommittment(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1109,7 +1247,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    List<CommittmentResponse> list = committmentResponseService.query( //
+    Stream<CommittmentResponse> list = committmentResponseService.query( //
         committmentId, //
         creatorUserId, //
         creationTime, //
@@ -1127,7 +1265,7 @@ public class ApiController {
         sessionId, //
         offset, // long offset,
         count // long count)
-    ).stream().map(x -> innexgoService.fillCommittmentResponse(x)).collect(Collectors.toList());
+    ).map(x -> innexgoService.fillCommittmentResponse(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 

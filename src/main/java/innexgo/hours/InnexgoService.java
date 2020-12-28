@@ -17,6 +17,8 @@ public class InnexgoService {
   @Autowired
   CourseService courseService;
   @Autowired
+  CoursePasswordService coursePasswordService;
+  @Autowired
   CourseMembershipService courseMembershipService;
   @Autowired
   AdminshipService adminshipService;
@@ -90,7 +92,8 @@ public class InnexgoService {
   Password fillPassword(Password password) {
     password.creator = fillUser(userService.getByUserId(password.creatorUserId));
     password.user = fillUser(userService.getByUserId(password.userId));
-    password.passwordReset = fillPasswordReset(passwordResetService.getByPasswordResetKeyHash(password.passwordResetKeyHash)); 
+    password.passwordReset = fillPasswordReset(
+        passwordResetService.getByPasswordResetKeyHash(password.passwordResetKeyHash));
     return password;
   }
 
@@ -127,6 +130,19 @@ public class InnexgoService {
     course.school = fillSchool(schoolService.getBySchoolId(course.schoolId));
     return course;
   }
+
+  /**
+   * Fills in jackson objects for Course
+   *
+   * @param course - Course object
+   * @return Course object with filled jackson objects
+   */
+  CoursePassword fillCoursePassword(CoursePassword coursePassword) {
+    coursePassword.creator = fillUser(userService.getByUserId(coursePassword.creatorUserId));
+    coursePassword.course = fillCourse(courseService.getByCourseId(coursePassword.courseId));
+    return coursePassword;
+  }
+
 
   /**
    * Fills in jackson objects for CourseMembership
@@ -234,9 +250,25 @@ public class InnexgoService {
    * @param key - apikey code of the User
    * @return ApiKey or null if invalid
    */
-  ApiKey getApiKeyIfValid(String key) {
+  ApiKey getApiKey(String key) {
     ApiKey apiKey = apiKeyService.getByApiKeyHash(Utils.hashGeneratedKey(key));
-    if (apiKey != null && apiKey.creationTime + apiKey.duration > System.currentTimeMillis()) {
+    if (apiKey != null) {
+      return apiKey;
+    }
+    return null;
+  }
+
+  /**
+   * Returns an apiKey if valid
+   *
+   * @param key - apikey code of the User
+   * @return ApiKey or null if invalid
+   */
+  ApiKey getApiKeyIfValid(String key) {
+    ApiKey apiKey = getApiKey(key);
+    if (apiKey != null //
+        && apiKey.creationTime + apiKey.duration > System.currentTimeMillis() //
+        && apiKey.apiKeyKind == ApiKeyKind.VALID) {
       return apiKey;
     }
     return null;
@@ -255,4 +287,34 @@ public class InnexgoService {
     }
     return null;
   }
+
+  /**
+   * Returns true if the passwordPhrase matches the most recent password
+   * 
+   * @param userId         - valid user id
+   * @param passwordPhrase - passwordPhrase to test with user
+   * @return returns true if user's most recent password exists, isn't cancelled,
+   *         and matches the passwordPhrase
+   */
+  boolean isValidPassword(long userId, String passwordPhrase) {
+    Password password = passwordService.getByUserId(userId);
+    return password != null && password.passwordKind != PasswordKind.CANCEL
+        && Utils.matchesPassword(passwordPhrase, password.passwordHash);
+  }
+
+  /**
+   * Returns true if the coursePasswordPhrase matches the most recent
+   * coursePassword
+   * 
+   * @param courseId             - valid course id
+   * @param coursePasswordPhrase - coursePasswordPhrase to test with course
+   * @return returns true if course's most recent coursePassword exists, isn't
+   *         cancelled, and matches the coursePasswordPhrase
+   */
+  boolean isValidCoursePassword(long courseId, String coursePasswordPhrase) {
+    CoursePassword coursePassword = coursePasswordService.getByCourseId(courseId);
+    return coursePassword != null && coursePassword.coursePasswordKind != CoursePasswordKind.CANCEL
+        && Utils.matchesPassword(coursePasswordPhrase, coursePassword.passwordHash);
+  }
+
 }
