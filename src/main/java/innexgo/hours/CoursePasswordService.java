@@ -80,17 +80,19 @@ public class CoursePasswordService {
       Long creatorUserId, //
       Long courseId, //
       CoursePasswordKind coursePasswordKind, //
+      boolean onlyRecent, //
       long offset, //
       long count) {
 
     String sql = "SELECT p.* FROM course_password p" //
+        + (onlyRecent ? "" : " INNER JOIN (SELECT max(course_password_id) id FROM course_password GROUP BY course_id) maxids ON maxids.id = p.course_id")
         + " WHERE 1=1 " //
-        + (coursePasswordId == null ? "" : " AND p.course_password_id = " + coursePasswordId) //
-        + (creationTime == null ? "" : " AND p.creation_time = " + creationTime) //
-        + (minCreationTime == null ? "" : " AND p.creation_time > " + minCreationTime) //
-        + (maxCreationTime == null ? "" : " AND p.creation_time < " + maxCreationTime) //
-        + (creatorUserId == null ? "" : " AND p.creator_user_id = " + creatorUserId) //
-        + (courseId == null ? "" : " AND p.course_id = " + courseId) //
+        + (coursePasswordId   == null ? "" : " AND p.course_password_id = " + coursePasswordId) //
+        + (creationTime       == null ? "" : " AND p.creation_time = " + creationTime) //
+        + (minCreationTime    == null ? "" : " AND p.creation_time > " + minCreationTime) //
+        + (maxCreationTime    == null ? "" : " AND p.creation_time < " + maxCreationTime) //
+        + (creatorUserId      == null ? "" : " AND p.creator_user_id = " + creatorUserId) //
+        + (courseId           == null ? "" : " AND p.course_id = " + courseId) //
         + (coursePasswordKind == null ? "" : " AND p.course_password_kind = " + coursePasswordKind.value) //
         + (" ORDER BY p.course_password_id") //
         + (" LIMIT " + offset + ", " + count) //

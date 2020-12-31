@@ -20,10 +20,11 @@ package innexgo.hours;
 
 public class ApiKey {
 
-  String apiKeyHash;
+  public long apiKeyId;
   public long creationTime;
   long creatorUserId;
 
+  String apiKeyHash;
   public long duration;
   public ApiKeyKind apiKeyKind;
 

@@ -119,9 +119,10 @@ create table invoice(
 
 drop table if exists api_key;
 create table api_key(
-  api_key_hash char(64) not null,
+  api_key_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
+  api_key_hash char(64) not null,
   duration integer not null,
   api_key_kind integer not null -- VALID, CANCEL
 );

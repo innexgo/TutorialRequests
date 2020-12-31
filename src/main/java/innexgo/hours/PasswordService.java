@@ -19,7 +19,7 @@
 package innexgo.hours;
 
 import java.util.List;
-import java.util.ArrayList;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -74,28 +74,30 @@ public class PasswordService {
     return passwords.size() > 0 ? passwords.get(0) : null;
   }
 
-  public List<Password> query(
-      Long passwordId,
-      Long creationTime,
-      Long minCreationTime,
-      Long maxCreationTime,
-      Long creatorUserId,
-      Long userId,
-      PasswordKind passwordKind,
-      String passwordResetKeyHash,
-      long offset,
-      long count) {
+  public Stream<Password> query( //
+      Long passwordId, //
+      Long creationTime, //
+      Long minCreationTime, //
+      Long maxCreationTime, //
+      Long creatorUserId, //
+      Long userId, //
+      PasswordKind passwordKind, //
+      String passwordResetKeyHash, //
+      boolean onlyRecent, //
+      long offset, //
+      long count) { //
 
     // we need to return empty list if querying a mutually exclusive option
     if(passwordKind != null && passwordKind != PasswordKind.RESET ) {
       if(passwordResetKeyHash != null) {
-        return new ArrayList<Password>();
+        return Stream.empty();
       }
     }
 
     String sql =
         "SELECT p.* FROM password p"
             + " WHERE 1=1 "
+            + (onlyRecent ? "" : " INNER JOIN (SELECT max(password_id) id FROM password GROUP BY user_id) maxids ON maxids.id = p.password_id")
             + (passwordId           == null ? "" : " AND p.password_id = " + passwordId)
             + (creationTime         == null ? "" : " AND p.creation_time = " + creationTime)
             + (minCreationTime      == null ? "" : " AND p.creation_time > " + minCreationTime)
@@ -109,7 +111,7 @@ public class PasswordService {
             + ";";
 
     RowMapper<Password> rowMapper = new PasswordRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.queryForStream(sql, rowMapper);
   }
 
   public boolean existsByPasswordResetKeyHash(String passwordResetKeyHash) {

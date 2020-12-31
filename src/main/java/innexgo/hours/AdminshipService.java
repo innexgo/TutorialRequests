@@ -78,11 +78,13 @@ public class AdminshipService {
       Long userId, //
       Long schoolId, //
       AdminshipKind adminshipKind, //
+      boolean onlyRecent, //
       long offset, //
       long count) //
   {
-
-    String sql = "SELECT a.* FROM adminship a" + " WHERE 1=1 "
+    String sql = "SELECT a.* FROM adminship a"
+        + (onlyRecent ? "" : " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id")
+        + " WHERE 1=1 "
         + (adminshipId == null ? "" : " AND a.adminship_id = " + adminshipId)
         + (creationTime == null ? "" : " AND a.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND a.creation_time > " + minCreationTime)
@@ -91,7 +93,8 @@ public class AdminshipService {
         + (userId == null ? "" : " AND a.user_id = " + userId)
         + (schoolId == null ? "" : " AND a.school_id = " + schoolId)
         + (adminshipKind == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
-        + (" ORDER BY a.adminship_id") + (" LIMIT " + offset + ", " + count) + ";";
+        + (" ORDER BY a.adminship_id")
+        + (" LIMIT " + offset + ", " + count) + ";";
 
     RowMapper<Adminship> rowMapper = new AdminshipRowMapper();
     return this.jdbcTemplate.queryForStream(sql, rowMapper);
