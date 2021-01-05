@@ -83,7 +83,6 @@ public class ApiKeyService {
       Long creationTime,
       Long minCreationTime,
       Long maxCreationTime,
-      String apiKeyHash,
       Long duration,
       Long minDuration,
       Long maxDuration,
@@ -100,7 +99,6 @@ public class ApiKeyService {
             + (minCreationTime == null ? "" : " AND a.creation_time >= " + minCreationTime)
             + (maxCreationTime == null ? "" : " AND a.creation_time <= " + maxCreationTime)
             + (creatorUserId   == null ? "" : " AND a.creator_user_id =" + creatorUserId)
-            + (apiKeyHash      == null ? "" : " AND a.api_key_hash = " + Utils.escape(apiKeyHash))
             + (duration    == null ? "" : " AND a.duration =" + duration)
             + (minDuration == null ? "" : " AND a.duration >= " + minDuration)
             + (maxDuration == null ? "" : " AND a.duration <= " + maxDuration)

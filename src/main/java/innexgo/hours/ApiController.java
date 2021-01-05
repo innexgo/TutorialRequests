@@ -129,7 +129,7 @@ public class ApiController {
 
   @RequestMapping("/apiKey/newCancel/")
   public ResponseEntity<?> newApiKeyCancel( //
-      @RequestParam String apiKeyToRevoke, //
+      @RequestParam String apiKeyToCancel, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
@@ -137,7 +137,7 @@ public class ApiController {
     }
 
     // check if api key to cancel is valid
-    ApiKey toCancel = innexgoService.getApiKey(apiKeyToRevoke);
+    ApiKey toCancel = innexgoService.getApiKey(apiKeyToCancel);
     if(toCancel == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
@@ -149,10 +149,10 @@ public class ApiController {
 
     // now actually make apiKey
     ApiKey newApiKey = new ApiKey();
-    newApiKey.apiKeyHash = Utils.hashGeneratedKey(apiKeyToRevoke);
+    newApiKey.apiKeyHash = Utils.hashGeneratedKey(apiKeyToCancel);
     newApiKey.creatorUserId = key.creatorUserId;
     newApiKey.creationTime = System.currentTimeMillis();
-    newApiKey.key = apiKeyToRevoke;
+    newApiKey.key = apiKeyToCancel;
     newApiKey.apiKeyKind = ApiKeyKind.VALID;
     newApiKey.duration = 0;
 
@@ -891,7 +891,8 @@ public class ApiController {
   }
 
   @RequestMapping("/school/")
-  public ResponseEntity<?> viewSchool(@RequestParam(required = false) Long schoolId, //
+  public ResponseEntity<?> viewSchool( //
+      @RequestParam(required = false) Long schoolId, //
       @RequestParam(required = false) Long creationTime, //
       @RequestParam(required = false) Long minCreationTime, //
       @RequestParam(required = false) Long maxCreationTime, //
@@ -959,7 +960,6 @@ public class ApiController {
       @RequestParam(required=false) Long creatorUserId, //
       @RequestParam(required=false) Long userId, //
       @RequestParam(required=false) PasswordKind passwordKind, //
-      @RequestParam(required=false) String passwordResetKeyHash, //
       @RequestParam(defaultValue = "false") boolean onlyRecent,
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
@@ -979,7 +979,6 @@ public class ApiController {
         creatorUserId, //
         userId, //
         passwordKind, //
-        passwordResetKeyHash, //
         onlyRecent, //
         offset, //
         count //
@@ -993,7 +992,6 @@ public class ApiController {
       @RequestParam(required = false) Long creationTime, //
       @RequestParam(required = false) Long minCreationTime, //
       @RequestParam(required = false) Long maxCreationTime, //
-      @RequestParam(required = false) String apiKeyHash, //
       @RequestParam(required = false) Long duration, //
       @RequestParam(required = false) Long minDuration, //
       @RequestParam(required = false) Long maxDuration, //
@@ -1015,7 +1013,6 @@ public class ApiController {
         creationTime, //
         minCreationTime, //
         maxCreationTime, //
-        apiKeyHash, //
         duration, //
         minDuration, //
         maxDuration, //

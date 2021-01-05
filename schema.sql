@@ -2,6 +2,7 @@
 -- Primary Key
 -- Creation Time
 -- Creator User Id (if applicable)
+-- Everything else
 
 
 drop table if exists password_reset;

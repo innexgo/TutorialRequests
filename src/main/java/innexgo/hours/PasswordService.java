@@ -82,22 +82,14 @@ public class PasswordService {
       Long creatorUserId, //
       Long userId, //
       PasswordKind passwordKind, //
-      String passwordResetKeyHash, //
       boolean onlyRecent, //
       long offset, //
       long count) { //
 
-    // we need to return empty list if querying a mutually exclusive option
-    if(passwordKind != null && passwordKind != PasswordKind.RESET ) {
-      if(passwordResetKeyHash != null) {
-        return Stream.empty();
-      }
-    }
-
     String sql =
         "SELECT p.* FROM password p"
-            + " WHERE 1=1 "
             + (onlyRecent ? "" : " INNER JOIN (SELECT max(password_id) id FROM password GROUP BY user_id) maxids ON maxids.id = p.password_id")
+            + " WHERE 1=1 "
             + (passwordId           == null ? "" : " AND p.password_id = " + passwordId)
             + (creationTime         == null ? "" : " AND p.creation_time = " + creationTime)
             + (minCreationTime      == null ? "" : " AND p.creation_time > " + minCreationTime)
@@ -105,7 +97,6 @@ public class PasswordService {
             + (creatorUserId        == null ? "" : " AND p.creator_user_id = " + creatorUserId)
             + (userId               == null ? "" : " AND p.user_id = " + userId)
             + (passwordKind         == null ? "" : " AND p.password_kind = " + passwordKind.value)
-            + (passwordResetKeyHash == null ? "" : " AND p.password_reset_key_hash = " + Utils.escape(passwordResetKeyHash))
             + (" ORDER BY p.password_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

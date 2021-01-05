@@ -60,16 +60,16 @@ public class SessionRequestResponseService {
 
   // Restrict appts by
   public Stream<SessionRequestResponse> query(
-      Long sessionRequestId,
-      Long creationTime,
-      Long minCreationTime,
-      Long maxCreationTime,
-      Long creatorUserId,
-      String message,
-      Boolean accepted,
-      Long committmentId,
-      Long attendeeUserId,
-      Long courseId,
+      Long sessionRequestId, //
+      Long creationTime, //
+      Long minCreationTime, //
+      Long maxCreationTime, //
+      Long creatorUserId, //
+      String message, //
+      Boolean accepted, //
+      Long committmentId, //
+      Long attendeeUserId, //
+      Long courseId, //
       Long startTime, //
       Long minStartTime, //
       Long maxStartTime, //

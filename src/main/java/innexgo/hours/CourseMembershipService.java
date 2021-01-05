@@ -86,8 +86,8 @@ public class CourseMembershipService {
 
     String sql =
       "SELECT cm.* FROM course_membership cm"
-        + " WHERE 1=1 "
         + (onlyRecent ? "" : " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids ON maxids.id = cm.course_membership_id")
+        + " WHERE 1=1 "
         + (courseMembershipId    == null ? "" : " AND cm.course_membership_id = " + courseMembershipId)
         + (creationTime          == null ? "" : " AND cm.creation_time = " + creationTime)
         + (minCreationTime       == null ? "" : " AND cm.creation_time > " + minCreationTime)
