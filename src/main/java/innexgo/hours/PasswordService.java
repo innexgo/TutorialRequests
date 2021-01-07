@@ -102,7 +102,7 @@ public class PasswordService {
             + ";"; //
 
     RowMapper<Password> rowMapper = new PasswordRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 
   public boolean existsByPasswordResetKeyHash(String passwordResetKeyHash) {

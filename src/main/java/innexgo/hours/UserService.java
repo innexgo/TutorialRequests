@@ -118,6 +118,6 @@ public class UserService {
             + ";";
 
     RowMapper<User> rowMapper = new UserRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }

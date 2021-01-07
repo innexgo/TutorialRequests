@@ -18,7 +18,6 @@
 
 package innexgo.hours;
 
-import java.util.List;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,7 +204,7 @@ public class ApiController {
             + "<p>This link is valid for up to 15 minutes.</p>" //
             + "<p>Do not share this link with others.</p>" //
             + "<p>Verification link: " //
-            + innexgoHoursSite + "/register_confirm?verificationKey=" + rawKey //
+            + innexgoHoursSite + "/register_confirm?verificationChallengeKey=" + rawKey //
             + "</p>"); //
 
     return new ResponseEntity<>(innexgoService.fillVerificationChallenge(evc), HttpStatus.OK);

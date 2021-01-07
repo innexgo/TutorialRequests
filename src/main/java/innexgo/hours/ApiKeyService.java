@@ -107,6 +107,6 @@ public class ApiKeyService {
             + (" LIMIT " + offset + ", " + count)
             + ";";
     RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }

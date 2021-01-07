@@ -26,9 +26,9 @@ public class CourseMembership {
   long courseId;
   public CourseMembershipKind courseMembershipKind;
 
-  User creator;
-  User user;
-  Course course;
+  public User creator;
+  public User user;
+  public Course course;
 }
 
 enum CourseMembershipKind {

@@ -26,9 +26,9 @@ public class Adminship {
   long schoolId;
   public AdminshipKind adminshipKind;
 
-  User creator;
-  User user;
-  School school;
+  public User creator;
+  public User user;
+  public School school;
 }
 
 enum AdminshipKind {

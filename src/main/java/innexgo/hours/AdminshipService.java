@@ -97,7 +97,7 @@ public class AdminshipService {
         + (" LIMIT " + offset + ", " + count) + ";";
 
     RowMapper<Adminship> rowMapper = new AdminshipRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 
   public boolean isAdmin(long userId, long schoolId) {

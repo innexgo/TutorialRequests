@@ -19,68 +19,131 @@ INSERT INTO user VALUES(
 -- The school everybody attends
 INSERT INTO school VALUES(0, 1, 0, 'Squidward Community College', 'sqcc');
 
+INSERT INTO verification_challenge VALUES(
+  '1', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'BOB JOHNSON', -- name
+  'bob@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
+);
 INSERT INTO user VALUES(
   1, -- user_id
   1, -- creation_time
   'BOB JOHNSON', --name
   'bob@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '1' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '2', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'SARAH DOE', -- name
+  'sarah@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   2, -- user_id
   1, -- creation_time
   'SARAH DOE', --name
   'sarah@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '2' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '3', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'JOE SMITH', -- name
+  'joe@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   3, -- user_id
   1, -- creation_time
   'JOE SMITH', --name
   'joe@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '3' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '4', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'ALICE BROWN', -- name
+  'alice@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   4, -- user_id
   1, -- creation_time
   'ALICE BROWN', --name
   'alice@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '4' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '5', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'BILLY FLETCHER', -- name
+  'billy@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   5, -- user_id
   1, -- creation_time
   'BILLY FLETCHER', --name
   'billy@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '5' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '6', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'CARSON WILSON', -- name
+  'carson@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   6, -- user_id
   1, -- creation_time
   'CARSON WILSON', --name
   'carson@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '6' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '7', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'GEORGE OHARE', -- name
+  'george@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   7, -- user_id
   1, -- creation_time
   'GEORGE OHARE', --name
   'george@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '7' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '8', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'WILLIAM DOE', -- name
+  'william@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   8, -- user_id
   1, -- creation_time
   'WILLIAM DOE', --name
   'william@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '8' -- verification_challenge_key_hash
+);
+INSERT INTO verification_challenge VALUES(
+  '9', -- verification_challenge_key_hash 
+  1, -- creation_time
+  'ROBERT MCPHILLIP', -- name
+  'robert@example.com', -- email
+  'REPLACETHISTARGET' -- password_hash
 );
 INSERT INTO user VALUES(
   9, -- user_id
   1, -- creation_time
   'ROBERT MCPHILLIP', --name
   'robert@example.com', -- email
-  'root_challenge' -- verification_challenge_key_hash
+  '9' -- verification_challenge_key_hash
 );
 
 

@@ -53,11 +53,11 @@ public class VerificationChallengeService {
         verificationChallenge.passwordHash);
   }
 
-  public VerificationChallenge getByVerificationChallengeKeyHash(String verificationKey) {
+  public VerificationChallenge getByVerificationChallengeKeyHash(String verificationChallengeKeyHash) {
     String sql =
         "SELECT * FROM verification_challenge WHERE verification_challenge_key_hash=? ORDER BY creation_time DESC";
     RowMapper<VerificationChallenge> rowMapper = new VerificationChallengeRowMapper();
-    List<VerificationChallenge> verificationChallenges = jdbcTemplate.query(sql, rowMapper, verificationKey);
+    List<VerificationChallenge> verificationChallenges = jdbcTemplate.query(sql, rowMapper, verificationChallengeKeyHash);
     return verificationChallenges.size() > 0 ? verificationChallenges.get(0) : null;
   }
 

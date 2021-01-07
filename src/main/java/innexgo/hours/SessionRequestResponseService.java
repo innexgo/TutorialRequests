@@ -97,7 +97,7 @@ public class SessionRequestResponseService {
             + (message          == null ? "" : " AND srr.message = " + Utils.escape(message))
             + (accepted         == null ? "" : " AND srr.accepted = " + accepted)
             + (committmentId    == null ? "" : " AND srr.accepted_committment_id= " + committmentId)
-            + (attendeeUserId   == null ? "" : " AND sr.attendeee_user_id = " + attendeeUserId)
+            + (attendeeUserId   == null ? "" : " AND sr.attendee_user_id = " + attendeeUserId)
             + (courseId         == null ? "" : " AND sr.course_id = " + courseId)
             + (startTime        == null ? "" : " AND sr.start_time = " + startTime)
             + (minStartTime     == null ? "" : " AND sr.start_time > " + minStartTime)
@@ -110,7 +110,7 @@ public class SessionRequestResponseService {
             + ";";
 
     RowMapper<SessionRequestResponse> rowMapper = new SessionRequestResponseRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }
 

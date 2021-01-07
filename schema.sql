@@ -9,10 +9,11 @@ drop table if exists password_reset;
 create table password_reset(
   password_reset_key_hash char(64) not null primary key,
   creation_time integer not null,
-  creator_user_id integer not null,
+  creator_user_id integer not null
 );
 
-drop table if exists password( 
+drop table if exists password;
+create table password( 
   password_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
@@ -77,7 +78,7 @@ create table course(
   creator_user_id integer not null,
   school_id integer not null,
   name varchar(100) not null,
-  description varchar(100) not null,
+  description varchar(100) not null
 );
 
 drop table if exists course_password;
@@ -115,7 +116,7 @@ create table invoice(
   creation_time integer not null,
   creator_user_id integer not null,
   subscription_id integer not null,
-  amount_cents integer not null,
+  amount_cents integer not null
 );
 
 drop table if exists api_key;

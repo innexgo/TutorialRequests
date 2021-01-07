@@ -65,8 +65,10 @@ public class MailService {
   }
 
   public boolean emailExistsInBlacklist(String email) {
-    String sql = "SELECT count(*) FROM email_blacklist WHERE email=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, email);
-    return count != 0;
+    // TODO we need to set up an email blacklist properly
+    // String sql = "SELECT count(*) FROM email_blacklist WHERE email=?";
+    // long count = jdbcTemplate.queryForObject(sql, Long.class, email);
+    // return count != 0;
+    return false;
   }
 }

@@ -97,6 +97,6 @@ public class CourseService {
         + ";";
 
     RowMapper<Course> rowMapper = new CourseRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }

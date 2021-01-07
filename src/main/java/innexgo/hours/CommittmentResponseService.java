@@ -109,6 +109,6 @@ public class CommittmentResponseService {
         + ";";
 
     RowMapper<CommittmentResponse> rowMapper = new CommittmentResponseRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }

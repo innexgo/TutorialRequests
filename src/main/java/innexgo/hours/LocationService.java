@@ -19,7 +19,7 @@
 
 package innexgo.hours;
 
-import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -71,7 +71,7 @@ public class LocationService {
     return count != 0;
   }
 
- public List<Location> query( //
+ public Stream<Location> query( //
      Long locationId, //
      Long creationTime, //
      Long minCreationTime, //
@@ -104,6 +104,6 @@ public class LocationService {
         + ";";
 
     RowMapper<Location> rowMapper = new LocationRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }

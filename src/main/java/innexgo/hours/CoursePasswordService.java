@@ -99,7 +99,7 @@ public class CoursePasswordService {
         + ";"; //
 
     RowMapper<CoursePassword> rowMapper = new CoursePasswordRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 
 }

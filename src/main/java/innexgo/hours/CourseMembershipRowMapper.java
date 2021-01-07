@@ -28,12 +28,12 @@ public class CourseMembershipRowMapper implements RowMapper<CourseMembership> {
   @Override
   public CourseMembership mapRow(ResultSet row, int rowNum) throws SQLException {
     CourseMembership courseMembership = new CourseMembership();
-    courseMembership.courseMembershipId = row.getLong("course_membership");
+    courseMembership.courseMembershipId = row.getLong("course_membership_id");
     courseMembership.creationTime = row.getLong("creation_time");
     courseMembership.creatorUserId = row.getLong("creator_user_id");
     courseMembership.userId = row.getLong("user_id");
     courseMembership.courseId = row.getLong("course_id");
-    courseMembership.courseMembershipKind = CourseMembershipKind.from(row.getInt("kind"));
+    courseMembership.courseMembershipKind = CourseMembershipKind.from(row.getInt("course_membership_kind"));
     return courseMembership;
   }
 }

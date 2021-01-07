@@ -118,6 +118,6 @@ public class SessionRequestService {
             + ";";
 
     RowMapper<SessionRequest> rowMapper = new SessionRequestRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }

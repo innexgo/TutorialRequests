@@ -96,7 +96,7 @@ public class CourseMembershipService {
         + (!onlyRecent ? "" : " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids ON maxids.id = cm.course_membership_id") //
         + (nojoincourse ? "" : " JOIN course c ON c.course_id = cm.course_id") //
         + (nojoinuser ? "" : " JOIN user u ON u.user_id = cm.user_id") //
-        + " WHERE 1=1 " //
+        + " WHERE 1=1" //
         + (courseMembershipId    == null ? "" : " AND cm.course_membership_id = " + courseMembershipId) //
         + (creationTime          == null ? "" : " AND cm.creation_time = " + creationTime) //
         + (minCreationTime       == null ? "" : " AND cm.creation_time > " + minCreationTime) //
@@ -114,7 +114,7 @@ public class CourseMembershipService {
         + ";"; //
 
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 
   public CourseMembershipKind getCourseMembership(long userId, long courseId) {

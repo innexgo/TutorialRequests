@@ -99,6 +99,6 @@ public class SchoolService {
         + ";";
 
     RowMapper<School> rowMapper = new SchoolRowMapper();
-    return this.jdbcTemplate.queryForStream(sql, rowMapper);
+    return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }
