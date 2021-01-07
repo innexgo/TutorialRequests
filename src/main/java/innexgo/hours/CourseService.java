@@ -81,18 +81,18 @@ public class CourseService {
  {
 
     String sql =
-      "SELECT s.* FROM course s"
+      "SELECT c.* FROM course c"
         + " WHERE 1=1 "
-        + (courseId          == null ? "" : " AND s.course_id = " + courseId)
-        + (creationTime      == null ? "" : " AND s.creation_time = " + creationTime)
-        + (minCreationTime   == null ? "" : " AND s.creation_time > " + minCreationTime)
-        + (maxCreationTime   == null ? "" : " AND s.creation_time < " + maxCreationTime)
-        + (creatorUserId     == null ? "" : " AND s.creator_user_id = " + creatorUserId)
-        + (schoolId          == null ? "" : " AND s.school_id = " + schoolId)
-        + (name              == null ? "" : " AND s.name = " + Utils.escape(name))
-        + (partialName       == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialName+"%"))
-        + (description       == null ? "" : " AND s.description = " + Utils.escape(description))
-        + (" ORDER BY s.course_id")
+        + (courseId          == null ? "" : " AND c.course_id = " + courseId)
+        + (creationTime      == null ? "" : " AND c.creation_time = " + creationTime)
+        + (minCreationTime   == null ? "" : " AND c.creation_time > " + minCreationTime)
+        + (maxCreationTime   == null ? "" : " AND c.creation_time < " + maxCreationTime)
+        + (creatorUserId     == null ? "" : " AND c.creator_user_id = " + creatorUserId)
+        + (schoolId          == null ? "" : " AND c.school_id = " + schoolId)
+        + (name              == null ? "" : " AND c.name = " + Utils.escape(name))
+        + (partialName       == null ? "" : " AND c.name LIKE " + Utils.escape("%"+partialName+"%"))
+        + (description       == null ? "" : " AND c.description = " + Utils.escape(description))
+        + (" ORDER BY c.course_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 

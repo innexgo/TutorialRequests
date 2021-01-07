@@ -83,7 +83,7 @@ public class AdminshipService {
       long count) //
   {
     String sql = "SELECT a.* FROM adminship a"
-        + (onlyRecent ? "" : " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id")
+        + (!onlyRecent ? "" : " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id")
         + " WHERE 1=1 "
         + (adminshipId == null ? "" : " AND a.adminship_id = " + adminshipId)
         + (creationTime == null ? "" : " AND a.creation_time = " + creationTime)

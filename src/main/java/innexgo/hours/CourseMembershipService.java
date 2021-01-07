@@ -79,26 +79,33 @@ public class CourseMembershipService {
      Long userId, //
      Long courseId, //
      CourseMembershipKind courseMembershipKind, //
+     String courseName, //
+     String partialCourseName, //
      boolean onlyRecent,
      long offset, //
      long count) //
  {
 
+    boolean nojoin = courseName == null && partialCourseName == null;
+
     String sql =
-      "SELECT cm.* FROM course_membership cm"
-        + (onlyRecent ? "" : " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids ON maxids.id = cm.course_membership_id")
-        + " WHERE 1=1 "
-        + (courseMembershipId    == null ? "" : " AND cm.course_membership_id = " + courseMembershipId)
-        + (creationTime          == null ? "" : " AND cm.creation_time = " + creationTime)
-        + (minCreationTime       == null ? "" : " AND cm.creation_time > " + minCreationTime)
-        + (maxCreationTime       == null ? "" : " AND cm.creation_time < " + maxCreationTime)
-        + (creatorUserId         == null ? "" : " AND cm.creator_user_id = " + creatorUserId)
-        + (userId                == null ? "" : " AND cm.user_id = " + userId)
-        + (courseId              == null ? "" : " AND cm.course_id = " + courseId)
-        + (courseMembershipKind  == null ? "" : " AND cm.course_membership_kind = " + courseMembershipKind.value)
-        + (" ORDER BY cm.course_membership_id")
-        + (" LIMIT " + offset + ", " + count)
-        + ";";
+      "SELECT cm.* FROM course_membership cm" //
+        + (!onlyRecent ? "" : " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids ON maxids.id = cm.course_membership_id") //
+        + (nojoin ? "" : " JOIN course c ON c.course_id = cm.course_id") //
+        + " WHERE 1=1 " //
+        + (courseMembershipId    == null ? "" : " AND cm.course_membership_id = " + courseMembershipId) //
+        + (creationTime          == null ? "" : " AND cm.creation_time = " + creationTime) //
+        + (minCreationTime       == null ? "" : " AND cm.creation_time > " + minCreationTime) //
+        + (maxCreationTime       == null ? "" : " AND cm.creation_time < " + maxCreationTime) //
+        + (creatorUserId         == null ? "" : " AND cm.creator_user_id = " + creatorUserId) //
+        + (userId                == null ? "" : " AND cm.user_id = " + userId) //
+        + (courseId              == null ? "" : " AND cm.course_id = " + courseId) //
+        + (courseMembershipKind  == null ? "" : " AND cm.course_membership_kind = " + courseMembershipKind.value) //
+        + (courseName            == null ? "" : " AND c.name = " + Utils.escape(courseName)) //
+        + (partialCourseName     == null ? "" : " AND c.name LIKE " + Utils.escape("%"+partialCourseName+"%")) //
+        + (" ORDER BY cm.course_membership_id") //
+        + (" LIMIT " + offset + ", " + count) //
+        + ";"; //
 
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
     return this.jdbcTemplate.queryForStream(sql, rowMapper);

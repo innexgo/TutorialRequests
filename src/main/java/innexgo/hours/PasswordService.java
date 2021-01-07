@@ -86,20 +86,20 @@ public class PasswordService {
       long offset, //
       long count) { //
 
-    String sql =
-        "SELECT p.* FROM password p"
-            + (onlyRecent ? "" : " INNER JOIN (SELECT max(password_id) id FROM password GROUP BY user_id) maxids ON maxids.id = p.password_id")
-            + " WHERE 1=1 "
-            + (passwordId           == null ? "" : " AND p.password_id = " + passwordId)
-            + (creationTime         == null ? "" : " AND p.creation_time = " + creationTime)
-            + (minCreationTime      == null ? "" : " AND p.creation_time > " + minCreationTime)
-            + (maxCreationTime      == null ? "" : " AND p.creation_time < " + maxCreationTime)
-            + (creatorUserId        == null ? "" : " AND p.creator_user_id = " + creatorUserId)
-            + (userId               == null ? "" : " AND p.user_id = " + userId)
-            + (passwordKind         == null ? "" : " AND p.password_kind = " + passwordKind.value)
-            + (" ORDER BY p.password_id")
-            + (" LIMIT " + offset + ", " + count)
-            + ";";
+    String sql = //
+        "SELECT p.* FROM password p" //
+            + (!onlyRecent ? "" : " INNER JOIN (SELECT max(password_id) id FROM password GROUP BY user_id) maxids ON maxids.id = p.password_id") //
+            + " WHERE 1=1 " //
+            + (passwordId           == null ? "" : " AND p.password_id = " + passwordId) //
+            + (creationTime         == null ? "" : " AND p.creation_time = " + creationTime) //
+            + (minCreationTime      == null ? "" : " AND p.creation_time > " + minCreationTime) //
+            + (maxCreationTime      == null ? "" : " AND p.creation_time < " + maxCreationTime) //
+            + (creatorUserId        == null ? "" : " AND p.creator_user_id = " + creatorUserId) //
+            + (userId               == null ? "" : " AND p.user_id = " + userId) //
+            + (passwordKind         == null ? "" : " AND p.password_kind = " + passwordKind.value) //
+            + (" ORDER BY p.password_id") //
+            + (" LIMIT " + offset + ", " + count) //
+            + ";"; //
 
     RowMapper<Password> rowMapper = new PasswordRowMapper();
     return this.jdbcTemplate.queryForStream(sql, rowMapper);

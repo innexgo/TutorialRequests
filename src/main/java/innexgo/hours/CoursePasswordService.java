@@ -85,7 +85,7 @@ public class CoursePasswordService {
       long count) {
 
     String sql = "SELECT p.* FROM course_password p" //
-        + (onlyRecent ? "" : " INNER JOIN (SELECT max(course_password_id) id FROM course_password GROUP BY course_id) maxids ON maxids.id = p.course_id")
+        + (!onlyRecent ? "" : " INNER JOIN (SELECT max(course_password_id) id FROM course_password GROUP BY course_id) maxids ON maxids.id = p.course_id")
         + " WHERE 1=1 " //
         + (coursePasswordId   == null ? "" : " AND p.course_password_id = " + coursePasswordId) //
         + (creationTime       == null ? "" : " AND p.creation_time = " + creationTime) //

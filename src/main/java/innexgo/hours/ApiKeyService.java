@@ -92,7 +92,7 @@ public class ApiKeyService {
       long count) {
     String sql =
         "SELECT a.* FROM api_key a"
-            + (onlyRecent ? "" : " INNER JOIN (SELECT max(api_key_id) id FROM api_key GROUP BY api_key_hash) maxids ON maxids.id = a.api_key_id")
+            + (!onlyRecent ? "" : " INNER JOIN (SELECT max(api_key_id) id FROM api_key GROUP BY api_key_hash) maxids ON maxids.id = a.api_key_id")
             + " WHERE 1=1"
             + (apiKeyId    == null ? "" : " AND a.api_key_id =" + apiKeyId)
             + (creationTime    == null ? "" : " AND a.creation_time =" + creationTime)
