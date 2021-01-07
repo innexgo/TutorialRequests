@@ -1108,6 +1108,8 @@ public class ApiController {
       @RequestParam(required = false) Long courseId, //
       @RequestParam(required = false) String courseName, //
       @RequestParam(required = false) String partialCourseName, //
+      @RequestParam(required = false) String userName, //
+      @RequestParam(required = false) String partialUserName, //
       @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
       @RequestParam(defaultValue = "false") boolean onlyRecent,
       @RequestParam(defaultValue = "0") long offset, //
@@ -1130,6 +1132,8 @@ public class ApiController {
         courseMembershipKind, //
         courseName,
         partialCourseName,
+        userName,
+        partialUserName,
         onlyRecent,
         offset, //
         count).map(x -> innexgoService.fillCourseMembership(x));
