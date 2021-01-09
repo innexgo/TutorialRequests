@@ -238,8 +238,16 @@ public class ApiController {
     u.name = evc.name;
     u.email = evc.email;
     u.verificationChallengeKeyHash = evc.verificationChallengeKeyHash;
-
     userService.add(u);
+
+    Password p = new Password();
+    p.creationTime = System.currentTimeMillis();
+    p.creatorUserId = u.userId;
+    p.userId = u.userId;
+    p.passwordHash = evc.passwordHash;
+    p.passwordKind = PasswordKind.CHANGE;
+    passwordService.add(p);
+
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
