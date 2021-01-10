@@ -36,8 +36,8 @@ public class CommittmentResponseService {
     String sql =
         "SELECT * FROM committment_response WHERE committment_id=?";
     RowMapper<CommittmentResponse> rowMapper = new CommittmentResponseRowMapper();
-    CommittmentResponse committmentResponse = jdbcTemplate.queryForObject(sql, rowMapper, committmentId);
-    return committmentResponse;
+    List<CommittmentResponse> committmentResponses = jdbcTemplate.query(sql, rowMapper, committmentId);
+    return committmentResponses.size() > 0 ? committmentResponses.get(0) : null;
   }
 
   public void add(CommittmentResponse committmentResponse) {

@@ -32,12 +32,12 @@ public class UserService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public User getByUserId(long id) {
+  public User getByUserId(long userId) {
     String sql =
         "SELECT * FROM user WHERE user_id=?";
     RowMapper<User> rowMapper = new UserRowMapper();
-    User user = jdbcTemplate.queryForObject(sql, rowMapper, id);
-    return user;
+    List<User> users = jdbcTemplate.query(sql, rowMapper, userId);
+    return users.size() > 0 ? users.get(0) : null;
   }
 
   public User getByEmail(String email) {

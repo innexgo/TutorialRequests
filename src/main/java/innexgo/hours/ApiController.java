@@ -419,8 +419,8 @@ public class ApiController {
   }
 
   // This method enables signing in with a password on courses
-  @RequestMapping("/courseKey/newChange/")
-  public ResponseEntity<?> newCourseKeyChange( //
+  @RequestMapping("/courseKey/newValid/")
+  public ResponseEntity<?> newCourseKeyValid( //
       @RequestParam long courseId, //
       @RequestParam long duration, //
       @RequestParam String apiKey //
@@ -614,20 +614,20 @@ public class ApiController {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    if (!userService.existsByUserId(courseId)) {
+    Course course = courseService.getByCourseId(courseId);
+    if(course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
-    Course course = courseService.getByCourseId(courseId);
-
-    if (!userService.existsByUserId(locationId)) {
-      return Errors.LOCATION_NONEXISTENT.getResponse();
-    }
     Location location = locationService.getByLocationId(locationId);
-
-    if (location.schoolId != course.schoolId) {
+    if (location == null) {
       return Errors.LOCATION_NONEXISTENT.getResponse();
     }
+
+    // TODO a working permissioning system + figure out what to do with location
+    // if (location.schoolId != course.schoolId) {
+    //   return Errors.LOCATION_NONEXISTENT.getResponse();
+    // }
 
     if (duration < 0) {
       return Errors.NEGATIVE_DURATION.getResponse();

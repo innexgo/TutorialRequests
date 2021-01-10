@@ -36,8 +36,8 @@ public class CourseMembershipService {
     String sql =
         "SELECT * FROM course_membership WHERE course_membership_id=?";
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
-    CourseMembership course_membership = jdbcTemplate.queryForObject(sql, rowMapper, courseMembershipId);
-    return course_membership;
+    List<CourseMembership> course_membership = jdbcTemplate.query(sql, rowMapper, courseMembershipId);
+    return course_membership.size() > 0 ? course_membership.get(0) : null;
   }
 
   public long nextId() {
@@ -124,9 +124,6 @@ public class CourseMembershipService {
      " ORDER BY course_membership_id LIMIT 1;";
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
     List<CourseMembership> memberships = this.jdbcTemplate.query(sql, rowMapper);
-    if(memberships.size() == 0) {
-      return null;
-    }
-    return memberships.get(0).courseMembershipKind;
+    return memberships.size() > 0 ? memberships.get(0).courseMembershipKind : null;
   }
 }

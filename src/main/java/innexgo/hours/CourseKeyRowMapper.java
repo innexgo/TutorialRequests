@@ -31,7 +31,7 @@ public class CourseKeyRowMapper implements RowMapper<CourseKey> {
     ps.creationTime = row.getLong("creation_time");
     ps.creatorUserId = row.getLong("creator_user_id");
     ps.courseId = row.getLong("course_id");
-    ps.courseKey = row.getString("course_key");
+    ps.key = row.getString("key");
     ps.courseKeyKind = CourseKeyKind.from(row.getInt("course_key_kind"));
     ps.duration = row.getLong("duration");
     return ps;

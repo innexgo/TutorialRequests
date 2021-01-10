@@ -19,6 +19,7 @@
 
 package innexgo.hours;
 
+import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,8 +37,8 @@ public class LocationService {
     String sql =
         "SELECT * FROM location WHERE location_id=?";
     RowMapper<Location> rowMapper = new LocationRowMapper();
-    Location location = jdbcTemplate.queryForObject(sql, rowMapper, locationId);
-    return location;
+    List<Location> locations = jdbcTemplate.query(sql, rowMapper, locationId);
+    return locations.size() > 0 ? locations.get(0) : null;
   }
 
   public long nextId() {

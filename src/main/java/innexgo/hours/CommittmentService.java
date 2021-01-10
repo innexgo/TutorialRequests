@@ -36,8 +36,8 @@ public class CommittmentService {
   public Committment getByCommittmentId(long committmentId) {
     String sql = "SELECT * FROM committment WHERE committment_id=?";
     RowMapper<Committment> rowMapper = new CommittmentRowMapper();
-    Committment committment = jdbcTemplate.queryForObject(sql, rowMapper, committmentId);
-    return committment;
+    List<Committment> committments = jdbcTemplate.query(sql, rowMapper, committmentId);
+    return committments.size() > 0 ? committments.get(0) : null;
   }
 
   public long nextId() {
@@ -71,8 +71,10 @@ public class CommittmentService {
   }
 
   public boolean unrespondedExistsByAttendeeIdSessionId(long attendeeId, long sessionId) {
-    String sql = "SELECT count(c.*) FROM committment c LEFT JOIN committment_response cr ON cr.committment_id = c.committment_id"
-        + " WHERE cr.committment_id IS NULL" + " AND c.attendee_user_id = ? AND c.session_id = ?";
+    String sql = "SELECT count(c.committment_id) FROM committment c" //
+        + " LEFT JOIN committment_response cr ON cr.committment_id = c.committment_id" //
+        + " WHERE cr.committment_id IS NULL" //
+        + " AND c.attendee_user_id = ? AND c.session_id = ?"; //
     long count = jdbcTemplate.queryForObject(sql, Long.class, attendeeId, sessionId);
     return count != 0;
   }
