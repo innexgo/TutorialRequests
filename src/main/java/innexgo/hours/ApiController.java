@@ -66,7 +66,7 @@ public class ApiController {
   @Autowired
   AdminshipService adminshipService;
   @Autowired
-  CoursePasswordService coursePasswordService;
+  CourseKeyService courseKeyService;
   @Autowired
   CourseService courseService;
   @Autowired
@@ -136,13 +136,13 @@ public class ApiController {
     }
 
     // check if api key to cancel is valid
-    ApiKey toCancel = innexgoService.getApiKey(apiKeyToCancel);
-    if(toCancel == null) {
+    ApiKey toCancel = innexgoService.getApiKeyIfValid(apiKeyToCancel);
+    if (toCancel == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
     // check that both creators are the same
-    if(key.creatorUserId != toCancel.creatorUserId) {
+    if (key.creatorUserId != toCancel.creatorUserId) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
@@ -346,7 +346,6 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
   }
 
-
   @RequestMapping("/password/newReset/")
   public ResponseEntity<?> newPasswordReset( //
       @RequestParam String passwordResetKey, //
@@ -386,7 +385,6 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
   }
 
-
   @RequestMapping("/course/new/")
   public ResponseEntity<?> newCourse( //
       @RequestParam long schoolId, //
@@ -421,10 +419,10 @@ public class ApiController {
   }
 
   // This method enables signing in with a password on courses
-  @RequestMapping("/coursePassword/newChange/")
-  public ResponseEntity<?> newCoursePasswordChange( //
+  @RequestMapping("/courseKey/newChange/")
+  public ResponseEntity<?> newCourseKeyChange( //
       @RequestParam long courseId, //
-      @RequestParam String newPassword, //
+      @RequestParam long duration, //
       @RequestParam String apiKey //
   ) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
@@ -432,7 +430,7 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-   // check that course exists
+    // check that course exists
     Course course = courseService.getByCourseId(courseId);
     if (course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
@@ -451,23 +449,23 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    // note course password doesnt have to be secure, anyone can join
+    // now actually make courseKey
+    CourseKey ck = new CourseKey();
+    ck.creatorUserId = key.creatorUserId;
+    ck.creationTime = System.currentTimeMillis();
+    ck.courseId = courseId;
+    ck.key = Utils.generateKey();
+    ck.courseKeyKind = CourseKeyKind.VALID;
+    ck.duration = duration;
+    courseKeyService.add(ck);
 
-    CoursePassword cp = new CoursePassword();
-    cp.creationTime = System.currentTimeMillis();
-    cp.creatorUserId = key.creatorUserId;
-    cp.courseId = courseId;
-    cp.coursePasswordKind = CoursePasswordKind.CHANGE;
-    cp.passwordHash = Utils.encodePassword(newPassword);
-
-    coursePasswordService.add(cp);
-    return new ResponseEntity<>(innexgoService.fillCoursePassword(cp), HttpStatus.OK);
+    return new ResponseEntity<>(innexgoService.fillCourseKey(ck), HttpStatus.OK);
   }
 
-  // This method disables signing in with a password
-  @RequestMapping("/coursePassword/newCancel/")
-  public ResponseEntity<?> newCoursePasswordCancel( //
-      @RequestParam long courseId, //
+  // This method disables a previous course key
+  @RequestMapping("/courseKey/newCancel/")
+  public ResponseEntity<?> newCourseKeyCancel( //
+      @RequestParam String courseKey, //
       @RequestParam String apiKey //
   ) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
@@ -475,34 +473,40 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-   // check that course exists
-    Course course = courseService.getByCourseId(courseId);
-    if (course == null) {
-      return Errors.COURSE_NONEXISTENT.getResponse();
+    // check that course key exists
+    CourseKey oldCourseKey = courseKeyService.getByCourseKey(courseKey);
+    if (oldCourseKey == null) {
+      return Errors.COURSE_KEY_NONEXISTENT.getResponse();
     }
 
-    // if so check if key creator is user id
-    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, course.schoolId);
     CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId,
-        courseId);
-    boolean creatorInstructor = creatorCourseMembershipKind != null
-        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+        oldCourseKey.courseId);
+    if (creatorCourseMembershipKind == null || creatorCourseMembershipKind != CourseMembershipKind.INSTRUCTOR) {
+      // this means the creator isnt an instructor
+      // they could still be authorized to create the key if they are an admin, so
+      // let's check that
+      boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId,
+          courseService.getByCourseId(oldCourseKey.courseId).schoolId);
 
-    // check if the creator is an admin of this course's school or a teacher of this
-    // course
-    if (!creatorAdmin && !creatorInstructor) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      if (!creatorAdmin) {
+        // if they're not an admin either, return unauthorized
+
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
+
     }
 
-    CoursePassword cp = new CoursePassword();
-    cp.creationTime = System.currentTimeMillis();
-    cp.creatorUserId = key.creatorUserId;
-    cp.courseId = courseId;
-    cp.coursePasswordKind = CoursePasswordKind.CANCEL;
-    cp.passwordHash = "";
+    // now actually make courseKey
+    CourseKey ck = new CourseKey();
+    ck.creationTime = System.currentTimeMillis();
+    ck.creatorUserId = key.creatorUserId;
+    ck.courseId = oldCourseKey.courseId;
+    ck.key = oldCourseKey.key;
+    ck.courseKeyKind = CourseKeyKind.CANCEL;
+    ck.duration = 0;
+    courseKeyService.add(ck);
 
-    coursePasswordService.add(cp);
-    return new ResponseEntity<>(innexgoService.fillCoursePassword(cp), HttpStatus.OK);
+    return new ResponseEntity<>(innexgoService.fillCourseKey(ck), HttpStatus.OK);
   }
 
   @RequestMapping("/courseMembership/new/")
@@ -542,7 +546,7 @@ public class ApiController {
 
     // prevent teacher from removing themselves from a course
     if (!creatorAdmin && courseMembershipKind == CourseMembershipKind.CANCEL) {
-      return Errors.COURSEMEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
+      return Errors.COURSE_MEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
     }
 
     CourseMembership cm = new CourseMembership();
@@ -583,7 +587,7 @@ public class ApiController {
 
     // prevent admins from removing themselves
     if (userId == key.creatorUserId && adminshipKind == AdminshipKind.CANCEL) {
-      return Errors.COURSEMEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
+      return Errors.COURSE_MEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
     }
 
     Adminship cm = new Adminship();
@@ -960,15 +964,14 @@ public class ApiController {
 
   @RequestMapping("/password/")
   public ResponseEntity<?> viewPassword( //
-      @RequestParam(required=false) Long passwordId, //
-      @RequestParam(required=false) Long creationTime, //
-      @RequestParam(required=false) Long minCreationTime, //
-      @RequestParam(required=false) Long maxCreationTime, //
-      @RequestParam(required=false) Long creatorUserId, //
-      @RequestParam(required=false) Long userId, //
-      @RequestParam(required=false) PasswordKind passwordKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent,
-      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(required = false) Long passwordId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long userId, //
+      @RequestParam(required = false) PasswordKind passwordKind, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
   ) {
@@ -1068,16 +1071,19 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
- @RequestMapping("/coursePassword/")
-  public ResponseEntity<?> viewCoursePassword( //
-      @RequestParam(required = false) Long coursePasswordId, //
+  @RequestMapping("/courseKey/")
+  public ResponseEntity<?> viewCourseKey( //
+      @RequestParam(required = false) Long courseKeyId, //
       @RequestParam(required = false) Long creationTime, //
       @RequestParam(required = false) Long minCreationTime, //
       @RequestParam(required = false) Long maxCreationTime, //
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) Long courseId, //
-      @RequestParam(required = false) CoursePasswordKind coursePasswordKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent,
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) CourseKeyKind courseKeyKind, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -1088,21 +1094,23 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    Stream<CoursePassword> list = coursePasswordService.query( //
-        coursePasswordId, //
+    Stream<CourseKey> list = courseKeyService.query( //
+        courseKeyId, //
         creationTime, //
         minCreationTime, //
         maxCreationTime, //
         creatorUserId, //
         courseId, //
-        coursePasswordKind, //
+        courseKeyKind, //
+        duration,
+        minDuration,
+        maxDuration,
         onlyRecent, //
         offset, //
         count //
-    ).map(x -> innexgoService.fillCoursePassword(x));
+    ).map(x -> innexgoService.fillCourseKey(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
-
 
   @RequestMapping("/courseMembership/")
   public ResponseEntity<?> viewCourseMembership( //
@@ -1118,8 +1126,7 @@ public class ApiController {
       @RequestParam(required = false) String userName, //
       @RequestParam(required = false) String partialUserName, //
       @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent,
-      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
   {
@@ -1137,12 +1144,7 @@ public class ApiController {
         userId, //
         courseId, //
         courseMembershipKind, //
-        courseName,
-        partialCourseName,
-        userName,
-        partialUserName,
-        onlyRecent,
-        offset, //
+        courseName, partialCourseName, userName, partialUserName, onlyRecent, offset, //
         count).map(x -> innexgoService.fillCourseMembership(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
@@ -1157,8 +1159,7 @@ public class ApiController {
       @RequestParam(required = false) Long userId, //
       @RequestParam(required = false) Long schoolId, //
       @RequestParam(required = false) AdminshipKind adminshipKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent,
-      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
   {

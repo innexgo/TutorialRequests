@@ -41,14 +41,6 @@ public class ApiKeyService {
     return apiKeys.size() > 0 ? apiKeys.get(0) : null;
   }
 
-  public List<ApiKey> getAll() {
-    String sql =
-        "SELECT * FROM api_key";
-    RowMapper<ApiKey> rowMapper = new ApiKeyRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
-  }
-
-
   public long nextId() {
     String sql = "SELECT max(api_key_id) FROM api_key";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
@@ -72,8 +64,8 @@ public class ApiKeyService {
         apiKey.creationTime, //
         apiKey.creatorUserId, //
         apiKey.apiKeyHash, //
-        apiKey.duration, //
-        apiKey.apiKeyKind.value //
+        apiKey.apiKeyKind.value, //
+        apiKey.duration //
     );
   }
 
@@ -90,6 +82,15 @@ public class ApiKeyService {
       boolean onlyRecent,
       long offset,
       long count) {
+
+
+    // prevent using duration becase it wont be defined 
+    if(duration != null || minDuration != null || maxDuration != null) {
+      if(apiKeyKind != null && apiKeyKind != ApiKeyKind.VALID) {
+        return Stream.of(new ApiKey[] {});
+      }
+    }
+
     String sql =
         "SELECT a.* FROM api_key a"
             + (!onlyRecent ? "" : " INNER JOIN (SELECT max(api_key_id) id FROM api_key GROUP BY api_key_hash) maxids ON maxids.id = a.api_key_id")

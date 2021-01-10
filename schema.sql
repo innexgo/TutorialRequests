@@ -81,13 +81,15 @@ create table course(
   description varchar(100) not null
 );
 
-drop table if exists course_password;
-create table course_password(
-  course_password_id integer not null primary key,
+drop table if exists course_key;
+create table course_key(
+  course_key_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  course_password_kind integer not null, -- CHANGE | CANCEL
-  password_hash integer not null -- only valid if course_join_kind == PASSWORD
+  course_id integer not null,
+  key char(64) not null,
+  course_key_kind integer not null, -- VALID | CANCEL
+  duration integer not null -- only valid if api_key_kind == VALID
 );
 
 -- Many to Many mapper for users to course
@@ -125,8 +127,8 @@ create table api_key(
   creation_time integer not null,
   creator_user_id integer not null,
   api_key_hash char(64) not null,
-  duration integer not null,
-  api_key_kind integer not null -- VALID, CANCEL
+  api_key_kind integer not null, -- VALID, CANCEL
+  duration integer not null -- only valid if api_key_kind == VALID
 );
 
 -- Represents a specific instance of a course

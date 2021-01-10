@@ -17,7 +17,7 @@ public class InnexgoService {
   @Autowired
   CourseService courseService;
   @Autowired
-  CoursePasswordService coursePasswordService;
+  CourseKeyService courseKeyService;
   @Autowired
   CourseMembershipService courseMembershipService;
   @Autowired
@@ -137,10 +137,10 @@ public class InnexgoService {
    * @param course - Course object
    * @return Course object with filled jackson objects
    */
-  CoursePassword fillCoursePassword(CoursePassword coursePassword) {
-    coursePassword.creator = fillUser(userService.getByUserId(coursePassword.creatorUserId));
-    coursePassword.course = fillCourse(courseService.getByCourseId(coursePassword.courseId));
-    return coursePassword;
+  CourseKey fillCourseKey(CourseKey courseKey) {
+    courseKey.creator = fillUser(userService.getByUserId(courseKey.creatorUserId));
+    courseKey.course = fillCourse(courseService.getByCourseId(courseKey.courseId));
+    return courseKey;
   }
 
 
@@ -250,22 +250,8 @@ public class InnexgoService {
    * @param key - apikey code of the User
    * @return ApiKey or null if invalid
    */
-  ApiKey getApiKey(String key) {
-    ApiKey apiKey = apiKeyService.getByApiKeyHash(Utils.hashGeneratedKey(key));
-    if (apiKey != null) {
-      return apiKey;
-    }
-    return null;
-  }
-
-  /**
-   * Returns an apiKey if valid
-   *
-   * @param key - apikey code of the User
-   * @return ApiKey or null if invalid
-   */
   ApiKey getApiKeyIfValid(String key) {
-    ApiKey apiKey = getApiKey(key);
+    ApiKey apiKey = apiKeyService.getByApiKeyHash(Utils.hashGeneratedKey(key));
     if (apiKey != null //
         && apiKey.creationTime + apiKey.duration > System.currentTimeMillis() //
         && apiKey.apiKeyKind == ApiKeyKind.VALID) {
@@ -300,21 +286,6 @@ public class InnexgoService {
     Password password = passwordService.getByUserId(userId);
     return password != null && password.passwordKind != PasswordKind.CANCEL
         && Utils.matchesPassword(passwordPhrase, password.passwordHash);
-  }
-
-  /**
-   * Returns true if the coursePasswordPhrase matches the most recent
-   * coursePassword
-   * 
-   * @param courseId             - valid course id
-   * @param coursePasswordPhrase - coursePasswordPhrase to test with course
-   * @return returns true if course's most recent coursePassword exists, isn't
-   *         cancelled, and matches the coursePasswordPhrase
-   */
-  boolean isValidCoursePassword(long courseId, String coursePasswordPhrase) {
-    CoursePassword coursePassword = coursePasswordService.getByCourseId(courseId);
-    return coursePassword != null && coursePassword.coursePasswordKind != CoursePasswordKind.CANCEL
-        && Utils.matchesPassword(coursePasswordPhrase, coursePassword.passwordHash);
   }
 
 }
