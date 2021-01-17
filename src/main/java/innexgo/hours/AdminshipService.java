@@ -60,7 +60,7 @@ public class AdminshipService {
                         adminship.creatorUserId,
                         adminship.userId,
                         adminship.schoolId,
-                        adminship.adminshipKind);
+                        adminship.adminshipKind.value);
   }
 
   public boolean existsByAdminshipId(long adminshipId) {
@@ -78,21 +78,36 @@ public class AdminshipService {
       Long userId, //
       Long schoolId, //
       AdminshipKind adminshipKind, //
+      String schoolName, //
+      String partialSchoolName, //
+      String userName, //
+      String partialUserName, //
       boolean onlyRecent, //
       long offset, //
       long count) //
   {
+
+
+    boolean nojoinschool = schoolName == null && partialSchoolName == null;
+    boolean nojoinuser = userName == null && partialUserName == null;
+
     String sql = "SELECT a.* FROM adminship a"
         + (!onlyRecent ? "" : " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id")
+        + (nojoinschool ? "" : " JOIN school s ON s.school_id = a.school_id") //
+        + (nojoinuser ? "" : " JOIN user u ON u.user_id = a.user_id") //
         + " WHERE 1=1 "
-        + (adminshipId == null ? "" : " AND a.adminship_id = " + adminshipId)
-        + (creationTime == null ? "" : " AND a.creation_time = " + creationTime)
-        + (minCreationTime == null ? "" : " AND a.creation_time > " + minCreationTime)
-        + (maxCreationTime == null ? "" : " AND a.creation_time < " + maxCreationTime)
-        + (creatorUserId == null ? "" : " AND a.creator_user_id = " + creatorUserId)
-        + (userId == null ? "" : " AND a.user_id = " + userId)
-        + (schoolId == null ? "" : " AND a.school_id = " + schoolId)
-        + (adminshipKind == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
+        + (adminshipId       == null ? "" : " AND a.adminship_id = " + adminshipId)
+        + (creationTime      == null ? "" : " AND a.creation_time = " + creationTime)
+        + (minCreationTime   == null ? "" : " AND a.creation_time > " + minCreationTime)
+        + (maxCreationTime   == null ? "" : " AND a.creation_time < " + maxCreationTime)
+        + (creatorUserId     == null ? "" : " AND a.creator_user_id = " + creatorUserId)
+        + (userId            == null ? "" : " AND a.user_id = " + userId)
+        + (schoolId          == null ? "" : " AND a.school_id = " + schoolId)
+        + (adminshipKind     == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
+        + (schoolName        == null ? "" : " AND s.name = " + Utils.escape(schoolName)) //
+        + (partialSchoolName == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialSchoolName+"%")) //
+        + (userName          == null ? "" : " AND u.name = " + Utils.escape(userName)) //
+        + (partialUserName   == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%")) //
         + (" ORDER BY a.adminship_id")
         + (" LIMIT " + offset + ", " + count) + ";";
 

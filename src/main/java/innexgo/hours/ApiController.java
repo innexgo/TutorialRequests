@@ -415,6 +415,16 @@ public class ApiController {
     course.description = description;
     courseService.add(course);
 
+    // creating the course should give the creator a course membership, which they
+    // can later discharge if necessary
+    CourseMembership courseMembership = new CourseMembership();
+    courseMembership.creationTime = System.currentTimeMillis();
+    courseMembership.creatorUserId = key.creatorUserId;
+    courseMembership.userId = key.creatorUserId;
+    courseMembership.courseId = course.courseId;
+    courseMembership.courseMembershipKind = CourseMembershipKind.INSTRUCTOR;
+    courseMembershipService.add(courseMembership);
+
     return new ResponseEntity<>(innexgoService.fillCourse(course), HttpStatus.OK);
   }
 
@@ -559,6 +569,38 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillCourseMembership(cm), HttpStatus.OK);
   }
 
+  @RequestMapping("/school/new/")
+  public ResponseEntity<?> newSchool( //
+      @RequestParam String name, //
+      @RequestParam String abbreviation, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // TODO check that key creator has a valid subscription
+
+    School school = new School();
+    school.creationTime = System.currentTimeMillis();
+    school.creatorUserId = key.creatorUserId;
+    school.name = name;
+    school.abbreviation = abbreviation;
+    schoolService.add(school);
+
+    // creating the school should give the creator an adminship, which they
+    // can later discharge if necessary
+    Adminship adminship = new Adminship();
+    adminship.creationTime = System.currentTimeMillis();
+    adminship.creatorUserId = key.creatorUserId;
+    adminship.userId = key.creatorUserId;
+    adminship.schoolId = school.schoolId;
+    adminship.adminshipKind = AdminshipKind.ADMIN;
+    adminshipService.add(adminship);
+
+    return new ResponseEntity<>(innexgoService.fillSchool(school), HttpStatus.OK);
+  }
+
   @RequestMapping("/adminship/new/")
   public ResponseEntity<?> newAdminship( //
       @RequestParam long userId, //
@@ -615,7 +657,7 @@ public class ApiController {
     }
 
     Course course = courseService.getByCourseId(courseId);
-    if(course == null) {
+    if (course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
@@ -626,7 +668,7 @@ public class ApiController {
 
     // TODO a working permissioning system + figure out what to do with location
     // if (location.schoolId != course.schoolId) {
-    //   return Errors.LOCATION_NONEXISTENT.getResponse();
+    // return Errors.LOCATION_NONEXISTENT.getResponse();
     // }
 
     if (duration < 0) {
@@ -1102,10 +1144,7 @@ public class ApiController {
         creatorUserId, //
         courseId, //
         courseKeyKind, //
-        duration,
-        minDuration,
-        maxDuration,
-        onlyRecent, //
+        duration, minDuration, maxDuration, onlyRecent, //
         offset, //
         count //
     ).map(x -> innexgoService.fillCourseKey(x));
@@ -1121,12 +1160,13 @@ public class ApiController {
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) Long userId, //
       @RequestParam(required = false) Long courseId, //
+      @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
       @RequestParam(required = false) String courseName, //
       @RequestParam(required = false) String partialCourseName, //
       @RequestParam(required = false) String userName, //
       @RequestParam(required = false) String partialUserName, //
-      @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent, @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
+      @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
   {
@@ -1144,7 +1184,12 @@ public class ApiController {
         userId, //
         courseId, //
         courseMembershipKind, //
-        courseName, partialCourseName, userName, partialUserName, onlyRecent, offset, //
+        courseName, //
+        partialCourseName, //
+        userName, //
+        partialUserName, //
+        onlyRecent, //
+        offset, //
         count).map(x -> innexgoService.fillCourseMembership(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
@@ -1159,7 +1204,12 @@ public class ApiController {
       @RequestParam(required = false) Long userId, //
       @RequestParam(required = false) Long schoolId, //
       @RequestParam(required = false) AdminshipKind adminshipKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent, @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(required = false) String schoolName, //
+      @RequestParam(required = false) String partialSchoolName, //
+      @RequestParam(required = false) String userName, //
+      @RequestParam(required = false) String partialUserName, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
+      @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
   {
@@ -1177,6 +1227,10 @@ public class ApiController {
         userId, //
         schoolId, //
         adminshipKind, //
+        schoolName, //
+        partialSchoolName, //
+        userName, //
+        partialUserName, //
         onlyRecent, //
         offset, //
         count).map(x -> innexgoService.fillAdminship(x));
