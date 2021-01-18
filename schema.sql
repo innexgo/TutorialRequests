@@ -20,7 +20,7 @@ create table password(
   user_id integer not null,
   password_kind integer not null, -- CHANGE | RESET | CANCEL
   password_hash char(64) not null, -- only valid if RESET | CANCEL
-  password_reset_key_hash char(64) not null -- only valid if password_kind == RESET
+  password_reset_key_hash char(64) not null -- only valid if RESET
 );
 
 drop table if exists verification_challenge;
@@ -81,6 +81,10 @@ create table course(
   description varchar(100) not null
 );
 
+-- TODO normalize this??
+-- we're currently duplicating data between course_key and course_membership
+-- it will become p complex to merge them though
+
 drop table if exists course_key;
 create table course_key(
   course_key_id integer not null primary key,
@@ -89,7 +93,9 @@ create table course_key(
   course_id integer not null,
   key char(64) not null,
   course_key_kind integer not null, -- VALID | CANCEL
-  duration integer not null -- only valid if api_key_kind == VALID
+  course_membership_kind integer not null, -- only valid if course_key_kind != CANCEL STUDENT | INSTRUCTOR | CANCEL
+  duration integer not null, -- only valid if course_key_kind != CANCEL
+  max_uses integer not null  -- only valid if course_key_kind != CANCEL
 );
 
 -- Many to Many mapper for users to course
@@ -100,7 +106,9 @@ create table course_membership(
   creator_user_id integer not null,
   user_id integer not null,
   course_id integer not null,
-  course_membership_kind integer not null -- STUDENT, INSTRUCTOR, CANCEL
+  course_membership_kind integer not null, -- STUDENT | INSTRUCTOR | CANCEL
+  course_membership_source_kind integer not null, -- KEY | SET
+  course_key_id integer not null -- only valid if course_membership_source == KEY
 );
 
 drop table if exists subscription;

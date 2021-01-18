@@ -140,9 +140,13 @@ public class InnexgoService {
   CourseKey fillCourseKey(CourseKey courseKey) {
     courseKey.creator = fillUser(userService.getByUserId(courseKey.creatorUserId));
     courseKey.course = fillCourse(courseService.getByCourseId(courseKey.courseId));
+    if (courseKey.courseKeyKind == CourseKeyKind.CANCEL) {
+      courseKey.courseMembershipKind = null;
+      courseKey.duration = null;
+      courseKey.maxUses = null;
+    }
     return courseKey;
   }
-
 
   /**
    * Fills in jackson objects for CourseMembership
@@ -154,6 +158,11 @@ public class InnexgoService {
     courseMembership.creator = fillUser(userService.getByUserId(courseMembership.creatorUserId));
     courseMembership.user = fillUser(userService.getByUserId(courseMembership.userId));
     courseMembership.course = fillCourse(courseService.getByCourseId(courseMembership.courseId));
+    if (courseMembership.courseMembershipSourceKind == CourseMembershipSourceKind.KEY) {
+      courseMembership.courseKey = fillCourseKey(courseKeyService.getByCourseKeyId(courseMembership.courseKeyId));
+    } else {
+      courseMembership.courseKey = null;
+    }
     return courseMembership;
   }
 

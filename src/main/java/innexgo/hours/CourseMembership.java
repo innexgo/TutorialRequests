@@ -25,10 +25,13 @@ public class CourseMembership {
   long userId;
   long courseId;
   public CourseMembershipKind courseMembershipKind;
+  public CourseMembershipSourceKind courseMembershipSourceKind;
+  long courseKeyId; // only valid if courseMembershipSourceKind == KEY
 
   public User creator;
   public User user;
   public Course course;
+  public CourseKey courseKey;
 }
 
 enum CourseMembershipKind {
@@ -52,6 +55,34 @@ enum CourseMembershipKind {
   public static boolean contains(String str) {
     for (CourseMembershipKind courseMembershipKind : CourseMembershipKind.values()) {
       if (courseMembershipKind.name().equals(str)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+enum CourseMembershipSourceKind {
+  KEY(0), SET(1);
+
+  final int value;
+
+  private CourseMembershipSourceKind(int value) {
+    this.value = value;
+  }
+
+  public static CourseMembershipSourceKind from(int i) {
+    for (CourseMembershipSourceKind courseMembershipSourceKind : CourseMembershipSourceKind.values()) {
+      if (courseMembershipSourceKind.value == i) {
+        return courseMembershipSourceKind;
+      }
+    }
+    return null;
+  }
+
+  public static boolean contains(String str) {
+    for (CourseMembershipSourceKind courseMembershipSourceKind : CourseMembershipSourceKind.values()) {
+      if (courseMembershipSourceKind.name().equals(str)) {
         return true;
       }
     }

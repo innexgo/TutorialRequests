@@ -25,7 +25,9 @@ public class CourseKey {
   long courseId;
   public String key;
   public CourseKeyKind courseKeyKind;
-  public long duration;
+  public CourseMembershipKind courseMembershipKind; // valid if courseKeyKind != CANCEL
+  public Long duration; // valid if courseKeyKind != CANCEL
+  public Long maxUses; // valid if courseKeyKind != CANCEL
 
   // Jackson
   User creator;

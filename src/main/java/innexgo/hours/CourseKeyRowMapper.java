@@ -33,7 +33,9 @@ public class CourseKeyRowMapper implements RowMapper<CourseKey> {
     ps.courseId = row.getLong("course_id");
     ps.key = row.getString("key");
     ps.courseKeyKind = CourseKeyKind.from(row.getInt("course_key_kind"));
+    ps.courseMembershipKind = CourseMembershipKind.from(row.getInt("course_membership_kind"));
     ps.duration = row.getLong("duration");
+    ps.maxUses = row.getLong("max_uses");
     return ps;
   }
 }

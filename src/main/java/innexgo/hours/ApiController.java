@@ -423,6 +423,8 @@ public class ApiController {
     courseMembership.userId = key.creatorUserId;
     courseMembership.courseId = course.courseId;
     courseMembership.courseMembershipKind = CourseMembershipKind.INSTRUCTOR;
+    courseMembership.courseMembershipSourceKind = CourseMembershipSourceKind.SET;
+    courseMembership.courseKeyId = 0;
     courseMembershipService.add(courseMembership);
 
     return new ResponseEntity<>(innexgoService.fillCourse(course), HttpStatus.OK);
@@ -432,12 +434,22 @@ public class ApiController {
   @RequestMapping("/courseKey/newValid/")
   public ResponseEntity<?> newCourseKeyValid( //
       @RequestParam long courseId, //
+      @RequestParam CourseMembershipKind courseMembershipKind, //
       @RequestParam long duration, //
+      @RequestParam long maxUses, //
       @RequestParam String apiKey //
   ) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // check parameters make sense
+    if (duration < 0) {
+      return Errors.NEGATIVE_DURATION.getResponse();
+    }
+    if (maxUses < 0) {
+      return Errors.NEGATIVE_DURATION.getResponse();
     }
 
     // check that course exists
@@ -460,7 +472,9 @@ public class ApiController {
     ck.courseId = courseId;
     ck.key = Utils.generateKey();
     ck.courseKeyKind = CourseKeyKind.VALID;
+    ck.courseMembershipKind= courseMembershipKind;
     ck.duration = duration;
+    ck.maxUses = maxUses;
     courseKeyService.add(ck);
 
     return new ResponseEntity<>(innexgoService.fillCourseKey(ck), HttpStatus.OK);
@@ -489,30 +503,29 @@ public class ApiController {
       // let's check that
       boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId,
           courseService.getByCourseId(oldCourseKey.courseId).schoolId);
-
       if (!creatorAdmin) {
         // if they're not an admin either, return unauthorized
-
         return Errors.API_KEY_UNAUTHORIZED.getResponse();
       }
-
     }
 
     // now actually make courseKey
     CourseKey ck = new CourseKey();
-    ck.creationTime = System.currentTimeMillis();
     ck.creatorUserId = key.creatorUserId;
+    ck.creationTime = System.currentTimeMillis();
     ck.courseId = oldCourseKey.courseId;
     ck.key = oldCourseKey.key;
     ck.courseKeyKind = CourseKeyKind.CANCEL;
-    ck.duration = 0;
+    ck.courseMembershipKind= CourseMembershipKind.CANCEL;
+    ck.duration = 0l;
+    ck.maxUses = 0l;
     courseKeyService.add(ck);
 
     return new ResponseEntity<>(innexgoService.fillCourseKey(ck), HttpStatus.OK);
   }
 
-  @RequestMapping("/courseMembership/new/")
-  public ResponseEntity<?> newCourseMembership( //
+  @RequestMapping("/courseMembership/newSet/")
+  public ResponseEntity<?> newCourseMembershipSet( //
       @RequestParam long userId, //
       @RequestParam long courseId, //
       @RequestParam CourseMembershipKind courseMembershipKind, //
@@ -552,6 +565,50 @@ public class ApiController {
     cm.courseId = courseId;
     cm.userId = userId;
     cm.courseMembershipKind = courseMembershipKind;
+    cm.courseMembershipSourceKind = CourseMembershipSourceKind.SET;
+    courseMembershipService.add(cm);
+    return new ResponseEntity<>(innexgoService.fillCourseMembership(cm), HttpStatus.OK);
+  }
+
+  @RequestMapping("/courseMembership/newKey/")
+  public ResponseEntity<?> newCourseMembershipKey( //
+      @RequestParam String courseKey, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that course key exists
+    CourseKey ck = courseKeyService.getByCourseKey(courseKey);
+    if (ck == null) {
+      return Errors.COURSE_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that course key isn't expired
+    if (ck.duration + ck.creationTime < System.currentTimeMillis() ) {
+      return Errors.COURSE_KEY_EXPIRED.getResponse();
+    }
+
+    // check that course key has less that max number of uses
+    if (courseMembershipService.numCourseKeyUses(ck.courseKeyId) >= ck.maxUses) {
+      return Errors.COURSE_KEY_USED.getResponse();
+    }
+
+    // prevent removing the last instructor of a course (and orphaning it)
+    if (ck.courseMembershipKind == CourseMembershipKind.CANCEL
+        && courseMembershipService.numInstructors(ck.courseId) <= 1) {
+      return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
+    }
+
+    CourseMembership cm = new CourseMembership();
+    cm.creationTime = System.currentTimeMillis();
+    cm.creatorUserId = key.creatorUserId;
+    cm.courseId = ck.courseId;
+    cm.userId = key.creatorUserId;
+    cm.courseMembershipKind = ck.courseMembershipKind;
+    cm.courseMembershipSourceKind = CourseMembershipSourceKind.KEY;
+    cm.courseKeyId = ck.courseKeyId;
     courseMembershipService.add(cm);
     return new ResponseEntity<>(innexgoService.fillCourseMembership(cm), HttpStatus.OK);
   }
@@ -975,7 +1032,8 @@ public class ApiController {
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) Long userId, //
       @RequestParam(required = false) PasswordKind passwordKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent, @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
+      @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
   ) {
@@ -1083,10 +1141,12 @@ public class ApiController {
       @RequestParam(required = false) Long maxCreationTime, //
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) Long courseId, //
+      @RequestParam(required = false) CourseKeyKind courseKeyKind, //
+      @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
       @RequestParam(required = false) Long duration, //
       @RequestParam(required = false) Long minDuration, //
       @RequestParam(required = false) Long maxDuration, //
-      @RequestParam(required = false) CourseKeyKind courseKeyKind, //
+      @RequestParam(required = false) Long maxUses, //
       @RequestParam(defaultValue = "false") boolean onlyRecent, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
@@ -1106,7 +1166,12 @@ public class ApiController {
         creatorUserId, //
         courseId, //
         courseKeyKind, //
-        duration, minDuration, maxDuration, onlyRecent, //
+        courseMembershipKind, //
+        duration, //
+        minDuration, //
+        maxDuration, //
+        maxUses, //
+        onlyRecent, //
         offset, //
         count //
     ).map(x -> innexgoService.fillCourseKey(x));
@@ -1123,6 +1188,8 @@ public class ApiController {
       @RequestParam(required = false) Long userId, //
       @RequestParam(required = false) Long courseId, //
       @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
+      @RequestParam(required = false) CourseMembershipSourceKind courseMembershipSourceKind, //
+      @RequestParam(required = false) Long courseKeyId, //
       @RequestParam(required = false) String courseName, //
       @RequestParam(required = false) String partialCourseName, //
       @RequestParam(required = false) String userName, //
@@ -1146,6 +1213,8 @@ public class ApiController {
         userId, //
         courseId, //
         courseMembershipKind, //
+        courseMembershipSourceKind, //
+        courseKeyId, //
         courseName, //
         partialCourseName, //
         userName, //

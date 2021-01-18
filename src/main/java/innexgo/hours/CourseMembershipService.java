@@ -53,15 +53,18 @@ public class CourseMembershipService {
   public void add(CourseMembership courseMembership) {
     courseMembership.courseMembershipId = nextId();
     // Add course_membership
-    String sql = "INSERT INTO course_membership values (?,?,?,?,?,?)";
-    jdbcTemplate.update(
-        sql,
-        courseMembership.courseMembershipId,
-        courseMembership.creationTime,
-        courseMembership.creatorUserId,
-        courseMembership.userId,
-        courseMembership.courseId,
-        courseMembership.courseMembershipKind.value);
+    String sql = "INSERT INTO course_membership values (?,?,?,?,?,?,?,?)";
+    jdbcTemplate.update( //
+        sql, //
+        courseMembership.courseMembershipId, //
+        courseMembership.creationTime, //
+        courseMembership.creatorUserId, //
+        courseMembership.userId, //
+        courseMembership.courseId, //
+        courseMembership.courseMembershipKind.value, //
+        courseMembership.courseMembershipSourceKind.value, //
+        courseMembership.courseKeyId //
+    ); //
   }
 
   public boolean existsByCourseMembershipId(long courseMembershipId) {
@@ -79,6 +82,8 @@ public class CourseMembershipService {
      Long userId, //
      Long courseId, //
      CourseMembershipKind courseMembershipKind, //
+     CourseMembershipSourceKind courseMembershipSourceKind, //
+     Long courseKeyId, //
      String courseName, //
      String partialCourseName, //
      String userName, //
@@ -87,6 +92,14 @@ public class CourseMembershipService {
      long offset, //
      long count) //
  {
+
+    if(courseKeyId != null) {
+      if(courseMembershipSourceKind == null) {
+        courseMembershipSourceKind = CourseMembershipSourceKind.KEY;
+      } else {
+        return Stream.empty();
+      }
+    }
 
     boolean nojoincourse = courseName == null && partialCourseName == null;
     boolean nojoinuser = userName == null && partialUserName == null;
@@ -97,18 +110,20 @@ public class CourseMembershipService {
         + (nojoincourse ? "" : " JOIN course c ON c.course_id = cm.course_id") //
         + (nojoinuser ? "" : " JOIN user u ON u.user_id = cm.user_id") //
         + " WHERE 1=1" //
-        + (courseMembershipId    == null ? "" : " AND cm.course_membership_id = " + courseMembershipId) //
-        + (creationTime          == null ? "" : " AND cm.creation_time = " + creationTime) //
-        + (minCreationTime       == null ? "" : " AND cm.creation_time > " + minCreationTime) //
-        + (maxCreationTime       == null ? "" : " AND cm.creation_time < " + maxCreationTime) //
-        + (creatorUserId         == null ? "" : " AND cm.creator_user_id = " + creatorUserId) //
-        + (userId                == null ? "" : " AND cm.user_id = " + userId) //
-        + (courseId              == null ? "" : " AND cm.course_id = " + courseId) //
-        + (courseMembershipKind  == null ? "" : " AND cm.course_membership_kind = " + courseMembershipKind.value) //
-        + (courseName            == null ? "" : " AND c.name = " + Utils.escape(courseName)) //
-        + (partialCourseName     == null ? "" : " AND c.name LIKE " + Utils.escape("%"+partialCourseName+"%")) //
-        + (userName              == null ? "" : " AND u.name = " + Utils.escape(userName)) //
-        + (partialUserName       == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%")) //
+        + (courseMembershipId         == null ? "" : " AND cm.course_membership_id = " + courseMembershipId) //
+        + (creationTime               == null ? "" : " AND cm.creation_time = " + creationTime) //
+        + (minCreationTime            == null ? "" : " AND cm.creation_time > " + minCreationTime) //
+        + (maxCreationTime            == null ? "" : " AND cm.creation_time < " + maxCreationTime) //
+        + (creatorUserId              == null ? "" : " AND cm.creator_user_id = " + creatorUserId) //
+        + (userId                     == null ? "" : " AND cm.user_id = " + userId) //
+        + (courseId                   == null ? "" : " AND cm.course_id = " + courseId) //
+        + (courseMembershipKind       == null ? "" : " AND cm.course_membership_kind = " + courseMembershipKind.value) //
+        + (courseMembershipSourceKind == null ? "" : " AND cm.course_membership_source_kind = " + courseMembershipSourceKind.value) //
+        + (courseKeyId                == null ? "" : " AND cm.course_key_id = " + courseKeyId) //
+        + (courseName                 == null ? "" : " AND c.name = " + Utils.escape(courseName)) //
+        + (partialCourseName          == null ? "" : " AND c.name LIKE " + Utils.escape("%"+partialCourseName+"%")) //
+        + (userName                   == null ? "" : " AND u.name = " + Utils.escape(userName)) //
+        + (partialUserName            == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%")) //
         + (" ORDER BY cm.course_membership_id") //
         + (" LIMIT " + offset + ", " + count) //
         + ";"; //
@@ -127,11 +142,35 @@ public class CourseMembershipService {
       null, // Long userId, //
       courseId, // Long courseId, //
       CourseMembershipKind.INSTRUCTOR, // CourseMembershipKind courseMembershipKind, //
+      null, // CourseMembershipSourceKind courseMembershipSourceKind, //
+      null, // Long courseKeyId, //
       null, // String courseName, //
       null, // String partialCourseName, //
       null, // String userName, //
       null, // String partialUserName, //
       true, // boolean onlyRecent,
+      0, //long offset, //
+      Integer.MAX_VALUE //long count) //
+     ).count();
+  }
+
+  public long numCourseKeyUses(long courseKeyId) {
+    return query(
+      null, // Long courseMembershipId, //
+      null, // Long creationTime, //
+      null, // Long minCreationTime, //
+      null, // Long maxCreationTime, //
+      null, // Long creatorUserId, //
+      null, // Long userId, //
+      null, // Long courseId, //
+      null, // CourseMembershipKind courseMembershipKind, //
+      null, // CourseMembershipSourceKind courseMembershipSourceKind, //
+      courseKeyId, // Long courseKeyId, //
+      null, // String courseName, //
+      null, // String partialCourseName, //
+      null, // String userName, //
+      null, // String partialUserName, //
+      false, // boolean onlyRecent,
       0, //long offset, //
       Integer.MAX_VALUE //long count) //
      ).count();

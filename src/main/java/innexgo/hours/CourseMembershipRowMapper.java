@@ -34,6 +34,8 @@ public class CourseMembershipRowMapper implements RowMapper<CourseMembership> {
     courseMembership.userId = row.getLong("user_id");
     courseMembership.courseId = row.getLong("course_id");
     courseMembership.courseMembershipKind = CourseMembershipKind.from(row.getInt("course_membership_kind"));
+    courseMembership.courseMembershipSourceKind = CourseMembershipSourceKind.from(row.getInt("course_membership_source_kind"));
+    courseMembership.courseKeyId = row.getLong("course_key_id");
     return courseMembership;
   }
 }

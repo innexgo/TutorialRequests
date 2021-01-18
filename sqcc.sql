@@ -319,7 +319,9 @@ INSERT INTO course_membership VALUES(
   43, -- creator_user_id
   43, -- user_id
   42, -- course_id
-  1 -- course_membership_kind
+  1, -- course_membership_kind
+  1, -- course_membership_source_kind
+  0 -- course_key_id
 );
 
 -- A student in this different school we don't want to show up at all
@@ -357,5 +359,7 @@ INSERT INTO course_membership VALUES(
   44, -- creator_user_id
   44, -- user_id
   42, -- course_id
-  0 -- course_membership_kind
+  0, -- course_membership_kind
+  1, -- course_membership_source_kind
+  0 -- course_key_id
 );

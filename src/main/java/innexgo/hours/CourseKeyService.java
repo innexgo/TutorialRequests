@@ -57,7 +57,7 @@ public class CourseKeyService {
     user.courseKeyId = nextId();
     user.creationTime = System.currentTimeMillis();
     // Add user
-    String sql = "INSERT INTO course_key values (?, ?, ?, ?, ?, ?, ?)";
+    String sql = "INSERT INTO course_key values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(sql, //
         user.courseKeyId, //
         user.creationTime, //
@@ -65,7 +65,10 @@ public class CourseKeyService {
         user.courseId, //
         user.key, //
         user.courseKeyKind.value, //
-        user.duration); //
+        user.courseMembershipKind.value, //
+        user.duration,
+        user.maxUses
+    ); //
   }
 
   public CourseKey getByCourseKeyId(long courseKeyId) {
@@ -83,16 +86,18 @@ public class CourseKeyService {
       Long creatorUserId, //
       Long courseId, //
       CourseKeyKind courseKeyKind, //
+      CourseMembershipKind courseMembershipKind, //
       Long duration,
       Long minDuration,
       Long maxDuration,
+      Long maxUses,
       boolean onlyRecent, //
       long offset, //
       long count) {
 
     // prevent using duration becase it wont be defined 
     if(duration != null || minDuration != null || maxDuration != null) {
-      if(courseKeyKind != null && courseKeyKind != CourseKeyKind.VALID) {
+      if(courseKeyKind != null && courseKeyKind == CourseKeyKind.CANCEL) {
         return Stream.of(new CourseKey[] {});
       }
     }
@@ -100,16 +105,18 @@ public class CourseKeyService {
     String sql = "SELECT ck.* FROM course_key ck" //
         + (!onlyRecent ? "" : " INNER JOIN (SELECT max(course_key_id) id FROM course_key GROUP BY key) maxids ON maxids.id = ck.course_key_id")
         + " WHERE 1=1 " //
-        + (courseKeyId        == null ? "" : " AND ck.course_key_id = " + courseKeyId) //
-        + (creationTime       == null ? "" : " AND ck.creation_time = " + creationTime) //
-        + (minCreationTime    == null ? "" : " AND ck.creation_time > " + minCreationTime) //
-        + (maxCreationTime    == null ? "" : " AND ck.creation_time < " + maxCreationTime) //
-        + (creatorUserId      == null ? "" : " AND ck.creator_user_id = " + creatorUserId) //
-        + (courseId           == null ? "" : " AND ck.course_id = " + courseId) //
-        + (courseKeyKind      == null ? "" : " AND ck.course_key_kind = " + courseKeyKind.value) //
-        + (duration           == null ? "" : " AND ck.duration =" + duration)
-        + (minDuration        == null ? "" : " AND ck.duration >= " + minDuration)
-        + (maxDuration        == null ? "" : " AND ck.duration <= " + maxDuration)
+        + (courseKeyId          == null ? "" : " AND ck.course_key_id = " + courseKeyId) //
+        + (creationTime         == null ? "" : " AND ck.creation_time = " + creationTime) //
+        + (minCreationTime      == null ? "" : " AND ck.creation_time > " + minCreationTime) //
+        + (maxCreationTime      == null ? "" : " AND ck.creation_time < " + maxCreationTime) //
+        + (creatorUserId        == null ? "" : " AND ck.creator_user_id = " + creatorUserId) //
+        + (courseId             == null ? "" : " AND ck.course_id = " + courseId) //
+        + (courseKeyKind        == null ? "" : " AND ck.course_key_kind = " + courseKeyKind.value) //
+        + (courseMembershipKind == null ? "" : " AND ck.course_membership_kind = " + courseMembershipKind.value) //
+        + (duration             == null ? "" : " AND ck.duration =" + duration)
+        + (minDuration          == null ? "" : " AND ck.duration >= " + minDuration)
+        + (maxDuration          == null ? "" : " AND ck.duration <= " + maxDuration)
+        + (maxUses              == null ? "" : " AND ck.max_uses =" + maxUses)
         + (" ORDER BY ck.course_key_id") //
         + (" LIMIT " + offset + ", " + count) //
         + ";"; //
