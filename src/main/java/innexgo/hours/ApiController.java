@@ -246,8 +246,8 @@ public class ApiController {
     p.userId = u.userId;
     p.passwordHash = evc.passwordHash;
     p.passwordKind = PasswordKind.CHANGE;
+    p.passwordResetKeyHash = "";
     passwordService.add(p);
-
     return new ResponseEntity<>(innexgoService.fillUser(u), HttpStatus.OK);
   }
 
@@ -553,11 +553,13 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    // prevent instructors from removing the last member of a course (and orphaning
-    // it)
-    if (courseMembershipKind == CourseMembershipKind.CANCEL && courseMembershipService.numInstructors(courseId) < 2) {
+    // prevent removing the last instructor of a course (and orphaning it)
+    if (courseMembershipKind == CourseMembershipKind.CANCEL
+        && courseMembershipService.numInstructors(courseId) <= 1 &&
+        courseMembershipService.isInstructor(userId, courseId) ) {
       return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
     }
+
 
     CourseMembership cm = new CourseMembership();
     cm.creationTime = System.currentTimeMillis();
@@ -597,7 +599,8 @@ public class ApiController {
 
     // prevent removing the last instructor of a course (and orphaning it)
     if (ck.courseMembershipKind == CourseMembershipKind.CANCEL
-        && courseMembershipService.numInstructors(ck.courseId) <= 1) {
+        && courseMembershipService.numInstructors(ck.courseId) <= 1 &&
+        courseMembershipService.isInstructor(key.creatorUserId, ck.courseId) ) {
       return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
     }
 
