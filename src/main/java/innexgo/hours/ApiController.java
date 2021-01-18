@@ -446,16 +446,10 @@ public class ApiController {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
-    // if so check if key creator is user id
-    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, course.schoolId);
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId,
-        courseId);
-    boolean creatorInstructor = creatorCourseMembershipKind != null
-        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
-
     // check if the creator is an admin of this course's school or a teacher of this
     // course
-    if (!creatorAdmin && !creatorInstructor) {
+    if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
+        && !courseMembershipService.isInstructor(key.creatorUserId, courseId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
@@ -489,9 +483,7 @@ public class ApiController {
       return Errors.COURSE_KEY_NONEXISTENT.getResponse();
     }
 
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId,
-        oldCourseKey.courseId);
-    if (creatorCourseMembershipKind == null || creatorCourseMembershipKind != CourseMembershipKind.INSTRUCTOR) {
+    if (courseMembershipService.isInstructor(key.creatorUserId, oldCourseKey.courseId)) {
       // this means the creator isnt an instructor
       // they could still be authorized to create the key if they are an admin, so
       // let's check that
@@ -541,22 +533,17 @@ public class ApiController {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
-    // if so check if key creator is user id
-    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, course.schoolId);
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(key.creatorUserId,
-        courseId);
-    boolean creatorInstructor = creatorCourseMembershipKind != null
-        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
-
     // check if the creator is an admin of this course's school or a teacher of this
     // course
-    if (!creatorAdmin && !creatorInstructor) {
+    if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
+        && !courseMembershipService.isInstructor(key.creatorUserId, courseId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    // prevent teacher from removing themselves from a course
-    if (!creatorAdmin && courseMembershipKind == CourseMembershipKind.CANCEL) {
-      return Errors.COURSE_MEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
+    // prevent instructors from removing the last member of a course (and orphaning
+    // it)
+    if (courseMembershipKind == CourseMembershipKind.CANCEL && courseMembershipService.numInstructors(courseId) < 2) {
+      return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
     }
 
     CourseMembership cm = new CourseMembership();
@@ -627,9 +614,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    // prevent admins from removing themselves
-    if (userId == key.creatorUserId && adminshipKind == AdminshipKind.CANCEL) {
-      return Errors.COURSE_MEMBERSHIP_CANNOT_REMOVE_SELF.getResponse();
+    // prevent admins from removing the last member of a group (and orphaning it)
+    if (adminshipKind == AdminshipKind.CANCEL && adminshipService.numAdmins(schoolId) < 2) {
+      return Errors.ADMINSHIP_CANNOT_LEAVE_EMPTY.getResponse();
     }
 
     Adminship cm = new Adminship();
@@ -651,8 +638,8 @@ public class ApiController {
       @RequestParam long duration, //
       @RequestParam boolean hidden, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -675,18 +662,15 @@ public class ApiController {
       return Errors.NEGATIVE_DURATION.getResponse();
     }
 
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
-        courseId);
-    boolean creatorInstructor = creatorCourseMembershipKind != null
-        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
-
-    // creator must be an instructor of this course
-    if (!creatorInstructor) {
+    // check if the creator is an admin of this course's school or a teacher of this
+    // course
+    if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
+        && !courseMembershipService.isInstructor(key.creatorUserId, courseId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     Session s = new Session();
-    s.creatorUserId = keyCreator.userId;
+    s.creatorUserId = key.creatorUserId;
     s.creationTime = System.currentTimeMillis();
     s.name = name;
     s.courseId = courseId;
@@ -705,8 +689,8 @@ public class ApiController {
       @RequestParam long startTime, //
       @RequestParam long duration, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -718,17 +702,16 @@ public class ApiController {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
-    // creator must be a student of this course can create a session request for it
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
-        courseId);
-    if (creatorCourseMembershipKind == null || creatorCourseMembershipKind != CourseMembershipKind.STUDENT) {
+    // creator must be a student of this course in order to create a session request
+    // for it
+    if (!courseMembershipService.isStudent(key.creatorUserId, courseId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     SessionRequest sr = new SessionRequest();
-    sr.creatorUserId = keyCreator.userId;
+    sr.creatorUserId = key.creatorUserId;
     sr.creationTime = System.currentTimeMillis();
-    sr.attendeeUserId = keyCreator.userId;
+    sr.attendeeUserId = key.creatorUserId;
     sr.courseId = courseId;
     sr.message = message;
     sr.startTime = startTime;
@@ -742,8 +725,9 @@ public class ApiController {
       @RequestParam long sessionRequestId, //
       @RequestParam String message, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -755,27 +739,19 @@ public class ApiController {
       return Errors.SESSION_REQUEST_NONEXISTENT.getResponse();
     }
 
-    // check if creator is the sessionRequest's attendee
-    // sessionRequest's course's instructor
+    // a session may be rejected by an Administrator, an Instructor, or the student
+    // who created it
     SessionRequest sr = sessionRequestService.getBySessionRequestId(sessionRequestId);
-    boolean creatorIsAttendee = sr.attendeeUserId == keyCreator.userId;
-
-    if (!creatorIsAttendee) {
-      // if the creator isn't the attendee
-      CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
-          sr.courseId);
-
-      boolean creatorIsInstructor = creatorCourseMembershipKind != null
-          && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
-      if (!creatorIsInstructor) {
-        return Errors.API_KEY_UNAUTHORIZED.getResponse();
-      }
+    if (sr.attendeeUserId != key.creatorUserId //
+        && !courseMembershipService.isInstructor(key.creatorUserId, sr.courseId) //
+        && !adminshipService.isAdmin(key.creatorUserId, courseService.getByCourseId(sr.courseId).schoolId)) { //
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     SessionRequestResponse srr = new SessionRequestResponse();
     srr.creationTime = System.currentTimeMillis();
     srr.sessionRequestId = sessionRequestId;
-    srr.creatorUserId = keyCreator.userId;
+    srr.creatorUserId = key.creatorUserId;
     srr.message = message;
     srr.accepted = false;
     sessionRequestResponseService.add(srr);
@@ -788,8 +764,8 @@ public class ApiController {
       @RequestParam String message, //
       @RequestParam long committmentId, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -805,18 +781,16 @@ public class ApiController {
     // sessionRequest's course's instructor
     SessionRequest sr = sessionRequestService.getBySessionRequestId(sessionRequestId);
 
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
-        sr.courseId);
-
-    boolean creatorIsInstructor = creatorCourseMembershipKind != null
-        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
-    if (!creatorIsInstructor) {
+    // check if the creator is an admin of request's course's school or a teacher of
+    // request's
+    // course
+    if (!courseMembershipService.isInstructor(key.creatorUserId, sr.courseId)
+        && !adminshipService.isAdmin(key.creatorUserId, courseService.getByCourseId(sr.courseId).schoolId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
-
     SessionRequestResponse srr = new SessionRequestResponse();
     srr.sessionRequestId = sessionRequestId;
-    srr.creatorUserId = keyCreator.userId;
+    srr.creatorUserId = key.creatorUserId;
     srr.message = message;
     srr.accepted = true;
     srr.committmentId = committmentId;
@@ -830,8 +804,8 @@ public class ApiController {
       @RequestParam long sessionId, //
       @RequestParam boolean cancellable, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
@@ -844,14 +818,11 @@ public class ApiController {
     }
     Session s = sessionService.getBySessionId(sessionId);
 
-    // creator must be an instructor of the session
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
-        s.courseId);
-
-    boolean creatorIsInstructor = creatorCourseMembershipKind != null
-        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
-
-    if (!creatorIsInstructor) {
+    // check if the creator is an admin of request's course's school or a teacher of
+    // request's
+    // course
+    if (!courseMembershipService.isInstructor(key.creatorUserId, s.courseId)
+        && !adminshipService.isAdmin(key.creatorUserId, courseService.getByCourseId(s.courseId).schoolId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
@@ -880,7 +851,7 @@ public class ApiController {
     }
 
     Committment c = new Committment();
-    c.creatorUserId = keyCreator.userId;
+    c.creatorUserId = key.creatorUserId;
     c.creationTime = System.currentTimeMillis();
     c.attendeeUserId = attendeeUserId;
     c.sessionId = sessionId;
@@ -894,49 +865,40 @@ public class ApiController {
       @RequestParam long committmentId, //
       @RequestParam CommittmentResponseKind committmentResponseKind, //
       @RequestParam String apiKey) {
-    User keyCreator = innexgoService.getUserIfValid(apiKey);
-    if (keyCreator == null) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
-    }
-
-    if (!committmentService.existsByCommittmentId(committmentId)) {
-      return Errors.COMMITTMENT_NONEXISTENT.getResponse();
     }
 
     if (committmentResponseService.existsByCommittmentId(committmentId)) {
       return Errors.COMMITTMENT_RESPONSE_EXISTENT.getResponse();
     }
 
-    // people permitted to accept a committment are the committment's session's
-    // course's instructors
+    Committment committment = committmentService.getByCommittmentId(committmentId);
+    if (committment == null) {
+      return Errors.COMMITTMENT_NONEXISTENT.getResponse();
+    }
 
-    // both the comittment's session's course's instructors and the committment's
-    // attendee may cancel committments
+    Session s = sessionService.getBySessionId(committment.sessionId);
 
-    // check if key creator is committment's session's course's instructors
-    Committment c = committmentService.getByCommittmentId(committmentId);
-    Session s = sessionService.getBySessionId(c.sessionId);
-    CourseMembershipKind creatorCourseMembershipKind = courseMembershipService.getCourseMembership(keyCreator.userId,
-        s.courseId);
+    // check if the creator is an admin of request's course's school or a teacher of
+    // request's
+    // course
+    if (!courseMembershipService.isInstructor(key.creatorUserId, s.courseId)
+        && !adminshipService.isAdmin(key.creatorUserId, courseService.getByCourseId(s.courseId).schoolId)) {
 
-    boolean creatorIsInstructor = creatorCourseMembershipKind != null
-        && creatorCourseMembershipKind == CourseMembershipKind.INSTRUCTOR;
-
-    if (!creatorIsInstructor) {
-      // ensure that the creator is the committment's attendee
-      if (keyCreator.userId != c.attendeeUserId) {
+      // this means that the creator is neither an instructor nor an admin
+      if (key.creatorUserId == committment.attendeeUserId && committment.cancellable
+          && committmentResponseKind == CommittmentResponseKind.CANCELLED) {
+        // cancelling is only allowed if the creator is the one cancelling
+        // otherwise, return unauthorized
         return Errors.API_KEY_UNAUTHORIZED.getResponse();
-      }
-
-      // Students may only cancel if their appointment is cancellable
-      if (!c.cancellable) {
-        return Errors.COMMITTMENT_RESPONSE_UNCANCELLABLE.getResponse();
       }
     }
 
     CommittmentResponse a = new CommittmentResponse();
     a.committmentId = committmentId;
-    a.creatorUserId = keyCreator.userId;
+    a.creatorUserId = key.creatorUserId;
     a.creationTime = System.currentTimeMillis();
     a.kind = committmentResponseKind;
     committmentResponseService.add(a);

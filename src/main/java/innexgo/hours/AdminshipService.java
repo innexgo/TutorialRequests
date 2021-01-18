@@ -116,10 +116,11 @@ public class AdminshipService {
   }
 
   public boolean isAdmin(long userId, long schoolId) {
-   String sql = "SELECT * FROM adminship WHERE 1=1 " +
-     (" AND user_id = " + userId) +
-     (" AND school_id = " + schoolId) +
-     " ORDER BY adminship_id LIMIT 1;";
+   String sql = "SELECT a.* FROM adminship a" +
+   " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id" +
+     " WHERE 1=1 " +
+     (" AND a.user_id = " + userId) +
+     (" AND a.school_id = " + schoolId);
     RowMapper<Adminship> rowMapper = new AdminshipRowMapper();
     List<Adminship> adminships = this.jdbcTemplate.query(sql, rowMapper);
     if(adminships.size() == 0) {
@@ -127,6 +128,26 @@ public class AdminshipService {
     }
 
     return adminships.get(0).adminshipKind == AdminshipKind.ADMIN;
+  }
+
+  public long  numAdmins(long schoolId) {
+    return query(
+      null, //Long adminshipId, //
+      null, //Long creationTime, //
+      null, //Long minCreationTime, //
+      null, //Long maxCreationTime, //
+      null, //Long creatorUserId, //
+      null, //Long userId, //
+      schoolId, //Long schoolId, //
+      AdminshipKind.ADMIN, //AdminshipKind adminshipKind, //
+      null, //String schoolName, //
+      null, //String partialSchoolName, //
+      null, //String userName, //
+      null, //String partialUserName, //
+      true, //boolean onlyRecent, //
+      0, //long offset, //
+      Integer.MAX_VALUE //long count) //
+     ).count();
   }
 
 }

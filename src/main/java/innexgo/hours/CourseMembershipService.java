@@ -117,13 +117,53 @@ public class CourseMembershipService {
     return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 
-  public CourseMembershipKind getCourseMembership(long userId, long courseId) {
-   String sql = "SELECT * FROM course_membership WHERE 1=1 " +
-     (" AND user_id = " + userId) +
-     (" AND course_id = " + courseId) +
-     " ORDER BY course_membership_id LIMIT 1;";
+  public long numInstructors(long courseId) {
+    return query(
+      null, // Long courseMembershipId, //
+      null, // Long creationTime, //
+      null, // Long minCreationTime, //
+      null, // Long maxCreationTime, //
+      null, // Long creatorUserId, //
+      null, // Long userId, //
+      courseId, // Long courseId, //
+      CourseMembershipKind.INSTRUCTOR, // CourseMembershipKind courseMembershipKind, //
+      null, // String courseName, //
+      null, // String partialCourseName, //
+      null, // String userName, //
+      null, // String partialUserName, //
+      true, // boolean onlyRecent,
+      0, //long offset, //
+      Integer.MAX_VALUE //long count) //
+     ).count();
+  }
+
+
+ // TODO we could probably make this interface neater, but it works for now
+
+
+  List<CourseMembership> getRecentMemberships(long userId, long courseId) {
+   String sql = "SELECT cm.* FROM course_membership cm" +
+   " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids ON maxids.id = cm.course_membership_id" +
+     " WHERE 1=1 " +
+     (" AND cm.user_id = " + userId) +
+     (" AND cm.course_id = " + courseId);
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
-    List<CourseMembership> memberships = this.jdbcTemplate.query(sql, rowMapper);
-    return memberships.size() > 0 ? memberships.get(0).courseMembershipKind : null;
+    return this.jdbcTemplate.query(sql, rowMapper);
+  }
+
+  public boolean isInstructor(long userId, long courseId) {
+    List<CourseMembership> courseMemberships =  getRecentMemberships(userId, courseId);
+    if(courseMemberships.size() == 0) {
+        return false;
+    }
+    return courseMemberships.get(0).courseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+  }
+
+  public boolean isStudent(long userId, long courseId) {
+    List<CourseMembership> courseMemberships =  getRecentMemberships(userId, courseId);
+    if(courseMemberships.size() == 0) {
+        return false;
+    }
+    return courseMemberships.get(0).courseMembershipKind == CourseMembershipKind.STUDENT;
   }
 }

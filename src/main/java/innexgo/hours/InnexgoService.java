@@ -261,20 +261,6 @@ public class InnexgoService {
   }
 
   /**
-   * Returns a user if valid
-   *
-   * @param key - apikey code of the User
-   * @return User or null if invalid
-   */
-  User getUserIfValid(String key) {
-    ApiKey apiKey = getApiKeyIfValid(key);
-    if (apiKey != null) {
-      return userService.getByUserId(apiKey.creatorUserId);
-    }
-    return null;
-  }
-
-  /**
    * Returns true if the passwordPhrase matches the most recent password
    * 
    * @param userId         - valid user id
