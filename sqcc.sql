@@ -237,7 +237,7 @@ INSERT INTO location VALUES(
   0, -- school_id
   'Dummy Location',  -- name
   'Virtually, at Squidward Community College', -- description
-  1,
+  1
 );
 
 -- We want to create an alternate school system that we don't want to see leakage between
