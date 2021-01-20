@@ -79,8 +79,9 @@ public class SessionRequestResponseService {
       long offset,
       long count) {
 
-    if(committmentId != null) {
-        accepted = true;
+    // contradictory options returns empty set 
+    if(committmentId != null && accepted != null && accepted == false) {
+      return Stream.empty();
     }
 
     boolean nojoin = attendeeUserId == null && courseId == null;

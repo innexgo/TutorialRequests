@@ -42,6 +42,8 @@ public class ApiController {
   @Autowired
   UserService userService;
   @Autowired
+  SubscriptionService subscriptionService;
+  @Autowired
   SessionService sessionService;
   @Autowired
   SessionRequestService sessionRequestService;
@@ -472,7 +474,7 @@ public class ApiController {
     ck.courseId = courseId;
     ck.key = Utils.generateKey();
     ck.courseKeyKind = CourseKeyKind.VALID;
-    ck.courseMembershipKind= courseMembershipKind;
+    ck.courseMembershipKind = courseMembershipKind;
     ck.duration = duration;
     ck.maxUses = maxUses;
     courseKeyService.add(ck);
@@ -501,9 +503,8 @@ public class ApiController {
       // this means the creator isnt an instructor
       // they could still be authorized to create the key if they are an admin, so
       // let's check that
-      boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId,
-          courseService.getByCourseId(oldCourseKey.courseId).schoolId);
-      if (!creatorAdmin) {
+      Course course = courseService.getByCourseId(oldCourseKey.courseId);
+      if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)) {
         // if they're not an admin either, return unauthorized
         return Errors.API_KEY_UNAUTHORIZED.getResponse();
       }
@@ -516,7 +517,7 @@ public class ApiController {
     ck.courseId = oldCourseKey.courseId;
     ck.key = oldCourseKey.key;
     ck.courseKeyKind = CourseKeyKind.CANCEL;
-    ck.courseMembershipKind= CourseMembershipKind.CANCEL;
+    ck.courseMembershipKind = CourseMembershipKind.CANCEL;
     ck.duration = 0l;
     ck.maxUses = 0l;
     courseKeyService.add(ck);
@@ -554,12 +555,10 @@ public class ApiController {
     }
 
     // prevent removing the last instructor of a course (and orphaning it)
-    if (courseMembershipKind == CourseMembershipKind.CANCEL
-        && courseMembershipService.numInstructors(courseId) <= 1 &&
-        courseMembershipService.isInstructor(userId, courseId) ) {
+    if (courseMembershipKind == CourseMembershipKind.CANCEL && courseMembershipService.numInstructors(courseId) <= 1
+        && courseMembershipService.isInstructor(userId, courseId)) {
       return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
     }
-
 
     CourseMembership cm = new CourseMembership();
     cm.creationTime = System.currentTimeMillis();
@@ -588,7 +587,7 @@ public class ApiController {
     }
 
     // check that course key isn't expired
-    if (ck.duration + ck.creationTime < System.currentTimeMillis() ) {
+    if (ck.duration + ck.creationTime < System.currentTimeMillis()) {
       return Errors.COURSE_KEY_EXPIRED.getResponse();
     }
 
@@ -599,8 +598,8 @@ public class ApiController {
 
     // prevent removing the last instructor of a course (and orphaning it)
     if (ck.courseMembershipKind == CourseMembershipKind.CANCEL
-        && courseMembershipService.numInstructors(ck.courseId) <= 1 &&
-        courseMembershipService.isInstructor(key.creatorUserId, ck.courseId) ) {
+        && courseMembershipService.numInstructors(ck.courseId) <= 1
+        && courseMembershipService.isInstructor(key.creatorUserId, ck.courseId)) {
       return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
     }
 
@@ -965,6 +964,37 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillCommittmentResponse(a), HttpStatus.OK);
   }
 
+  @RequestMapping("/subscription/")
+  public ResponseEntity<?> viewSubscription( //
+      @RequestParam(required = false) Long subscriptionId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey) //
+  {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    Stream<Subscription> list = subscriptionService.query( //
+        subscriptionId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        creatorUserId, //
+        duration, //
+        offset, //
+        count //
+    ).map(x -> innexgoService.fillSubscription(x));
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
   @RequestMapping("/school/")
   public ResponseEntity<?> viewSchool( //
       @RequestParam(required = false) Long schoolId, //
@@ -974,10 +1004,17 @@ public class ApiController {
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) String name, //
       @RequestParam(required = false) String partialName, //
-      @RequestParam(required = false) String abbreviation, //
+      @RequestParam(required = false) Long subscriptionId, //
       @RequestParam(defaultValue = "0") long offset, //
-      @RequestParam(defaultValue = "100") long count) //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey) //
   {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
     Stream<School> list = schoolService.query( //
         schoolId, //
         creationTime, //
@@ -986,7 +1023,7 @@ public class ApiController {
         creatorUserId, //
         name, //
         partialName, //
-        abbreviation, //
+        subscriptionId, //
         offset, //
         count //
     ).map(x -> innexgoService.fillSchool(x));

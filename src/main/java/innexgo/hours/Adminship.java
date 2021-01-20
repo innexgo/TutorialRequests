@@ -25,10 +25,15 @@ public class Adminship {
   long userId;
   long schoolId;
   public AdminshipKind adminshipKind;
+  long subscriptionId; // only valid if adminshipKind is ADMIN
+  public AdminshipSourceKind adminshipSourceKind;
+  long adminshipRequestResponseId; // only valid if adminshipKind is ADMIN
 
   public User creator;
   public User user;
   public School school;
+  public Subscription subscription;
+  public AdminshipRequestResponse adminshipRequestResponse;
 }
 
 enum AdminshipKind {
@@ -52,6 +57,34 @@ enum AdminshipKind {
   public static boolean contains(String str) {
     for (AdminshipKind adminshipKind : AdminshipKind.values()) {
       if (adminshipKind.name().equals(str)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+enum AdminshipSourceKind {
+  REQUEST(0), SET(1);
+
+  final int value;
+
+  private AdminshipSourceKind(int value) {
+    this.value = value;
+  }
+
+  public static AdminshipSourceKind from(int i) {
+    for (AdminshipSourceKind adminshipSourceKind : AdminshipSourceKind.values()) {
+      if (adminshipSourceKind.value == i) {
+        return adminshipSourceKind;
+      }
+    }
+    return null;
+  }
+
+  public static boolean contains(String str) {
+    for (AdminshipSourceKind adminshipSourceKind : AdminshipSourceKind.values()) {
+      if (adminshipSourceKind.name().equals(str)) {
         return true;
       }
     }

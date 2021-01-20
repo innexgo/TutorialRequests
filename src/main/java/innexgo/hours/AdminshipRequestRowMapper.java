@@ -18,13 +18,19 @@
 
 package innexgo.hours;
 
-public class School {
-  public long schoolId;
-  public long creationTime;
-  long creatorUserId;
-  public String name;
-  public boolean whole;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  // for jackson
-  public User creator;
+public class AdminshipRequestRowMapper implements RowMapper<AdminshipRequest> {
+  @Override
+  public AdminshipRequest mapRow(ResultSet row, int rowNum) throws SQLException {
+    AdminshipRequest adminshipRequest = new AdminshipRequest();
+    adminshipRequest.adminshipRequestId = row.getLong("adminship_request_id");
+    adminshipRequest.creationTime = row.getLong("creation_time");
+    adminshipRequest.creatorUserId= row.getLong("creator_user_id");
+    adminshipRequest.schoolId  = row.getLong("school_id");
+    adminshipRequest.message = row.getString("message");
+    return adminshipRequest;
+  }
 }

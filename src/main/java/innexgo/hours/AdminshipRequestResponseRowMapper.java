@@ -22,16 +22,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 
-public class SchoolRowMapper implements RowMapper<School> {
+public class AdminshipRequestResponseRowMapper implements RowMapper<AdminshipRequestResponse> {
 
   @Override
-  public School mapRow(ResultSet row, int rowNum) throws SQLException {
-    School school = new School();
-    school.schoolId = row.getLong("school_id");
-    school.creationTime = row.getLong("creation_time");
-    school.creatorUserId = row.getLong("creator_user_id");
-    school.name = row.getString("name");
-    school.whole = row.getBoolean("whole");
-    return school;
+  public AdminshipRequestResponse mapRow(ResultSet row, int rowNum) throws SQLException {
+    AdminshipRequestResponse adminshipRequestResponse = new AdminshipRequestResponse();
+    adminshipRequestResponse.adminshipRequestId = row.getLong("adminship_request_id");
+    adminshipRequestResponse.creationTime = row.getLong("creation_time");
+    adminshipRequestResponse.creatorUserId= row.getLong("creator_user_id");
+    adminshipRequestResponse.message = row.getString("message");
+    adminshipRequestResponse.accepted = row.getBoolean("accepted");
+    return adminshipRequestResponse;
   }
 }

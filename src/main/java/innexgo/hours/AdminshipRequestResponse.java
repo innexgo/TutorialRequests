@@ -18,13 +18,14 @@
 
 package innexgo.hours;
 
-public class School {
-  public long schoolId;
+public class AdminshipRequestResponse {
+  long adminshipRequestId;
   public long creationTime;
   long creatorUserId;
-  public String name;
-  public boolean whole;
+  public String message;
+  public boolean accepted;
 
   // for jackson
   public User creator;
+  public AdminshipRequest adminshipRequest;
 }

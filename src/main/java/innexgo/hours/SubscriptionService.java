@@ -28,20 +28,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @Repository
-public class SchoolService {
+public class SubscriptionService {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  public School getBySchoolId(long schoolId) {
+  public Subscription getBySubscriptionId(long subscriptionId) {
     String sql =
-        "SELECT * FROM school WHERE school_id=?";
-    RowMapper<School> rowMapper = new SchoolRowMapper();
-    School school = jdbcTemplate.queryForObject(sql, rowMapper, schoolId);
-    return school;
+        "SELECT * FROM subscription WHERE subscription_id=?";
+    RowMapper<Subscription> rowMapper = new SubscriptionRowMapper();
+    Subscription subscription = jdbcTemplate.queryForObject(sql, rowMapper, subscriptionId);
+    return subscription;
   }
 
   public long nextId() {
-    String sql = "SELECT max(school_id) FROM school";
+    String sql = "SELECT max(subscription_id) FROM subscription";
     Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
     if(maxId == null) {
       return 0;
@@ -50,55 +50,54 @@ public class SchoolService {
     }
   }
 
-  public void add(School school) {
-    school.schoolId = nextId();
-    school.creationTime = System.currentTimeMillis();
-    // Add school
-    String sql = "INSERT INTO school values (?,?,?,?,?)";
-    jdbcTemplate.update(
-        sql,
-        school.schoolId,
-        school.creationTime,
-        school.creatorUserId,
-        school.name,
-        school.whole);
+  public void add(Subscription subscription) {
+    subscription.subscriptionId = nextId();
+    subscription.creationTime = System.currentTimeMillis();
+    // Add subscription
+    String sql = "INSERT INTO subscription values (?,?,?,?,?)";
+    jdbcTemplate.update( //
+        sql, //
+        subscription.subscriptionId, //
+        subscription.creationTime, //
+        subscription.creatorUserId, //
+        subscription.duration, //
+        subscription.maxUses //
+    ); //
   }
 
-  public boolean existsBySchoolId(long schoolId) {
-    String sql = "SELECT count(*) FROM school WHERE school_id=?";
-    long count = jdbcTemplate.queryForObject(sql, Long.class, schoolId);
+  public boolean existsBySubscriptionId(long subscriptionId) {
+    String sql = "SELECT count(*) FROM subscription WHERE subscription_id=?";
+    long count = jdbcTemplate.queryForObject(sql, Long.class, subscriptionId);
     return count != 0;
   }
 
-  public Stream<School> query( //
-     Long schoolId, //
+  public Stream<Subscription> query( //
+     Long subscriptionId, //
      Long creationTime, //
      Long minCreationTime, //
      Long maxCreationTime, //
      Long creatorUserId, //
-     String name, //
-     String partialName, //
-     Boolean whole, //
+     Long duration, //
+     Long maxUses, //
      long offset, //
      long count) //
  {
 
     String sql=
-      "SELECT s.* FROM school s"
+      "SELECT s.* FROM subscription s"
         + " WHERE 1=1 "
-        + (schoolId        == null ? "" : " AND s.school_id = " + schoolId)
+        + (subscriptionId  == null ? "" : " AND s.subscription_id = " + subscriptionId)
         + (creatorUserId   == null ? "" : " AND s.creator_user_id = " + creatorUserId)
         + (creationTime    == null ? "" : " AND s.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND s.creation_time > " + minCreationTime)
         + (maxCreationTime == null ? "" : " AND s.creation_time < " + maxCreationTime)
-        + (name            == null ? "" : " AND s.name = " + Utils.escape(name))
-        + (partialName     == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialName+"%"))
-        + (whole           == null ? "" : " AND s.whole = " + whole)
-        + (" ORDER BY s.school_id")
+        + (duration        == null ? "" : " AND s.duration = " + duration)
+        + (maxUses         == null ? "" : " AND s.max_uses = " + maxUses)
+        + (" ORDER BY s.subscription_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 
-    RowMapper<School> rowMapper = new SchoolRowMapper();
+    RowMapper<Subscription> rowMapper = new SubscriptionRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 }

@@ -13,6 +13,8 @@ public class InnexgoService {
   @Autowired
   LocationService locationService;
   @Autowired
+  SubscriptionService subscriptionService;
+  @Autowired
   SchoolService schoolService;
   @Autowired
   CourseService courseService;
@@ -63,6 +65,17 @@ public class InnexgoService {
   }
 
   /**
+   * Fills in jackson objects for Subscription
+   *
+   * @param subscription - Subscription object
+   * @return Subscription object with filled jackson objects
+   */
+  Subscription fillSubscription(Subscription subscription) {
+    subscription.creator = fillUser(userService.getByUserId(subscription.creatorUserId));
+    return subscription;
+  }
+
+  /**
    * Fills in jackson objects for School
    *
    * @param school - School object
@@ -70,6 +83,7 @@ public class InnexgoService {
    */
   School fillSchool(School school) {
     school.creator = fillUser(userService.getByUserId(school.creatorUserId));
+    school.subscription = fillSubscription(subscriptionService.getBySubscriptionId(school.subscriptionId));
     return school;
   }
 

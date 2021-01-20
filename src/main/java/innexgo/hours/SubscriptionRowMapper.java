@@ -18,13 +18,20 @@
 
 package innexgo.hours;
 
-public class School {
-  public long schoolId;
-  public long creationTime;
-  long creatorUserId;
-  public String name;
-  public boolean whole;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  // for jackson
-  public User creator;
+public class SubscriptionRowMapper implements RowMapper<Subscription> {
+
+  @Override
+  public Subscription mapRow(ResultSet row, int rowNum) throws SQLException {
+    Subscription subscription = new Subscription();
+    subscription.subscriptionId = row.getLong("subscription_id");
+    subscription.creationTime = row.getLong("creation_time");
+    subscription.creatorUserId = row.getLong("creator_user_id");
+    subscription.duration = row.getLong("duration");
+    subscription.maxUses = row.getLong("max_uses");
+    return subscription;
+  }
 }
