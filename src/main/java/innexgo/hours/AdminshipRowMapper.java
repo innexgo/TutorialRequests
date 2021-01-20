@@ -34,6 +34,9 @@ public class AdminshipRowMapper implements RowMapper<Adminship> {
     adminship.userId = row.getLong("user_id");
     adminship.schoolId = row.getLong("school_id");
     adminship.adminshipKind = AdminshipKind.from(row.getInt("adminship_kind"));
+    adminship.subscriptionId = row.getLong("subscription_id");
+    adminship.adminshipSourceKind = AdminshipSourceKind.from(row.getInt("adminship_source_kind"));
+    adminship.adminshipRequestResponseId = row.getLong("adminship_request_response_id");
     return adminship;
   }
 }

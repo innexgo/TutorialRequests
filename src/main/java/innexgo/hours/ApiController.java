@@ -66,6 +66,10 @@ public class ApiController {
   @Autowired
   PasswordResetService passwordResetService;
   @Autowired
+  AdminshipRequestService adminshipRequestService;
+  @Autowired
+  AdminshipRequestResponseService adminshipRequestResponseService;
+  @Autowired
   AdminshipService adminshipService;
   @Autowired
   CourseKeyService courseKeyService;

@@ -53,14 +53,18 @@ public class AdminshipService {
   public void add(Adminship adminship) {
     adminship.adminshipId = nextId();
     // Add adminship
-    String sql = "INSERT INTO adminship values (?,?,?,?,?,?)";
-    jdbcTemplate.update(sql,
-                        adminship.adminshipId,
-                        adminship.creationTime,
-                        adminship.creatorUserId,
-                        adminship.userId,
-                        adminship.schoolId,
-                        adminship.adminshipKind.value);
+    String sql = "INSERT INTO adminship values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    jdbcTemplate.update(sql, //
+                        adminship.adminshipId, //
+                        adminship.creationTime, //
+                        adminship.creatorUserId, //
+                        adminship.userId, //
+                        adminship.schoolId, //
+                        adminship.adminshipKind.value, //
+                        adminship.subscriptionId, //
+                        adminship.adminshipSourceKind.value, //
+                        adminship.adminshipRequestResponseId //
+    ); //
   }
 
   public boolean existsByAdminshipId(long adminshipId) {
@@ -78,6 +82,9 @@ public class AdminshipService {
       Long userId, //
       Long schoolId, //
       AdminshipKind adminshipKind, //
+      Long subscriptionId, //
+      AdminshipSourceKind adminshipSourceKind, //
+      Long adminshipRequestResponseId, //
       String schoolName, //
       String partialSchoolName, //
       String userName, //
@@ -87,6 +94,19 @@ public class AdminshipService {
       long count) //
   {
 
+    // remove empty cases
+    if(adminshipKind != null && adminshipKind == AdminshipKind.CANCEL) {
+        if(subscriptionId != null) {
+            return Stream.empty();
+        }
+    }
+
+    if(adminshipSourceKind != null && adminshipSourceKind != AdminshipSourceKind.REQUEST) {
+        if(adminshipRequestResponseId != null) {
+
+            return Stream.empty();
+        }
+    }
 
     boolean nojoinschool = schoolName == null && partialSchoolName == null;
     boolean nojoinuser = userName == null && partialUserName == null;
@@ -96,18 +116,21 @@ public class AdminshipService {
         + (nojoinschool ? "" : " JOIN school s ON s.school_id = a.school_id") //
         + (nojoinuser ? "" : " JOIN user u ON u.user_id = a.user_id") //
         + " WHERE 1=1 "
-        + (adminshipId       == null ? "" : " AND a.adminship_id = " + adminshipId)
-        + (creationTime      == null ? "" : " AND a.creation_time = " + creationTime)
-        + (minCreationTime   == null ? "" : " AND a.creation_time > " + minCreationTime)
-        + (maxCreationTime   == null ? "" : " AND a.creation_time < " + maxCreationTime)
-        + (creatorUserId     == null ? "" : " AND a.creator_user_id = " + creatorUserId)
-        + (userId            == null ? "" : " AND a.user_id = " + userId)
-        + (schoolId          == null ? "" : " AND a.school_id = " + schoolId)
-        + (adminshipKind     == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
-        + (schoolName        == null ? "" : " AND s.name = " + Utils.escape(schoolName)) //
-        + (partialSchoolName == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialSchoolName+"%")) //
-        + (userName          == null ? "" : " AND u.name = " + Utils.escape(userName)) //
-        + (partialUserName   == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%")) //
+        + (adminshipId                == null ? "" : " AND a.adminship_id = " + adminshipId)
+        + (creationTime               == null ? "" : " AND a.creation_time = " + creationTime)
+        + (minCreationTime            == null ? "" : " AND a.creation_time > " + minCreationTime)
+        + (maxCreationTime            == null ? "" : " AND a.creation_time < " + maxCreationTime)
+        + (creatorUserId              == null ? "" : " AND a.creator_user_id = " + creatorUserId)
+        + (userId                     == null ? "" : " AND a.user_id = " + userId)
+        + (schoolId                   == null ? "" : " AND a.school_id = " + schoolId)
+        + (adminshipKind              == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
+        + (subscriptionId             == null ? "" : " AND a.subscription_id = " + subscriptionId)
+        + (adminshipSourceKind        == null ? "" : " AND a.adminship_source_kind = " + adminshipSourceKind.value)
+        + (adminshipRequestResponseId == null ? "" : " AND a.adminship_request_response_id= " + adminshipRequestResponseId)
+        + (schoolName                 == null ? "" : " AND s.name = " + Utils.escape(schoolName)) //
+        + (partialSchoolName          == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialSchoolName+"%")) //
+        + (userName                   == null ? "" : " AND u.name = " + Utils.escape(userName)) //
+        + (partialUserName            == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%")) //
         + (" ORDER BY a.adminship_id")
         + (" LIMIT " + offset + ", " + count) + ";";
 
@@ -130,24 +153,28 @@ public class AdminshipService {
     return adminships.get(0).adminshipKind == AdminshipKind.ADMIN;
   }
 
-  public long  numAdmins(long schoolId) {
-    return query(
-      null, //Long adminshipId, //
-      null, //Long creationTime, //
-      null, //Long minCreationTime, //
-      null, //Long maxCreationTime, //
-      null, //Long creatorUserId, //
-      null, //Long userId, //
-      schoolId, //Long schoolId, //
-      AdminshipKind.ADMIN, //AdminshipKind adminshipKind, //
-      null, //String schoolName, //
-      null, //String partialSchoolName, //
-      null, //String userName, //
-      null, //String partialUserName, //
-      true, //boolean onlyRecent, //
-      0, //long offset, //
-      Integer.MAX_VALUE //long count) //
-     ).count();
+  public long numAdmins(long schoolId) {
+    return query( //
+        null, // Long adminshipId, //
+        null, // Long creationTime, //
+        null, // Long minCreationTime, //
+        null, // Long maxCreationTime, //
+        null, // Long creatorUserId, //
+        null, // Long userId, //
+        schoolId, // Long schoolId, //
+        AdminshipKind.ADMIN, // AdminshipKind adminshipKind, //
+        null, // Long subscriptionId, //
+        null, // AdminshipSourceKind adminshipSourceKind, //
+        null, // Long adminshipRequestResponseId, //
+        null, // String schoolName, //
+        null, // String partialSchoolName, //
+        null, // String userName, //
+        null, // String partialUserName, //
+        true, // boolean onlyRecent, //
+        0, // long offset
+        Integer.MAX_VALUE // long count
+    ).count();
   }
+
 
 }
