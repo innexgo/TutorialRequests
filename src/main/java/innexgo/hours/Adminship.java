@@ -25,14 +25,12 @@ public class Adminship {
   long userId;
   long schoolId;
   public AdminshipKind adminshipKind;
-  long subscriptionId; // only valid if adminshipKind is ADMIN
   public AdminshipSourceKind adminshipSourceKind;
   long adminshipRequestResponseId; // only valid if adminshipKind is ADMIN
 
   public User creator;
   public User user;
   public School school;
-  public Subscription subscription;
   public AdminshipRequestResponse adminshipRequestResponse;
 }
 

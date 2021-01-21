@@ -54,13 +54,13 @@ public class SubscriptionService {
     subscription.subscriptionId = nextId();
     subscription.creationTime = System.currentTimeMillis();
     // Add subscription
-    String sql = "INSERT INTO subscription values (?,?,?,?,?)";
+    String sql = "INSERT INTO subscription values (?, ?, ?, ?, ?)";
     jdbcTemplate.update( //
         sql, //
         subscription.subscriptionId, //
         subscription.creationTime, //
         subscription.creatorUserId, //
-        subscription.duration, //
+        subscription.subscriptionKind.value, //
         subscription.maxUses //
     ); //
   }
@@ -77,21 +77,23 @@ public class SubscriptionService {
      Long minCreationTime, //
      Long maxCreationTime, //
      Long creatorUserId, //
-     Long duration, //
+     SubscriptionKind subscriptionKind, //
      Long maxUses, //
+     boolean onlyRecent, //
      long offset, //
      long count) //
  {
 
     String sql=
       "SELECT s.* FROM subscription s"
+        + (!onlyRecent ? "" : " INNER JOIN (SELECT max(subscription_id) id FROM subscription GROUP BY user_id) maxids ON maxids.id = s.subscription_id")
         + " WHERE 1=1 "
         + (subscriptionId  == null ? "" : " AND s.subscription_id = " + subscriptionId)
         + (creatorUserId   == null ? "" : " AND s.creator_user_id = " + creatorUserId)
         + (creationTime    == null ? "" : " AND s.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND s.creation_time > " + minCreationTime)
         + (maxCreationTime == null ? "" : " AND s.creation_time < " + maxCreationTime)
-        + (duration        == null ? "" : " AND s.duration = " + duration)
+        + (subscriptionKind == null ? "" : " AND s.subscription_kind = " + subscriptionKind.value)
         + (maxUses         == null ? "" : " AND s.max_uses = " + maxUses)
         + (" ORDER BY s.subscription_id")
         + (" LIMIT " + offset + ", " + count)
@@ -101,18 +103,24 @@ public class SubscriptionService {
     return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
 
-  public boolean isSubscriber(long userId) {
+
+  public Subscription getSubscriptionByUserId(long userId) {
    return query( //
      null, //Long subscriptionId, //
      null, //Long creationTime, //
      null, //Long minCreationTime, //
      null, //Long maxCreationTime, //
      userId, //Long creatorUserId, //
-     null, //Long duration, //
+     null, //SubscriptionKind subscriptionKind, //
      null, //Long maxUses, //
+     true,
      0, //long offset, //
      Integer.MAX_VALUE //long count) //
-   ) .filter(x -> x.duration + x.creationTime > System.currentTimeMillis())
-     .count() != 0;
+   ).findFirst().orElse(null);
+  }
+
+  public boolean isSubscriber(long userId) {
+   Subscription s = getSubscriptionByUserId(userId);
+   return s != null && s.subscriptionKind != SubscriptionKind.CANCEL;
   }
 }

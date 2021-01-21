@@ -394,7 +394,7 @@ public class ApiController {
   @RequestMapping("/subscription/new/")
   public ResponseEntity<?> newSubscription( //
       @RequestParam long userId, //
-      @RequestParam long duration, //
+      @RequestParam SubscriptionKind subscriptionKind, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
@@ -404,7 +404,7 @@ public class ApiController {
     Subscription subscription = new Subscription();
     subscription.creationTime = System.currentTimeMillis();
     subscription.creatorUserId = key.creatorUserId;
-    subscription.duration = duration;
+    subscription.subscriptionKind= subscriptionKind;
     subscription.maxUses = 1;
     subscriptionService.add(subscription);
 
@@ -644,31 +644,20 @@ public class ApiController {
   public ResponseEntity<?> newSchool( //
       @RequestParam String name, //
       @RequestParam boolean whole, //
-      @RequestParam Long subscriptionId, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    // check creator's subscription perms
-    Subscription subscription = subscriptionService.getBySubscriptionId(subscriptionId);
-    if(subscription == null) {
+    // check if user has a valid subscription perms
+    Subscription subscription = subscriptionService.getSubscriptionByUserId(key.creatorUserId);
+    if(subscription == null || subscription.subscriptionKind == SubscriptionKind.CANCEL) {
       return Errors.SUBSCRIPTION_NONEXISTENT.getResponse();
     }
 
-    if(subscription.creatorUserId != key.creatorUserId) {
-      // you are not authorized to use this subscription
-      return Errors.SUBSCRIPTION_UNAUTHORIZED.getResponse();
-    }
-
-    // check subscription not expired
-    if(subscription.duration + subscription.creationTime < System.currentTimeMillis()) {
-        return Errors.SUBSCRIPTION_EXPIRED.getResponse();
-    }
-
     // check number of schools in subscription to verify that they have perms
-    if(adminshipService.numSubscriptionUses(subscriptionId) >= subscription.maxUses) {
+    if(adminshipService.numSubscriptionUses(key.creatorUserId) >= subscription.maxUses) {
         return Errors.SUBSCRIPTION_LIMITED.getResponse();
     }
 
@@ -687,9 +676,8 @@ public class ApiController {
     adminship.userId = key.creatorUserId;
     adminship.schoolId = school.schoolId;
     adminship.adminshipKind = AdminshipKind.ADMIN;
-    adminship.subscriptionId = subscriptionId;
     adminship.adminshipSourceKind = AdminshipSourceKind.SET;
-    adminship.adminshipRequestResponseId = 0;
+    adminship.adminshipRequestResponseId = 55555555; // doesnt matter
     adminshipService.add(adminship);
     return new ResponseEntity<>(innexgoService.fillSchool(school), HttpStatus.OK);
   }
@@ -809,7 +797,6 @@ public class ApiController {
   @RequestMapping("/adminship/newValid/")
   public ResponseEntity<?> newValidAdminship( //
       @RequestParam long adminshipRequestResponseId, //
-      @RequestParam long subscriptionId, //
       @RequestParam String apiKey) {
     // check that key valid
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
@@ -831,23 +818,13 @@ public class ApiController {
     }
 
     // check creator's subscription perms
-    Subscription subscription = subscriptionService.getBySubscriptionId(subscriptionId);
-    if(subscription == null) {
+    Subscription subscription = subscriptionService.getSubscriptionByUserId(key.creatorUserId);
+    if(subscription == null || subscription.subscriptionKind == SubscriptionKind.CANCEL) {
       return Errors.SUBSCRIPTION_NONEXISTENT.getResponse();
     }
 
-    if(subscription.creatorUserId != key.creatorUserId) {
-      // you are not authorized to use this subscription
-      return Errors.SUBSCRIPTION_UNAUTHORIZED.getResponse();
-    }
-
-    // check subscription not expired
-    if(subscription.duration + subscription.creationTime < System.currentTimeMillis()) {
-        return Errors.SUBSCRIPTION_EXPIRED.getResponse();
-    }
-
     // check number of schools in subscription to verify that they have perms
-    if(adminshipService.numSubscriptionUses(subscriptionId) >= subscription.maxUses) {
+    if(adminshipService.numSubscriptionUses(key.creatorUserId) >= subscription.maxUses) {
         return Errors.SUBSCRIPTION_LIMITED.getResponse();
     }
 
@@ -858,7 +835,6 @@ public class ApiController {
     adminship.userId = key.creatorUserId;
     adminship.schoolId = ar.schoolId;
     adminship.adminshipKind = AdminshipKind.ADMIN;
-    adminship.subscriptionId = subscriptionId;
     adminship.adminshipSourceKind = AdminshipSourceKind.REQUEST;
     adminship.adminshipRequestResponseId = adminshipRequestResponseId;
     adminshipService.add(adminship);
@@ -1148,8 +1124,9 @@ public class ApiController {
       @RequestParam(required = false) Long minCreationTime, //
       @RequestParam(required = false) Long maxCreationTime, //
       @RequestParam(required = false) Long creatorUserId, //
-      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) SubscriptionKind subscriptionKind, //
       @RequestParam(required = false) Long maxUses, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
@@ -1166,8 +1143,9 @@ public class ApiController {
         minCreationTime, //
         maxCreationTime, //
         creatorUserId, //
-        duration, //
+        subscriptionKind, //
         maxUses, //
+        onlyRecent, //
         offset, //
         count //
     ).map(x -> innexgoService.fillSubscription(x));
@@ -1525,7 +1503,6 @@ public class ApiController {
       @RequestParam(required = false) Long userId, //
       @RequestParam(required = false) Long schoolId, //
       @RequestParam(required = false) AdminshipKind adminshipKind, //
-      @RequestParam(required = false) Long subscriptionId, //
       @RequestParam(required = false) AdminshipSourceKind adminshipSourceKind, //
       @RequestParam(required = false) Long adminshipRequestResponseId, //
       @RequestParam(required = false) String schoolName, //
@@ -1551,7 +1528,6 @@ public class ApiController {
         userId, //
         schoolId, //
         adminshipKind, //
-        subscriptionId, //
         adminshipSourceKind, //
         adminshipRequestResponseId, //
         schoolName, //

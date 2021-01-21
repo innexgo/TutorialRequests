@@ -41,14 +41,13 @@ create table user(
   verification_challenge_key_hash char(64) not null unique
 );
 
-
 drop table if exists subscription;
 create table subscription(
   subscription_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  duration integer not null,
-  max_uses integer not null
+  subscription_kind integer not null, -- VALID | CANCEL
+  max_uses integer not null -- only valid if VALID
 );
 
 drop table if exists invoice;
@@ -63,7 +62,7 @@ create table invoice(
 -- there can be multiple schools with full_school = false, but only one with full_school = true
 -- full school is when the entire school district / school has signed on 
 -- !full_school when one or more teachers is managing the school
--- You can only create a school when you have a valid subscription since we need it for the adminship
+-- You can only create a school when you have a valid subscription
 -- Also, we no longer let you add random people to an adminship, you must create a school_key
 drop table if exists school;
 create table school(
@@ -100,7 +99,6 @@ create table adminship(
   user_id integer not null,
   school_id integer not null,
   adminship_kind integer not null, -- ADMIN, CANCEL
-  subscription_id integer not null, -- only valid if ADMIN
   adminship_source_kind integer not null, -- REQUEST | SET
   adminship_request_response_id integer not null, -- only valid if REQUEST
 );

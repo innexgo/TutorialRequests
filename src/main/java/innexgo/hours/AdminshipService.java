@@ -53,7 +53,7 @@ public class AdminshipService {
   public void add(Adminship adminship) {
     adminship.adminshipId = nextId();
     // Add adminship
-    String sql = "INSERT INTO adminship values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    String sql = "INSERT INTO adminship values (?, ?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(sql, //
                         adminship.adminshipId, //
                         adminship.creationTime, //
@@ -61,7 +61,6 @@ public class AdminshipService {
                         adminship.userId, //
                         adminship.schoolId, //
                         adminship.adminshipKind.value, //
-                        adminship.subscriptionId, //
                         adminship.adminshipSourceKind.value, //
                         adminship.adminshipRequestResponseId //
     ); //
@@ -82,7 +81,6 @@ public class AdminshipService {
       Long userId, //
       Long schoolId, //
       AdminshipKind adminshipKind, //
-      Long subscriptionId, //
       AdminshipSourceKind adminshipSourceKind, //
       Long adminshipRequestResponseId, //
       String schoolName, //
@@ -93,13 +91,6 @@ public class AdminshipService {
       long offset, //
       long count) //
   {
-
-    // remove empty cases
-    if(adminshipKind != null && adminshipKind == AdminshipKind.CANCEL) {
-        if(subscriptionId != null) {
-            return Stream.empty();
-        }
-    }
 
     if(adminshipSourceKind != null && adminshipSourceKind != AdminshipSourceKind.REQUEST) {
         if(adminshipRequestResponseId != null) {
@@ -124,7 +115,6 @@ public class AdminshipService {
         + (userId                     == null ? "" : " AND a.user_id = " + userId)
         + (schoolId                   == null ? "" : " AND a.school_id = " + schoolId)
         + (adminshipKind              == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
-        + (subscriptionId             == null ? "" : " AND a.subscription_id = " + subscriptionId)
         + (adminshipSourceKind        == null ? "" : " AND a.adminship_source_kind = " + adminshipSourceKind.value)
         + (adminshipRequestResponseId == null ? "" : " AND a.adminship_request_response_id= " + adminshipRequestResponseId)
         + (schoolName                 == null ? "" : " AND s.name = " + Utils.escape(schoolName)) //
@@ -163,7 +153,6 @@ public class AdminshipService {
         null, // Long userId, //
         schoolId, // Long schoolId, //
         AdminshipKind.ADMIN, // AdminshipKind adminshipKind, //
-        null, // Long subscriptionId, //
         null, // AdminshipSourceKind adminshipSourceKind, //
         null, // Long adminshipRequestResponseId, //
         null, // String schoolName, //
@@ -177,17 +166,16 @@ public class AdminshipService {
   }
 
 
-  public long numSubscriptionUses(long subscriptionId) {
+  public long numSubscriptionUses(long userId) {
     return query( //
         null, // Long adminshipId, //
         null, // Long creationTime, //
         null, // Long minCreationTime, //
         null, // Long maxCreationTime, //
         null, // Long creatorUserId, //
-        null, // Long userId, //
+        userId, // Long userId, //
         null, // Long schoolId, //
         AdminshipKind.ADMIN, // AdminshipKind adminshipKind, //
-        subscriptionId, // Long subscriptionId, //
         null, // AdminshipSourceKind adminshipSourceKind, //
         null, // Long adminshipRequestResponseId, //
         null, // String schoolName, //

@@ -30,7 +30,7 @@ public class SubscriptionRowMapper implements RowMapper<Subscription> {
     subscription.subscriptionId = row.getLong("subscription_id");
     subscription.creationTime = row.getLong("creation_time");
     subscription.creatorUserId = row.getLong("creator_user_id");
-    subscription.duration = row.getLong("duration");
+    subscription.subscriptionKind = SubscriptionKind.from(row.getInt("subscription_kind"));
     subscription.maxUses = row.getLong("max_uses");
     return subscription;
   }
