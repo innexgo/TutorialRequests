@@ -111,7 +111,8 @@ public class SubscriptionService {
      null, //Long duration, //
      null, //Long maxUses, //
      0, //long offset, //
-     1 //long count) //
-   ).count() == 1;
+     Integer.MAX_VALUE //long count) //
+   ) .filter(x -> x.duration + x.creationTime > System.currentTimeMillis())
+     .count() != 0;
   }
 }

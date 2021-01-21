@@ -33,6 +33,10 @@ public class InnexgoService {
   @Autowired
   SessionRequestResponseService sessionRequestResponseService;
   @Autowired
+  AdminshipRequestService adminshipRequestService;
+  @Autowired
+  AdminshipRequestResponseService adminshipRequestResponseService;
+  @Autowired
   CommittmentService committmentService;
   @Autowired
   CommittmentResponseService committmentResponseService;
@@ -83,7 +87,6 @@ public class InnexgoService {
    */
   School fillSchool(School school) {
     school.creator = fillUser(userService.getByUserId(school.creatorUserId));
-    school.subscription = fillSubscription(subscriptionService.getBySubscriptionId(school.subscriptionId));
     return school;
   }
 
@@ -181,6 +184,33 @@ public class InnexgoService {
   }
 
   /**
+   * Fills in jackson objects for AdminshipRequest
+   *
+   * @param adminshipRequest - AdminshipRequest object
+   * @return AdminshipRequest object with recursively filled jackson objects
+   */
+  AdminshipRequest fillAdminshipRequest(AdminshipRequest adminshipRequest) {
+    adminshipRequest.creator = fillUser(userService.getByUserId(adminshipRequest.creatorUserId));
+    adminshipRequest.school = fillSchool(schoolService.getBySchoolId(adminshipRequest.schoolId));
+    return adminshipRequest;
+  }
+
+  /**
+   * Fills in jackson objects for AdminshipRequestResponse
+   *
+   * @param adminshipRequestResponse - AdminshipRequestResponse object
+   * @return AdminshipRequestResponse object with recursively filled jackson
+   *         objects
+   */
+  AdminshipRequestResponse fillAdminshipRequestResponse(AdminshipRequestResponse adminshipRequestResponse) {
+    adminshipRequestResponse.creator = fillUser(userService.getByUserId(adminshipRequestResponse.creatorUserId));
+    adminshipRequestResponse.adminshipRequest = fillAdminshipRequest(
+        adminshipRequestService.getByAdminshipRequestId(adminshipRequestResponse.adminshipRequestId));
+
+    return adminshipRequestResponse;
+  }
+
+  /**
    * Fills in jackson objects for Adminship
    *
    * @param adminship - Adminship object
@@ -190,6 +220,18 @@ public class InnexgoService {
     adminship.creator = fillUser(userService.getByUserId(adminship.creatorUserId));
     adminship.user = fillUser(userService.getByUserId(adminship.userId));
     adminship.school = fillSchool(schoolService.getBySchoolId(adminship.schoolId));
+    if (adminship.adminshipKind == AdminshipKind.ADMIN) {
+      adminship.subscription = fillSubscription(subscriptionService.getBySubscriptionId(adminship.subscriptionId));
+    } else {
+      adminship.subscription = null;
+    }
+
+    if (adminship.adminshipSourceKind == AdminshipSourceKind.REQUEST) {
+      adminship.adminshipRequestResponse = fillAdminshipRequestResponse(
+          adminshipRequestResponseService.getByAdminshipRequestId(adminship.adminshipRequestResponseId));
+    } else {
+      adminship.adminshipRequestResponse = null;
+    }
     return adminship;
   }
 
