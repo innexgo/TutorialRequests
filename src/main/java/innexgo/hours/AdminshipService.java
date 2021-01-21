@@ -177,4 +177,27 @@ public class AdminshipService {
   }
 
 
+  public long numSubscriptionUses(long subscriptionId) {
+    return query( //
+        null, // Long adminshipId, //
+        null, // Long creationTime, //
+        null, // Long minCreationTime, //
+        null, // Long maxCreationTime, //
+        null, // Long creatorUserId, //
+        null, // Long userId, //
+        null, // Long schoolId, //
+        AdminshipKind.ADMIN, // AdminshipKind adminshipKind, //
+        subscriptionId, // Long subscriptionId, //
+        null, // AdminshipSourceKind adminshipSourceKind, //
+        null, // Long adminshipRequestResponseId, //
+        null, // String schoolName, //
+        null, // String partialSchoolName, //
+        null, // String userName, //
+        null, // String partialUserName, //
+        true, // boolean onlyRecent, //
+        0, // long offset
+        Integer.MAX_VALUE // long count
+    ).count();
+  }
+
 }

@@ -391,6 +391,27 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
   }
 
+  @RequestMapping("/subscription/new/")
+  public ResponseEntity<?> newSubscription( //
+      @RequestParam long userId, //
+      @RequestParam long duration, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    Subscription subscription = new Subscription();
+    subscription.creationTime = System.currentTimeMillis();
+    subscription.creatorUserId = key.creatorUserId;
+    subscription.duration = duration;
+    subscription.maxUses = 1;
+    subscriptionService.add(subscription);
+
+    return new ResponseEntity<>(innexgoService.fillSubscription(subscription), HttpStatus.OK);
+  }
+
+
   @RequestMapping("/course/new/")
   public ResponseEntity<?> newCourse( //
       @RequestParam long schoolId, //
@@ -622,20 +643,35 @@ public class ApiController {
   @RequestMapping("/school/new/")
   public ResponseEntity<?> newSchool( //
       @RequestParam String name, //
-      @RequestParam String abbreviation, //
+      @RequestParam boolean whole, //
+      @RequestParam Long subscriptionId, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
       return Errors.API_KEY_NONEXISTENT.getResponse();
     }
 
-    // TODO check that key creator has a valid subscription
+    // check creator's subscription perms
+    Subscription subscription = subscriptionService.getBySubscriptionId(subscriptionId);
+    if(subscription == null) {
+      return Errors.SUBSCRIPTION_NONEXISTENT.getResponse();
+    }
+
+    // check subscription not expired
+    if(subscription.duration + subscription.creationTime < System.currentTimeMillis()) {
+        return Errors.SUBSCRIPTION_EXPIRED.getResponse();
+    }
+
+    // check number of schools in subscription to verify that they have perms
+    if(adminshipService.numSubscriptionUses(subscriptionId) >= subscription.maxUses) {
+        return Errors.SUBSCRIPTION_UNAUTHORIZED.getResponse();
+    }
 
     School school = new School();
     school.creationTime = System.currentTimeMillis();
     school.creatorUserId = key.creatorUserId;
     school.name = name;
-    school.abbreviation = abbreviation;
+    school.whole = whole;
     schoolService.add(school);
 
     // creating the school should give the creator an adminship, which they
@@ -646,16 +682,131 @@ public class ApiController {
     adminship.userId = key.creatorUserId;
     adminship.schoolId = school.schoolId;
     adminship.adminshipKind = AdminshipKind.ADMIN;
+    adminship.subscriptionId = subscriptionId;
+    adminship.adminshipSourceKind = AdminshipSourceKind.SET;
+    adminship.adminshipRequestResponseId = 0;
     adminshipService.add(adminship);
-
     return new ResponseEntity<>(innexgoService.fillSchool(school), HttpStatus.OK);
   }
 
-  @RequestMapping("/adminship/new/")
-  public ResponseEntity<?> newAdminship( //
+  @RequestMapping("/adminshipRequest/new/")
+  public ResponseEntity<?> newAdminshipRequest( //
+      @RequestParam long schoolId, //
+      @RequestParam String message, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    if (schoolService.getBySchoolId(schoolId) == null) {
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // creator must be a subscriber in order to create a adminship request
+    // for a school
+    if (!subscriptionService.isSubscriber(key.creatorUserId)) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    AdminshipRequest sr = new AdminshipRequest();
+    sr.creatorUserId = key.creatorUserId;
+    sr.creationTime = System.currentTimeMillis();
+    sr.schoolId = schoolId;
+    sr.message = message;
+    adminshipRequestService.add(sr);
+    return new ResponseEntity<>(innexgoService.fillAdminshipRequest(sr), HttpStatus.OK);
+  }
+
+  @RequestMapping("/adminshipRequestResponse/new/")
+  public ResponseEntity<?> newAdminshipRequestResponseReject( //
+      @RequestParam long adminshipRequestId, //
+      @RequestParam String message, //
+      @RequestParam boolean accept, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    if (adminshipRequestResponseService.existsByAdminshipRequestId(adminshipRequestId)) {
+      return Errors.ADMINSHIP_REQUEST_RESPONSE_EXISTENT.getResponse();
+    }
+
+    if (!adminshipRequestService.existsByAdminshipRequestId(adminshipRequestId)) {
+      return Errors.ADMINSHIP_REQUEST_NONEXISTENT.getResponse();
+    }
+
+    // a adminship may be only be dealt with by an Administrator at that school
+    AdminshipRequest ar = adminshipRequestService.getByAdminshipRequestId(adminshipRequestId);
+    if (!adminshipService.isAdmin(key.creatorUserId, ar.schoolId)) { //
+      // an exception is if the creator is rejecting his own appointment (cancelling the request)
+      if(ar.creatorUserId == key.creatorUserId && !accept) {
+        // don't exit early 
+      } else {
+        // 
+        return Errors.API_KEY_UNAUTHORIZED.getResponse();
+      }
+    }
+
+    AdminshipRequestResponse srr = new AdminshipRequestResponse();
+    srr.creationTime = System.currentTimeMillis();
+    srr.adminshipRequestId = adminshipRequestId;
+    srr.creatorUserId = key.creatorUserId;
+    srr.message = message;
+    srr.accepted = false;
+    adminshipRequestResponseService.add(srr);
+    return new ResponseEntity<>(innexgoService.fillAdminshipRequestResponse(srr), HttpStatus.OK);
+  }
+
+  @RequestMapping("/adminship/newCancel/")
+  public ResponseEntity<?> newCancelAdminship( //
       @RequestParam long userId, //
       @RequestParam long schoolId, //
-      @RequestParam AdminshipKind adminshipKind, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that user exists
+    if (!userService.existsByUserId(userId)) {
+      return Errors.USER_NONEXISTENT.getResponse();
+    }
+
+    // check that school exists
+    if (!schoolService.existsBySchoolId(schoolId)) {
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // check authorization
+    if (!adminshipService.isAdmin(key.creatorUserId, schoolId)) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    // prevent admins from removing the last member of a group (and orphaning it)
+    if (adminshipService.numAdmins(schoolId) <= 1) {
+      return Errors.ADMINSHIP_CANNOT_LEAVE_EMPTY.getResponse();
+    }
+
+    Adminship cm = new Adminship();
+    cm.creationTime = System.currentTimeMillis();
+    cm.creatorUserId = key.creatorUserId;
+    cm.userId = userId;
+    cm.schoolId = schoolId;
+    cm.adminshipKind = AdminshipKind.CANCEL;
+    cm.adminshipSourceKind = AdminshipSourceKind.SET;
+    adminshipService.add(cm);
+    return new ResponseEntity<>(innexgoService.fillAdminship(cm), HttpStatus.OK);
+  }
+
+  
+
+  @RequestMapping("/adminship/newValid/")
+  public ResponseEntity<?> newValidAdminship( //
+      @RequestParam long userId, //
+      @RequestParam long schoolId, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
@@ -691,6 +842,7 @@ public class ApiController {
     adminshipService.add(cm);
     return new ResponseEntity<>(innexgoService.fillAdminship(cm), HttpStatus.OK);
   }
+
 
   @RequestMapping("/session/new/")
   public ResponseEntity<?> newSession( //

@@ -100,4 +100,18 @@ public class SubscriptionService {
     RowMapper<Subscription> rowMapper = new SubscriptionRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
+
+  public boolean isSubscriber(long userId) {
+   return query( //
+     null, //Long subscriptionId, //
+     null, //Long creationTime, //
+     null, //Long minCreationTime, //
+     null, //Long maxCreationTime, //
+     userId, //Long creatorUserId, //
+     null, //Long duration, //
+     null, //Long maxUses, //
+     0, //long offset, //
+     1 //long count) //
+   ).count() == 1;
+  }
 }
