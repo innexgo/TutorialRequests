@@ -102,7 +102,7 @@ create table adminship(
   adminship_kind integer not null, -- ADMIN, CANCEL
   subscription_id integer not null, -- only valid if ADMIN
   adminship_source_kind integer not null, -- REQUEST | SET
-  adminship_request_id integer not null, -- only valid if REQUEST
+  adminship_request_response_id integer not null, -- only valid if REQUEST
 );
 
 drop table if exists location;
@@ -213,7 +213,6 @@ create table committment(
   creator_user_id integer not null,
   attendee_user_id integer not null,
   session_id integer not null,
-  message varchar(100) not null,
   cancellable integer not null -- boolean
 );
 

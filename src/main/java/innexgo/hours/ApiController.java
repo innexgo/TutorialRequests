@@ -103,7 +103,7 @@ public class ApiController {
    *                        unsuccessful
    */
   @RequestMapping("/apiKey/newValid/")
-  public ResponseEntity<?> newApiKeyValid( //
+  public ResponseEntity<?> newValidApiKey( //
       @RequestParam String userEmail, //
       @RequestParam String userPassword, //
       @RequestParam long duration) {
@@ -133,7 +133,7 @@ public class ApiController {
   }
 
   @RequestMapping("/apiKey/newCancel/")
-  public ResponseEntity<?> newApiKeyCancel( //
+  public ResponseEntity<?> newCancelApiKey( //
       @RequestParam String apiKeyToCancel, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);

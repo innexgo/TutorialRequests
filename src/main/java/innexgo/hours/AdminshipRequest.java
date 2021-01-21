@@ -27,6 +27,5 @@ public class AdminshipRequest {
 
   // for jackson
   public User creator;
-  public User attendee;
   public School school;
 }
