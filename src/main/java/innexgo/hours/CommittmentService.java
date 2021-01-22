@@ -96,17 +96,19 @@ public class CommittmentService {
       Long minDuration, //
       Long maxDuration, //
       Boolean responded, //
+      Boolean fromRequestResponse, //
       long offset, //
       long count) //
   {
-    boolean nojoin = //
+    boolean nojoinSession = //
         startTime == null && minStartTime == null && maxStartTime == null && //
             duration == null && minDuration == null && maxDuration == null && //
             courseId == null; //
 
     String sql = "SELECT c.* FROM committment c" //
-        + (nojoin ? "" : " LEFT JOIN session s ON s.session_id = c.session_id") //
-        + (responded == null ? "" : " LEFT JOIN committment_response cr ON cr.committment_id= c.committment_id") //
+        + (nojoinSession ? "" : " LEFT JOIN session s ON s.session_id = c.session_id") //
+        + (responded == null ? "" : " LEFT JOIN committment_response cr ON cr.committment_id = c.committment_id") //
+        + (fromRequestResponse == null ? "" : " LEFT JOIN session_request_response srr ON srr.accepted AND srr.accepted_committment_id = c.committment_id") //
         + " WHERE 1=1 " //
         + (committmentId == null ? "" : " AND c.committment_id = " + committmentId) //
         + (creatorUserId == null ? "" : " AND c.creator_user_id = " + creatorUserId) //
@@ -124,6 +126,7 @@ public class CommittmentService {
         + (maxDuration == null ? "" : " AND s.duration < " + maxDuration) //
         + (courseId == null ? "" : " AND s.course_id = " + courseId) //
         + (responded == null ? "" : " AND cr.committment_id IS" + (responded ? " NOT NULL" : " NULL")) //
+        + (fromRequestResponse == null ? "" : " AND srr.accepted_committment_id IS" + (fromRequestResponse ? " NOT NULL" : " NULL")) //
         + (" ORDER BY c.committment_id") //
         + (" LIMIT " + offset + ", " + count) //
         + ";"; //

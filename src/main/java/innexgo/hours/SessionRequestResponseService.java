@@ -76,6 +76,7 @@ public class SessionRequestResponseService {
       Long duration, //
       Long minDuration, //
       Long maxDuration, //
+      Boolean responded, //
       long offset,
       long count) {
 
@@ -84,11 +85,14 @@ public class SessionRequestResponseService {
       return Stream.empty();
     }
 
-    boolean nojoin = attendeeUserId == null && courseId == null;
+    boolean nojoinsr = attendeeUserId == null && courseId == null;
+
+    boolean nojoincr = responded == null;
 
     String sql =
         "SELECT srr.* FROM session_request_response srr"
-            + (nojoin ? "" : " JOIN session_request sr ON sr.session_request_id = srr.session_request_id")
+            + (nojoinsr ? "" : " JOIN session_request sr ON sr.session_request_id = srr.session_request_id")
+            + (nojoincr ? "" : " LEFT JOIN committment_response cr ON srr.accepted AND cr.committment_id = srr.accepted_committment_id")
             + " WHERE 1=1 "
             + (sessionRequestId == null ? "" : " AND srr.session_request_id = " + sessionRequestId)
             + (creatorUserId    == null ? "" : " AND srr.creator_user_id = " + creatorUserId)
@@ -106,6 +110,7 @@ public class SessionRequestResponseService {
             + (duration         == null ? "" : " AND sr.duration = " + duration)
             + (minDuration      == null ? "" : " AND sr.duration > " + minDuration)
             + (maxDuration      == null ? "" : " AND sr.duration < " + maxDuration)
+            + (responded        == null ? "" : " AND cr.committment_id IS" + (responded ? " NOT NULL" : " NULL")) //
             + (" ORDER BY srr.session_request_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

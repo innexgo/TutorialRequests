@@ -100,7 +100,7 @@ create table adminship(
   school_id integer not null,
   adminship_kind integer not null, -- ADMIN, CANCEL
   adminship_source_kind integer not null, -- REQUEST | SET
-  adminship_request_response_id integer not null, -- only valid if REQUEST
+  adminship_request_response_id integer not null -- only valid if REQUEST
 );
 
 drop table if exists location;

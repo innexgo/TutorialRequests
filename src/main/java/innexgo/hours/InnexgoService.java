@@ -220,12 +220,6 @@ public class InnexgoService {
     adminship.creator = fillUser(userService.getByUserId(adminship.creatorUserId));
     adminship.user = fillUser(userService.getByUserId(adminship.userId));
     adminship.school = fillSchool(schoolService.getBySchoolId(adminship.schoolId));
-    if (adminship.adminshipKind == AdminshipKind.ADMIN) {
-      adminship.subscription = fillSubscription(subscriptionService.getBySubscriptionId(adminship.subscriptionId));
-    } else {
-      adminship.subscription = null;
-    }
-
     if (adminship.adminshipSourceKind == AdminshipSourceKind.REQUEST) {
       adminship.adminshipRequestResponse = fillAdminshipRequestResponse(
           adminshipRequestResponseService.getByAdminshipRequestId(adminship.adminshipRequestResponseId));

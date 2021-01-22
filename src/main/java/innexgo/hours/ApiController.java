@@ -393,7 +393,6 @@ public class ApiController {
 
   @RequestMapping("/subscription/new/")
   public ResponseEntity<?> newSubscription( //
-      @RequestParam long userId, //
       @RequestParam SubscriptionKind subscriptionKind, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
@@ -1658,6 +1657,7 @@ public class ApiController {
       @RequestParam(required = false) Long duration, //
       @RequestParam(required = false) Long minDuration, //
       @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Boolean responded, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -1685,6 +1685,7 @@ public class ApiController {
         duration, //
         minDuration, //
         maxDuration, //
+        responded, //
         offset, // long offset,
         count // long count)
     ).map(x -> innexgoService.fillSessionRequestResponse(x));
@@ -1709,6 +1710,7 @@ public class ApiController {
       @RequestParam(required = false) Long minDuration, //
       @RequestParam(required = false) Long maxDuration, //
       @RequestParam(required = false) Boolean responded, //
+      @RequestParam(required = false) Boolean fromRequestResponse, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -1736,6 +1738,7 @@ public class ApiController {
         minDuration, //
         maxDuration, //
         responded, //
+        fromRequestResponse, //
         offset, // long offset,
         count // long count)
     ).map(x -> innexgoService.fillCommittment(x));

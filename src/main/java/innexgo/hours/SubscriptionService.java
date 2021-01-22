@@ -86,7 +86,7 @@ public class SubscriptionService {
 
     String sql=
       "SELECT s.* FROM subscription s"
-        + (!onlyRecent ? "" : " INNER JOIN (SELECT max(subscription_id) id FROM subscription GROUP BY user_id) maxids ON maxids.id = s.subscription_id")
+        + (!onlyRecent ? "" : " INNER JOIN (SELECT max(subscription_id) id FROM subscription GROUP BY creator_user_id) maxids ON maxids.id = s.subscription_id")
         + " WHERE 1=1 "
         + (subscriptionId  == null ? "" : " AND s.subscription_id = " + subscriptionId)
         + (creatorUserId   == null ? "" : " AND s.creator_user_id = " + creatorUserId)
