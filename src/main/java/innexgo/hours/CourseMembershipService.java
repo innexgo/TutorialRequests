@@ -177,32 +177,35 @@ public class CourseMembershipService {
   }
 
 
- // TODO we could probably make this interface neater, but it works for now
-
-
-  List<CourseMembership> getRecentMemberships(long userId, long courseId) {
+  CourseMembership getByUserIdCourseId(long userId, long courseId) {
    String sql = "SELECT cm.* FROM course_membership cm" +
    " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids ON maxids.id = cm.course_membership_id" +
      " WHERE 1=1 " +
      (" AND cm.user_id = " + userId) +
      (" AND cm.course_id = " + courseId);
     RowMapper<CourseMembership> rowMapper = new CourseMembershipRowMapper();
-    return this.jdbcTemplate.query(sql, rowMapper);
+    List<CourseMembership> courseMemberships =  this.jdbcTemplate.query(sql, rowMapper);
+
+    if(courseMemberships.size() == 0) {
+        return null;
+    } else {
+        return courseMemberships.get(0) ;
+    }
   }
 
   public boolean isInstructor(long userId, long courseId) {
-    List<CourseMembership> courseMemberships =  getRecentMemberships(userId, courseId);
-    if(courseMemberships.size() == 0) {
+    CourseMembership cm=  getByUserIdCourseId(userId, courseId);
+    if(cm == null) {
         return false;
     }
-    return courseMemberships.get(0).courseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+    return cm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR;
   }
 
   public boolean isStudent(long userId, long courseId) {
-    List<CourseMembership> courseMemberships =  getRecentMemberships(userId, courseId);
-    if(courseMemberships.size() == 0) {
+    CourseMembership cm=  getByUserIdCourseId(userId, courseId);
+    if(cm == null) {
         return false;
     }
-    return courseMemberships.get(0).courseMembershipKind == CourseMembershipKind.STUDENT;
+    return cm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR;
   }
 }

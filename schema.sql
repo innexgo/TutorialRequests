@@ -200,7 +200,7 @@ create table session_request_response(
   creator_user_id integer not null,
   message varchar(100) not null,
   accepted integer not null, -- boolean
-  accepted_committment_id integer not null -- only valid if accepted == true
+  committment_id integer not null -- only valid if accepted == true
 );
 
 -- a committment to attend a course session

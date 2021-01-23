@@ -45,8 +45,8 @@ public class SessionRequestResponseService {
     jdbcTemplate.update(
         sql,
         sessionRequestResponse.sessionRequestId,
-        sessionRequestResponse.creatorUserId,
         sessionRequestResponse.creationTime,
+        sessionRequestResponse.creatorUserId,
         sessionRequestResponse.message,
         sessionRequestResponse.accepted,
         sessionRequestResponse.committmentId);
@@ -92,7 +92,7 @@ public class SessionRequestResponseService {
     String sql =
         "SELECT srr.* FROM session_request_response srr"
             + (nojoinsr ? "" : " JOIN session_request sr ON sr.session_request_id = srr.session_request_id")
-            + (nojoincr ? "" : " LEFT JOIN committment_response cr ON srr.accepted AND cr.committment_id = srr.accepted_committment_id")
+            + (nojoincr ? "" : " LEFT JOIN committment_response cr ON srr.accepted AND cr.committment_id = srr.committment_id")
             + " WHERE 1=1 "
             + (sessionRequestId == null ? "" : " AND srr.session_request_id = " + sessionRequestId)
             + (creatorUserId    == null ? "" : " AND srr.creator_user_id = " + creatorUserId)
@@ -101,7 +101,7 @@ public class SessionRequestResponseService {
             + (maxCreationTime  == null ? "" : " AND srr.creation_time < " + maxCreationTime)
             + (message          == null ? "" : " AND srr.message = " + Utils.escape(message))
             + (accepted         == null ? "" : " AND srr.accepted = " + accepted)
-            + (committmentId    == null ? "" : " AND srr.accepted_committment_id= " + committmentId)
+            + (committmentId    == null ? "" : " AND srr.committment_id= " + committmentId)
             + (attendeeUserId   == null ? "" : " AND sr.attendee_user_id = " + attendeeUserId)
             + (courseId         == null ? "" : " AND sr.course_id = " + courseId)
             + (startTime        == null ? "" : " AND sr.start_time = " + startTime)

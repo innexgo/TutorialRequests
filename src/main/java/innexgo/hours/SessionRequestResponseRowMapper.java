@@ -32,7 +32,7 @@ public class SessionRequestResponseRowMapper implements RowMapper<SessionRequest
     sessionRequestResponse.creatorUserId= row.getLong("creator_user_id");
     sessionRequestResponse.message = row.getString("message");
     sessionRequestResponse.accepted = row.getBoolean("accepted");
-    sessionRequestResponse.committmentId= row.getLong("accepted_committment_id");
+    sessionRequestResponse.committmentId= row.getLong("committment_id");
     return sessionRequestResponse;
   }
 }

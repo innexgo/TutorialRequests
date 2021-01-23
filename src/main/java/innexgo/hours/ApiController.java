@@ -403,13 +403,12 @@ public class ApiController {
     Subscription subscription = new Subscription();
     subscription.creationTime = System.currentTimeMillis();
     subscription.creatorUserId = key.creatorUserId;
-    subscription.subscriptionKind= subscriptionKind;
+    subscription.subscriptionKind = subscriptionKind;
     subscription.maxUses = 1;
     subscriptionService.add(subscription);
 
     return new ResponseEntity<>(innexgoService.fillSubscription(subscription), HttpStatus.OK);
   }
-
 
   @RequestMapping("/course/new/")
   public ResponseEntity<?> newCourse( //
@@ -578,10 +577,22 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    // prevent removing the last instructor of a course (and orphaning it)
-    if (courseMembershipKind == CourseMembershipKind.CANCEL && courseMembershipService.numInstructors(courseId) <= 1
-        && courseMembershipService.isInstructor(userId, courseId)) {
-      return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
+    // user course membership
+    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(userId,courseId) ;
+    if (ucm != null && ucm.courseMembershipKind != CourseMembershipKind.CANCEL) {
+      switch (courseMembershipKind) {
+        case STUDENT:
+        case INSTRUCTOR: {
+          return Errors.COURSE_MEMBERSHIP_EXISTENT.getResponse();
+        }
+        case CANCEL: {
+          // prevent removing the last instructor of a course (and orphaning it)
+          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR &&
+              courseMembershipService.numInstructors(courseId) <= 1) {
+            return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
+          }
+        }
+      }
     }
 
     CourseMembership cm = new CourseMembership();
@@ -620,11 +631,22 @@ public class ApiController {
       return Errors.COURSE_KEY_USED.getResponse();
     }
 
-    // prevent removing the last instructor of a course (and orphaning it)
-    if (ck.courseMembershipKind == CourseMembershipKind.CANCEL
-        && courseMembershipService.numInstructors(ck.courseId) <= 1
-        && courseMembershipService.isInstructor(key.creatorUserId, ck.courseId)) {
-      return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
+    // user course membership
+    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(key.creatorUserId, ck.courseId) ;
+    if (ucm != null && ucm.courseMembershipKind != CourseMembershipKind.CANCEL) {
+      switch (ck.courseMembershipKind) {
+        case STUDENT:
+        case INSTRUCTOR: {
+          return Errors.COURSE_MEMBERSHIP_EXISTENT.getResponse();
+        }
+        case CANCEL: {
+          // prevent removing the last instructor of a course (and orphaning it)
+          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR &&
+              courseMembershipService.numInstructors(ck.courseId) <= 1) {
+            return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
+          }
+        }
+      }
     }
 
     CourseMembership cm = new CourseMembership();
@@ -651,13 +673,13 @@ public class ApiController {
 
     // check if user has a valid subscription perms
     Subscription subscription = subscriptionService.getSubscriptionByUserId(key.creatorUserId);
-    if(subscription == null || subscription.subscriptionKind == SubscriptionKind.CANCEL) {
+    if (subscription == null || subscription.subscriptionKind == SubscriptionKind.CANCEL) {
       return Errors.SUBSCRIPTION_NONEXISTENT.getResponse();
     }
 
     // check number of schools in subscription to verify that they have perms
-    if(adminshipService.numSubscriptionUses(key.creatorUserId) >= subscription.maxUses) {
-        return Errors.SUBSCRIPTION_LIMITED.getResponse();
+    if (adminshipService.numSubscriptionUses(key.creatorUserId) >= subscription.maxUses) {
+      return Errors.SUBSCRIPTION_LIMITED.getResponse();
     }
 
     School school = new School();
@@ -733,9 +755,10 @@ public class ApiController {
     // a adminship may be only be dealt with by an Administrator at that school
     AdminshipRequest ar = adminshipRequestService.getByAdminshipRequestId(adminshipRequestId);
     if (!adminshipService.isAdmin(key.creatorUserId, ar.schoolId)) { //
-      // an exception is if the creator is rejecting his own appointment (cancelling the request)
-      if(ar.creatorUserId == key.creatorUserId && !accept) {
-        // don't exit early 
+      // an exception is if the creator is rejecting his own appointment (cancelling
+      // the request)
+      if (ar.creatorUserId == key.creatorUserId && !accept) {
+        // don't exit early
       } else {
         // unauthorized
         return Errors.API_KEY_UNAUTHORIZED.getResponse();
@@ -804,27 +827,26 @@ public class ApiController {
     }
 
     // check that adminship request response exists
-    AdminshipRequestResponse arr = adminshipRequestResponseService.getByAdminshipRequestId(adminshipRequestResponseId) ;
+    AdminshipRequestResponse arr = adminshipRequestResponseService.getByAdminshipRequestId(adminshipRequestResponseId);
     if (arr == null) {
       return Errors.ADMINSHIP_REQUEST_RESPONSE_NONEXISTENT.getResponse();
     }
 
     // check that it was the same person who made it
-    AdminshipRequest ar = adminshipRequestService
-      .getByAdminshipRequestId(adminshipRequestResponseId) ;
-    if(ar.creatorUserId != key.creatorUserId) {
-        return Errors.ADMINSHIP_REQUEST_RESPONSE_CANNOT_USE_OTHERS.getResponse();
+    AdminshipRequest ar = adminshipRequestService.getByAdminshipRequestId(adminshipRequestResponseId);
+    if (ar.creatorUserId != key.creatorUserId) {
+      return Errors.ADMINSHIP_REQUEST_RESPONSE_CANNOT_USE_OTHERS.getResponse();
     }
 
     // check creator's subscription perms
     Subscription subscription = subscriptionService.getSubscriptionByUserId(key.creatorUserId);
-    if(subscription == null || subscription.subscriptionKind == SubscriptionKind.CANCEL) {
+    if (subscription == null || subscription.subscriptionKind == SubscriptionKind.CANCEL) {
       return Errors.SUBSCRIPTION_NONEXISTENT.getResponse();
     }
 
     // check number of schools in subscription to verify that they have perms
-    if(adminshipService.numSubscriptionUses(key.creatorUserId) >= subscription.maxUses) {
-        return Errors.SUBSCRIPTION_LIMITED.getResponse();
+    if (adminshipService.numSubscriptionUses(key.creatorUserId) >= subscription.maxUses) {
+      return Errors.SUBSCRIPTION_LIMITED.getResponse();
     }
 
     // give adminship
@@ -1421,17 +1443,12 @@ public class ApiController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-
   @RequestMapping("/adminshipRequest/")
   public ResponseEntity<?> viewAdminshipRequest( //
-      @RequestParam(required = false) Long adminshipRequestId,
-      @RequestParam(required = false) Long creationTime,
-      @RequestParam(required = false) Long minCreationTime,
-      @RequestParam(required = false) Long maxCreationTime,
-      @RequestParam(required = false) Long creatorUserId,
-      @RequestParam(required = false) Long schoolId,
-      @RequestParam(required = false) String message,
-      @RequestParam(required = false) Boolean responded,
+      @RequestParam(required = false) Long adminshipRequestId, @RequestParam(required = false) Long creationTime,
+      @RequestParam(required = false) Long minCreationTime, @RequestParam(required = false) Long maxCreationTime,
+      @RequestParam(required = false) Long creatorUserId, @RequestParam(required = false) Long schoolId,
+      @RequestParam(required = false) String message, @RequestParam(required = false) Boolean responded,
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
