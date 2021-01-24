@@ -206,6 +206,6 @@ public class CourseMembershipService {
     if(cm == null) {
         return false;
     }
-    return cm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR;
+    return cm.courseMembershipKind == CourseMembershipKind.STUDENT;
   }
 }

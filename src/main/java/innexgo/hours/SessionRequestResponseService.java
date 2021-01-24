@@ -40,6 +40,7 @@ public class SessionRequestResponseService {
   }
 
   public void add(SessionRequestResponse sessionRequestResponse) {
+    sessionRequestResponse.creationTime = System.currentTimeMillis();
     String sql =
         "INSERT INTO session_request_response values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
