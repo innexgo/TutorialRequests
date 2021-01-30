@@ -51,7 +51,6 @@ public class ApiKeyService {
     }
   }
 
-
   public void add(ApiKey apiKey) {
     apiKey.creationTime= System.currentTimeMillis();
     apiKey.apiKeyId = nextId();

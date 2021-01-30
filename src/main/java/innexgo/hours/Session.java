@@ -23,15 +23,9 @@ public class Session {
   public long creationTime;
   long creatorUserId;
   long courseId;
-  long locationId;
-  public String name;
-  public long startTime;
-  public long duration;
-  public boolean hidden;
 
   // for jackson
   public User creator;
   public Course course;
-  public Location location;
 }
 

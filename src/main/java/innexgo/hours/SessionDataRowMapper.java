@@ -22,15 +22,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 
-public class SessionRowMapper implements RowMapper<Session> {
+public class SessionDataRowMapper implements RowMapper<SessionData> {
 
   @Override
-  public Session mapRow(ResultSet row, int rowNum) throws SQLException {
-    Session session = new Session();
-    session.sessionId = row.getLong("session_id");
-    session.creationTime = row.getLong("creation_time");
-    session.creatorUserId = row.getLong("creator_user_id");
-    session.courseId = row.getLong("course_id");
-    return session;
+  public SessionData mapRow(ResultSet row, int rowNum) throws SQLException {
+    SessionData sessionData = new SessionData();
+    sessionData.sessionDataId = row.getLong("session_data_id");
+    sessionData.creationTime = row.getLong("creation_time");
+    sessionData.creatorUserId = row.getLong("creator_user_id");
+    sessionData.sessionId = row.getLong("session_id");
+    sessionData.name = row.getString("name");
+    sessionData.startTime = row.getLong("start_time");
+    sessionData.duration = row.getLong("duration");
+    sessionData.hidden= row.getBoolean("hidden");
+    sessionData.active= row.getBoolean("active");
+    return sessionData;
   }
 }

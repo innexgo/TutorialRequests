@@ -34,7 +34,6 @@ public class LocationRowMapper implements RowMapper<Location> {
     location.schoolId = row.getLong("school_id");
     location.name = row.getString("name");
     location.description = row.getString("description");
-    location.valid= row.getBoolean("valid");
     return location;
   }
 }

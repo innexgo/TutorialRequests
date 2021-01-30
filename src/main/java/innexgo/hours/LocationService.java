@@ -54,7 +54,7 @@ public class LocationService {
   public void add(Location location) {
     location.locationId = nextId();
     // Add location
-    String sql = "INSERT INTO location values (?,?,?,?,?,?,?)";
+    String sql = "INSERT INTO location values (?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         location.locationId,
@@ -62,8 +62,7 @@ public class LocationService {
         location.creatorUserId,
         location.schoolId,
         location.name,
-        location.description,
-        location.valid);
+        location.description);
   }
 
   public boolean existsByLocationId(long locationId) {
@@ -82,7 +81,6 @@ public class LocationService {
      String name, //
      String partialName, //
      String description, //
-     Boolean valid, //
      long offset, //
      long count) //
  {
@@ -99,7 +97,6 @@ public class LocationService {
         + (name            == null ? "" : " AND l.name = " + Utils.escape(name))
         + (partialName     == null ? "" : " AND l.name LIKE " + Utils.escape("%"+partialName+"%"))
         + (description     == null ? "" : " AND l.description = " + Utils.escape(description))
-        + (valid           == null ? "" : " AND l.valid = " + valid)
         + (" ORDER BY l.location_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";

@@ -30,7 +30,6 @@ public class SchoolRowMapper implements RowMapper<School> {
     school.schoolId = row.getLong("school_id");
     school.creationTime = row.getLong("creation_time");
     school.creatorUserId = row.getLong("creator_user_id");
-    school.name = row.getString("name");
     school.whole = row.getBoolean("whole");
     return school;
   }

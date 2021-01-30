@@ -18,7 +18,6 @@
 
 package innexgo.hours;
 
-import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -56,26 +55,13 @@ public class SessionService {
     session.sessionId = nextId();
     // Add session
     String sql =
-        "INSERT INTO session values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO session values (?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         session.sessionId,
         session.creationTime,
         session.creatorUserId,
-        session.courseId,
-        session.locationId,
-        session.name,
-        session.startTime,
-        session.duration,
-        session.hidden
-    );
-  }
-
-  public Session deleteBySessionId(long sessionId) {
-    Session session = getBySessionId(sessionId);
-    String sql = "DELETE FROM session ses WHERE ses.session_id=?";
-    jdbcTemplate.update(sql, sessionId);
-    return session;
+        session.courseId);
   }
 
   public boolean existsBySessionId(long sessionId) {
@@ -92,16 +78,6 @@ public class SessionService {
       Long maxCreationTime,
       Long creatorUserId,
       Long courseId,
-      Long locationId,
-      String name,
-      String partialName,
-      Long startTime,
-      Long minStartTime,
-      Long maxStartTime,
-      Long duration,
-      Long minDuration,
-      Long maxDuration,
-      Boolean hidden,
       long offset,
       long count) {
     String sql =
@@ -113,16 +89,6 @@ public class SessionService {
             + (maxCreationTime == null ? "" : " AND ses.creation_time < " + maxCreationTime)
             + (creatorUserId   == null ? "" : " AND ses.creator_id = " + creatorUserId)
             + (courseId        == null ? "" : " AND ses.course_id = " + courseId)
-            + (locationId      == null ? "" : " AND ses.location_id = " + locationId)
-            + (name            == null ? "" : " AND ses.name = " + Utils.escape(name))
-            + (partialName     == null ? "" : " AND ses.name LIKE " + Utils.escape("%"+partialName+"%"))
-            + (startTime       == null ? "" : " AND ses.start_time = " + startTime)
-            + (minStartTime    == null ? "" : " AND ses.start_time > " + minStartTime)
-            + (maxStartTime    == null ? "" : " AND ses.start_time < " + maxStartTime)
-            + (duration        == null ? "" : " AND ses.duration = " + duration)
-            + (minDuration     == null ? "" : " AND ses.duration > " + minDuration)
-            + (maxDuration     == null ? "" : " AND ses.duration < " + maxDuration)
-            + (hidden          == null ? "" : " AND ses.hidden = " + hidden)
             + (" ORDER BY ses.session_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

@@ -18,12 +18,19 @@
 
 package innexgo.hours;
 
-public class School {
-  public long schoolId;
+public class SessionData {
+  public long sessionDataId;
   public long creationTime;
   long creatorUserId;
-  public boolean whole;
+  long sessionId;
+  public String name;
+  public long startTime;
+  public long duration;
+  public boolean hidden;
+  public boolean active;
 
   // for jackson
   public User creator;
+  public Session session;
 }
+

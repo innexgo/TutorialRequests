@@ -1,3 +1,4 @@
+
 /*
  * Innexgo Website
  * Copyright (C) 2020 Innexgo LLC
@@ -18,12 +19,16 @@
 
 package innexgo.hours;
 
-public class School {
-  public long schoolId;
+public class CourseData {
+  public long courseDataId;
   public long creationTime;
   long creatorUserId;
-  public boolean whole;
+  long courseId;
+  public String name;
+  public String description;
+  public boolean active;
 
   // for jackson
   public User creator;
+  public Course course;
 }

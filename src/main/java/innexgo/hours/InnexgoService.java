@@ -17,7 +17,11 @@ public class InnexgoService {
   @Autowired
   SchoolService schoolService;
   @Autowired
+  SchoolDataService schoolDataService;
+  @Autowired
   CourseService courseService;
+  @Autowired
+  CourseDataService courseDataService;
   @Autowired
   CourseKeyService courseKeyService;
   @Autowired
@@ -28,6 +32,8 @@ public class InnexgoService {
   UserService userService;
   @Autowired
   SessionService sessionService;
+  @Autowired
+  SessionDataService sessionDataService;
   @Autowired
   SessionRequestService sessionRequestService;
   @Autowired
@@ -91,6 +97,18 @@ public class InnexgoService {
   }
 
   /**
+   * Fills in jackson objects for SchoolData
+   *
+   * @param schoolData - SchoolData object
+   * @return SchoolData object with filled jackson objects
+   */
+  SchoolData fillSchoolData(SchoolData schoolData) {
+    schoolData.creator = fillUser(userService.getByUserId(schoolData.creatorUserId));
+    schoolData.school = fillSchool(schoolService.getBySchoolId(schoolData.schoolId));
+    return schoolData;
+  }
+
+  /**
    * Fills in jackson objects for PasswordReset
    *
    * @param passwordReset - PasswordReset object
@@ -146,6 +164,18 @@ public class InnexgoService {
     course.creator = fillUser(userService.getByUserId(course.creatorUserId));
     course.school = fillSchool(schoolService.getBySchoolId(course.schoolId));
     return course;
+  }
+
+  /**
+   * Fills in jackson objects for Course
+   *
+   * @param course - Course object
+   * @return Course object with filled jackson objects
+   */
+  CourseData fillCourseData(CourseData courseData) {
+    courseData.creator = fillUser(userService.getByUserId(courseData.creatorUserId));
+    courseData.course = fillCourse(courseService.getByCourseId(courseData.courseId));
+    return courseData;
   }
 
   /**
@@ -272,8 +302,19 @@ public class InnexgoService {
   Session fillSession(Session session) {
     session.creator = fillUser(userService.getByUserId(session.creatorUserId));
     session.course = fillCourse(courseService.getByCourseId(session.courseId));
-    session.location = fillLocation(locationService.getByLocationId(session.locationId));
     return session;
+  }
+
+  /**
+   * Fills in jackson objects for SessionData
+   *
+   * @param sessionData - SessionData object
+   * @return SessionData object with recursively filled jackson objects
+   */
+  SessionData fillSessionData(SessionData sessionData) {
+    sessionData.creator = fillUser(userService.getByUserId(sessionData.creatorUserId));
+    sessionData.session = fillSession(sessionService.getBySessionId(sessionData.sessionId));
+    return sessionData;
   }
 
   /**

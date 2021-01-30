@@ -54,16 +54,13 @@ public class CourseService {
   public void add(Course course) {
     course.courseId = nextId();
     // Add course
-    String sql = "INSERT INTO course values (?,?,?,?,?,?)";
+    String sql = "INSERT INTO course values (?, ?, ?, ?)";
     jdbcTemplate.update( //
         sql, //
         course.courseId, //
         course.creationTime, //
         course.creatorUserId, //
-        course.schoolId, //
-        course.name, //
-        course.description //
-    );
+        course.schoolId);
   }
 
  public Stream<Course> query( //
@@ -73,9 +70,6 @@ public class CourseService {
      Long maxCreationTime, //
      Long creatorUserId, //
      Long schoolId, //
-     String name, //
-     String partialName, //
-     String description, //
      long offset, //
      long count) //
  {
@@ -89,9 +83,6 @@ public class CourseService {
         + (maxCreationTime   == null ? "" : " AND c.creation_time < " + maxCreationTime)
         + (creatorUserId     == null ? "" : " AND c.creator_user_id = " + creatorUserId)
         + (schoolId          == null ? "" : " AND c.school_id = " + schoolId)
-        + (name              == null ? "" : " AND c.name = " + Utils.escape(name))
-        + (partialName       == null ? "" : " AND c.name LIKE " + Utils.escape("%"+partialName+"%"))
-        + (description       == null ? "" : " AND c.description = " + Utils.escape(description))
         + (" ORDER BY c.course_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";

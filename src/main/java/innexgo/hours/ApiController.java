@@ -46,6 +46,8 @@ public class ApiController {
   @Autowired
   SessionService sessionService;
   @Autowired
+  SessionDataService sessionDataService;
+  @Autowired
   SessionRequestService sessionRequestService;
   @Autowired
   SessionRequestResponseService sessionRequestResponseService;
@@ -53,6 +55,8 @@ public class ApiController {
   CommittmentService committmentService;
   @Autowired
   SchoolService schoolService;
+  @Autowired
+  SchoolDataService schoolDataService;
   @Autowired
   LocationService locationService;
   @Autowired
@@ -75,6 +79,8 @@ public class ApiController {
   CourseKeyService courseKeyService;
   @Autowired
   CourseService courseService;
+  @Autowired
+  CourseDataService courseDataService;
   @Autowired
   CourseMembershipService courseMembershipService;
   @Autowired
@@ -423,7 +429,7 @@ public class ApiController {
 
     // check that school exists
     if (!schoolService.existsBySchoolId(schoolId)) {
-      return Errors.USER_NONEXISTENT.getResponse();
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
     }
 
     // if so check if key creator is admin
@@ -436,9 +442,16 @@ public class ApiController {
     course.creationTime = System.currentTimeMillis();
     course.creatorUserId = key.creatorUserId;
     course.schoolId = schoolId;
-    course.name = name;
-    course.description = description;
     courseService.add(course);
+
+    CourseData courseData = new CourseData();
+    courseData.creationTime = System.currentTimeMillis();
+    courseData.creatorUserId = key.creatorUserId;
+    courseData.courseId = course.courseId;
+    courseData.name = name;
+    courseData.description = description;
+    courseData.active = true;
+    courseDataService.add(courseData);
 
     // creating the course should give the creator a course membership, which they
     // can later discharge if necessary
@@ -453,6 +466,42 @@ public class ApiController {
     courseMembershipService.add(courseMembership);
 
     return new ResponseEntity<>(innexgoService.fillCourse(course), HttpStatus.OK);
+  }
+
+  @RequestMapping("/courseData/new/")
+  public ResponseEntity<?> newCourseData( //
+      @RequestParam long courseId, //
+      @RequestParam String name, //
+      @RequestParam String description, //
+      @RequestParam boolean active, //
+      @RequestParam String apiKey //
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that course exists
+    if (courseService.getByCourseId(courseId) == null) {
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // if so check if key creator is admin
+    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, courseId);
+    if (!creatorAdmin) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    CourseData courseData = new CourseData();
+    courseData.creationTime = System.currentTimeMillis();
+    courseData.creatorUserId = key.creatorUserId;
+    courseData.courseId = courseId;
+    courseData.name = name;
+    courseData.description = description;
+    courseData.active = active;
+    courseDataService.add(courseData);
+
+    return new ResponseEntity<>(innexgoService.fillCourseData(courseData), HttpStatus.OK);
   }
 
   // This method enables signing in with a password on courses
@@ -578,7 +627,7 @@ public class ApiController {
     }
 
     // user course membership
-    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(userId,courseId) ;
+    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(userId, courseId);
     if (ucm != null && ucm.courseMembershipKind != CourseMembershipKind.CANCEL) {
       switch (courseMembershipKind) {
         case STUDENT:
@@ -587,8 +636,8 @@ public class ApiController {
         }
         case CANCEL: {
           // prevent removing the last instructor of a course (and orphaning it)
-          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR &&
-              courseMembershipService.numInstructors(courseId) <= 1) {
+          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
+              && courseMembershipService.numInstructors(courseId) <= 1) {
             return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
           }
         }
@@ -632,7 +681,7 @@ public class ApiController {
     }
 
     // user course membership
-    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(key.creatorUserId, ck.courseId) ;
+    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(key.creatorUserId, ck.courseId);
     if (ucm != null && ucm.courseMembershipKind != CourseMembershipKind.CANCEL) {
       switch (ck.courseMembershipKind) {
         case STUDENT:
@@ -641,8 +690,8 @@ public class ApiController {
         }
         case CANCEL: {
           // prevent removing the last instructor of a course (and orphaning it)
-          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR &&
-              courseMembershipService.numInstructors(ck.courseId) <= 1) {
+          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
+              && courseMembershipService.numInstructors(ck.courseId) <= 1) {
             return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
           }
         }
@@ -664,6 +713,7 @@ public class ApiController {
   @RequestMapping("/school/new/")
   public ResponseEntity<?> newSchool( //
       @RequestParam String name, //
+      @RequestParam String description, //
       @RequestParam boolean whole, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
@@ -685,9 +735,17 @@ public class ApiController {
     School school = new School();
     school.creationTime = System.currentTimeMillis();
     school.creatorUserId = key.creatorUserId;
-    school.name = name;
     school.whole = whole;
     schoolService.add(school);
+
+    SchoolData schoolData = new SchoolData();
+    schoolData.creationTime = System.currentTimeMillis();
+    schoolData.creatorUserId = key.creatorUserId;
+    schoolData.schoolId = school.schoolId;
+    schoolData.name = name;
+    schoolData.description = description;
+    schoolData.active = true;
+    schoolDataService.add(schoolData);
 
     // creating the school should give the creator an adminship, which they
     // can later discharge if necessary
@@ -701,6 +759,42 @@ public class ApiController {
     adminship.adminshipRequestResponseId = 55555555; // doesnt matter
     adminshipService.add(adminship);
     return new ResponseEntity<>(innexgoService.fillSchool(school), HttpStatus.OK);
+  }
+
+  @RequestMapping("/schoolData/new/")
+  public ResponseEntity<?> newSchoolData( //
+      @RequestParam long schoolId, //
+      @RequestParam String name, //
+      @RequestParam String description, //
+      @RequestParam boolean active, //
+      @RequestParam String apiKey //
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that school exists
+    if (!schoolService.existsBySchoolId(schoolId)) {
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // if so check if key creator is admin
+    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, schoolId);
+    if (!creatorAdmin) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    SchoolData schoolData = new SchoolData();
+    schoolData.creationTime = System.currentTimeMillis();
+    schoolData.creatorUserId = key.creatorUserId;
+    schoolData.schoolId = schoolId;
+    schoolData.name = name;
+    schoolData.description = description;
+    schoolData.active = active;
+    schoolDataService.add(schoolData);
+
+    return new ResponseEntity<>(innexgoService.fillSchoolData(schoolData), HttpStatus.OK);
   }
 
   @RequestMapping("/adminshipRequest/new/")
@@ -866,7 +960,6 @@ public class ApiController {
   public ResponseEntity<?> newSession( //
       @RequestParam String name, //
       @RequestParam long courseId, //
-      @RequestParam long locationId, //
       @RequestParam long startTime, //
       @RequestParam long duration, //
       @RequestParam boolean hidden, //
@@ -881,14 +974,14 @@ public class ApiController {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
-    Location location = locationService.getByLocationId(locationId);
-    if (location == null) {
-      return Errors.LOCATION_NONEXISTENT.getResponse();
-    }
+    // Location location = locationService.getByLocationId(locationId);
+    // if (location == null) {
+    //   return Errors.LOCATION_NONEXISTENT.getResponse();
+    // }
 
-    // TODO a working permissioning system + figure out what to do with location
+    // // TODO a working permissioning system + figure out what to do with location
     // if (location.schoolId != course.schoolId) {
-    // return Errors.LOCATION_NONEXISTENT.getResponse();
+    //   return Errors.LOCATION_NONEXISTENT.getResponse();
     // }
 
     if (duration < 0) {
@@ -903,16 +996,72 @@ public class ApiController {
     }
 
     Session s = new Session();
-    s.creatorUserId = key.creatorUserId;
     s.creationTime = System.currentTimeMillis();
-    s.name = name;
+    s.creatorUserId = key.creatorUserId;
     s.courseId = courseId;
-    s.locationId = locationId;
-    s.startTime = startTime;
-    s.duration = duration;
-    s.hidden = hidden;
     sessionService.add(s);
+
+    SessionData sessionData = new SessionData();
+    sessionData.creationTime = System.currentTimeMillis();
+    sessionData.creatorUserId = key.creatorUserId;
+    sessionData.sessionId = s.sessionId;
+    sessionData.name = name;
+    sessionData.startTime = startTime;
+    sessionData.duration = duration;
+    sessionData.hidden = hidden;
+    sessionData.active = true;
+    sessionDataService.add(sessionData);
+
     return new ResponseEntity<>(innexgoService.fillSession(s), HttpStatus.OK);
+  }
+
+  @RequestMapping("/sessionData/new/")
+  public ResponseEntity<?> newSessionData( //
+      @RequestParam long sessionId, //
+      @RequestParam String name, //
+      @RequestParam long startTime, //
+      @RequestParam long duration, //
+      @RequestParam boolean hidden, //
+      @RequestParam boolean active, //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    if (duration < 0) {
+      return Errors.NEGATIVE_DURATION.getResponse();
+    }
+
+    Session session = sessionService.getBySessionId(sessionId);
+    if (session == null) {
+      return Errors.SESSION_NONEXISTENT.getResponse();
+    }
+
+    Course course = courseService.getByCourseId(session.courseId);
+    if (course == null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check if the creator is an admin of this course's school or a teacher of this
+    // course
+    if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
+        && !courseMembershipService.isInstructor(key.creatorUserId, session.courseId)) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    SessionData sessionData = new SessionData();
+    sessionData.creationTime = System.currentTimeMillis();
+    sessionData.creatorUserId = key.creatorUserId;
+    sessionData.sessionId = sessionId;
+    sessionData.name = name;
+    sessionData.startTime = startTime;
+    sessionData.duration = duration;
+    sessionData.hidden = hidden;
+    sessionData.active = active;
+    sessionDataService.add(sessionData);
+
+    return new ResponseEntity<>(innexgoService.fillSessionData(sessionData), HttpStatus.OK);
   }
 
   @RequestMapping("/sessionRequest/new/")

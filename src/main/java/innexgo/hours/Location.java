@@ -25,7 +25,6 @@ public class Location {
   long schoolId;
   public String name;
   public String description;
-  public boolean valid;
 
   // for jackson
   public User creator;

@@ -69,9 +69,20 @@ create table school(
   school_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  name varchar(100) not null,
   whole integer not null -- boolean
 );
+
+drop table if exists school_data;
+create table school_data(
+  school_data_id integer not null primary key,
+  creation_time integer not null,
+  creator_user_id integer not null,
+  school_id integer not null,
+  name varchar(100) not null,
+  description varchar(100) not null,
+  active integer not null -- boolean
+);
+  
 
 drop table if exists adminship_request; 
 create table adminship_request(
@@ -110,8 +121,7 @@ create table location(
   creator_user_id integer not null,
   school_id integer not null,
   name varchar(100) not null,
-  description varchar(100) not null,
-  valid integer not null -- boolean
+  description varchar(100) not null
 );
 
 drop table if exists course;
@@ -120,8 +130,17 @@ create table course(
   creation_time integer not null,
   creator_user_id integer not null,
   school_id integer not null,
+);
+
+drop table if exists course_data;
+create table course_data(
+  course_data_id integer not null primary key,
+  creation_time integer not null,
+  creator_user_id integer not null,
+  course_id integer not null,
   name varchar(100) not null,
-  description varchar(100) not null
+  description varchar(100) not null,
+  active varchar(100) not null -- boolean
 );
 
 -- TODO normalize this??
@@ -170,12 +189,20 @@ create table session(
   session_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  course_id integer not null,
-  location_id integer not null,
+  course_id integer not null
+);
+
+drop table if exists session_data;
+create table session_data(
+  session_data_id integer not null primary key,
+  creation_time integer not null,
+  creator_user_id integer not null,
+  session_id integer not null,
   name varchar(100) not null,
   start_time integer not null,
   duration integer not null,
-  hidden integer not null       -- boolean
+  hidden integer not null, -- boolean
+  active integer not null -- boolean
 );
 
 -- a request from a student to a course for a specific time

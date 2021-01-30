@@ -18,7 +18,6 @@
 
 package innexgo.hours;
 
-import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -54,13 +53,12 @@ public class SchoolService {
     school.schoolId = nextId();
     school.creationTime = System.currentTimeMillis();
     // Add school
-    String sql = "INSERT INTO school values (?,?,?,?,?)";
+    String sql = "INSERT INTO school values (?, ?, ?, ?)";
     jdbcTemplate.update(
         sql,
         school.schoolId,
         school.creationTime,
         school.creatorUserId,
-        school.name,
         school.whole);
   }
 

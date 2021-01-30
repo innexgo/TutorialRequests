@@ -23,8 +23,6 @@ public class Course {
   public long creationTime;
   long creatorUserId;
   long schoolId;
-  public String name;
-  public String description;
 
   // for jackson
   public User creator;

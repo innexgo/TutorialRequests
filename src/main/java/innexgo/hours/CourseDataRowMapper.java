@@ -18,12 +18,22 @@
 
 package innexgo.hours;
 
-public class School {
-  public long schoolId;
-  public long creationTime;
-  long creatorUserId;
-  public boolean whole;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.springframework.jdbc.core.RowMapper;
 
-  // for jackson
-  public User creator;
+public class CourseDataRowMapper implements RowMapper<CourseData> {
+
+  @Override
+  public CourseData mapRow(ResultSet row, int rowNum) throws SQLException {
+    CourseData courseData = new CourseData();
+    courseData.courseDataId = row.getLong("course_data_id");
+    courseData.creationTime = row.getLong("creation_time");
+    courseData.creatorUserId = row.getLong("creator_user_id");
+    courseData.courseId = row.getLong("course_id");
+    courseData.name = row.getString("name");
+    courseData.description = row.getString("description");
+    courseData.active = row.getBoolean("active");
+    return courseData;
+  }
 }

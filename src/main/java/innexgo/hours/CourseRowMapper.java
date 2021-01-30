@@ -1,4 +1,3 @@
-
 /*
  * Innexgo Website
  * Copyright (C) 2020 Innexgo LLC
@@ -32,8 +31,6 @@ public class CourseRowMapper implements RowMapper<Course> {
     course.creationTime = row.getLong("creation_time");
     course.creatorUserId = row.getLong("creator_user_id");
     course.schoolId = row.getLong("school_id");
-    course.name = row.getString("name");
-    course.description = row.getString("description");
     return course;
   }
 }
