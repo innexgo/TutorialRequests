@@ -83,14 +83,15 @@ public class CourseDataService {
      boolean onlyRecent, //
      Long schoolId,
      Long recentMemberUserId, // 
-     Long recentStudentUserId, // 
      Long recentInstructorUserId, // 
+     Long recentStudentUserId, // 
      long offset, //
      long count) //
  {
 
     boolean nojoincourse = schoolId == null;
-    boolean nojoinrecentcoursemembership = recentMemberUserId == null &&
+    boolean nojoinrecentcoursemembership =
+      recentMemberUserId == null &&
       recentStudentUserId == null &&
       recentInstructorUserId == null;
 
