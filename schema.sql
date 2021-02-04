@@ -41,6 +41,8 @@ create table user(
   verification_challenge_key_hash char(64) not null unique
 );
 
+-- TODO add user data
+
 drop table if exists subscription;
 create table subscription(
   subscription_id integer not null primary key,
@@ -129,7 +131,7 @@ create table course(
   course_id integer not null primary key,
   creation_time integer not null,
   creator_user_id integer not null,
-  school_id integer not null,
+  school_id integer not null
 );
 
 drop table if exists course_data;

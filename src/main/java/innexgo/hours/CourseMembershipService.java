@@ -84,8 +84,6 @@ public class CourseMembershipService {
      CourseMembershipKind courseMembershipKind, //
      CourseMembershipSourceKind courseMembershipSourceKind, //
      Long courseKeyId, //
-     String courseName, //
-     String partialCourseName, //
      String userName, //
      String partialUserName, //
      boolean onlyRecent,
@@ -101,13 +99,11 @@ public class CourseMembershipService {
       }
     }
 
-    boolean nojoincourse = courseName == null && partialCourseName == null;
     boolean nojoinuser = userName == null && partialUserName == null;
 
     String sql =
       "SELECT cm.* FROM course_membership cm" //
         + (!onlyRecent ? "" : " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids ON maxids.id = cm.course_membership_id") //
-        + (nojoincourse ? "" : " JOIN course c ON c.course_id = cm.course_id") //
         + (nojoinuser ? "" : " JOIN user u ON u.user_id = cm.user_id") //
         + " WHERE 1=1" //
         + (courseMembershipId         == null ? "" : " AND cm.course_membership_id = " + courseMembershipId) //
@@ -120,8 +116,6 @@ public class CourseMembershipService {
         + (courseMembershipKind       == null ? "" : " AND cm.course_membership_kind = " + courseMembershipKind.value) //
         + (courseMembershipSourceKind == null ? "" : " AND cm.course_membership_source_kind = " + courseMembershipSourceKind.value) //
         + (courseKeyId                == null ? "" : " AND cm.course_key_id = " + courseKeyId) //
-        + (courseName                 == null ? "" : " AND c.name = " + Utils.escape(courseName)) //
-        + (partialCourseName          == null ? "" : " AND c.name LIKE " + Utils.escape("%"+partialCourseName+"%")) //
         + (userName                   == null ? "" : " AND u.name = " + Utils.escape(userName)) //
         + (partialUserName            == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%")) //
         + (" ORDER BY cm.course_membership_id") //
@@ -144,8 +138,6 @@ public class CourseMembershipService {
       CourseMembershipKind.INSTRUCTOR, // CourseMembershipKind courseMembershipKind, //
       null, // CourseMembershipSourceKind courseMembershipSourceKind, //
       null, // Long courseKeyId, //
-      null, // String courseName, //
-      null, // String partialCourseName, //
       null, // String userName, //
       null, // String partialUserName, //
       true, // boolean onlyRecent,
@@ -166,8 +158,6 @@ public class CourseMembershipService {
       null, // CourseMembershipKind courseMembershipKind, //
       null, // CourseMembershipSourceKind courseMembershipSourceKind, //
       courseKeyId, // Long courseKeyId, //
-      null, // String courseName, //
-      null, // String partialCourseName, //
       null, // String userName, //
       null, // String partialUserName, //
       false, // boolean onlyRecent,

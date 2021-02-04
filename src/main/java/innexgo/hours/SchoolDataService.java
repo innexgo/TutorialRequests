@@ -84,13 +84,20 @@ public class SchoolDataService {
      String partialDescription, //
      Boolean active, //
      boolean onlyRecent, //
+     Long recentAdminUserId, //
      long offset, //
      long count) //
  {
 
+    boolean nojoinrecentadminship = recentAdminUserId == null;
+
     String sql=
       "SELECT sd.* FROM school_data sd"
         + (!onlyRecent ? "" : " INNER JOIN (SELECT max(school_data_id) id FROM school_data GROUP BY school_id) maxids ON maxids.id = sd.school_data_id")
+        // first join all adminships
+        + (nojoinrecentadminship ? "" : " INNER JOIN adminship a ON a.school_id = sd.school_id")
+        // then filter adminships based on recent
+        + (nojoinrecentadminship ? "" : " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxadminids ON maxadminids.id = a.adminship_id")
         + " WHERE 1=1 "
         + (schoolDataId       == null ? "" : " AND sd.school_data_id = " + schoolDataId)
         + (creationTime       == null ? "" : " AND sd.creation_time = " + creationTime)
@@ -103,6 +110,8 @@ public class SchoolDataService {
         + (description        == null ? "" : " AND sd.description = " + Utils.escape(description))
         + (partialDescription == null ? "" : " AND sd.description LIKE " + Utils.escape("%"+partialDescription+"%"))
         + (active             == null ? "" : " AND sd.active = " + active)
+        + (recentAdminUserId  == null ? "" : " AND a.user_id = " + recentAdminUserId)
+        + (recentAdminUserId  == null ? "" : " AND a.adminship_kind = " + AdminshipKind.ADMIN.value)
         + (" ORDER BY sd.school_data_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";

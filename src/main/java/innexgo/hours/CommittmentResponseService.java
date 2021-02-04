@@ -78,16 +78,17 @@ public class CommittmentResponseService {
      long count)
  {
     // avoid joins to save performance
-    boolean joinc = attendeeUserId != null || sessionId != null;
-    boolean joins = joinc ||
+    boolean joinsesd = 
       startTime != null || minStartTime != null || maxStartTime != null ||
-      duration != null || minDuration != null || maxDuration != null ||
+      duration != null  || minDuration != null  || maxDuration != null ||
       courseId != null;
+    boolean joinc = joinsesd || attendeeUserId != null || sessionId != null;
 
     String sql=
       "SELECT cr.* FROM committment_response cr"
-        + (!joinc ? "" : " LEFT JOIN committment c ON c.committment_id = cr.committment_id")
-        + (!joins ? "" : " LEFT JOIN session s ON s.session_id = c.session_id")
+        + (!joinc ?    "" : " INNER JOIN committment c ON c.committment_id = cr.committment_id")
+        + (!joinsesd ? "" : " INNER JOIN session_data sesd ON sesd.session_id = c.session_id")
+        + (!joinsesd ? "" : " INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id")
         + " WHERE 1=1 "
         + (committmentId          == null ? "" : " AND cr.committment_id = " + committmentId)
         + (creatorUserId          == null ? "" : " AND cr.creator_id = " + creatorUserId)
@@ -97,13 +98,13 @@ public class CommittmentResponseService {
         + (committmentResponseKind== null ? "" : " AND cr.committment_response_kind = " + committmentResponseKind.value)
         + (attendeeUserId         == null ? "" : " AND c.attendee_user_id = " + attendeeUserId)
         + (sessionId              == null ? "" : " AND c.session_id = " + sessionId)
-        + (courseId               == null ? "" : " AND s.course_id = " + courseId)
-        + (startTime              == null ? "" : " AND s.start_time = " + startTime)
-        + (minStartTime           == null ? "" : " AND s.start_time > " + minStartTime)
-        + (maxStartTime           == null ? "" : " AND s.start_time < " + maxStartTime)
-        + (duration               == null ? "" : " AND s.duration = " + duration)
-        + (minDuration            == null ? "" : " AND s.duration > " + minDuration)
-        + (maxDuration            == null ? "" : " AND s.duration < " + maxDuration)
+        + (courseId               == null ? "" : " AND sesd.course_id = " + courseId)
+        + (startTime              == null ? "" : " AND sesd.start_time = " + startTime)
+        + (minStartTime           == null ? "" : " AND sesd.start_time > " + minStartTime)
+        + (maxStartTime           == null ? "" : " AND sesd.start_time < " + maxStartTime)
+        + (duration               == null ? "" : " AND sesd.duration = " + duration)
+        + (minDuration            == null ? "" : " AND sesd.duration > " + minDuration)
+        + (maxDuration            == null ? "" : " AND sesd.duration < " + maxDuration)
         + (" ORDER BY cr.committment_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";

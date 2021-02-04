@@ -95,11 +95,16 @@ public class SessionDataService {
       Boolean hidden,
       Boolean active,
       boolean onlyRecent,
+      Long courseId,
       long offset,
       long count) {
+
+    boolean nojoinsession = courseId == null;
+
     String sql =
         "SELECT sesd.* FROM session_data sesd"
             + (!onlyRecent ? "" : " INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id")
+            + (nojoinsession ? "" : " INNER JOIN session ses ON ses.session_id = sesd.session_id")
             + " WHERE 1=1 "
             + (sessionDataId   == null ? "" : " AND sesd.session_data_id = " + sessionDataId)
             + (creationTime    == null ? "" : " AND sesd.creation_time = " + creationTime)
@@ -117,6 +122,7 @@ public class SessionDataService {
             + (maxDuration     == null ? "" : " AND sesd.duration < " + maxDuration)
             + (hidden          == null ? "" : " AND sesd.hidden = " + hidden)
             + (active          == null ? "" : " AND sesd.active = " + active)
+            + (courseId        == null ? "" : " AND ses.course_id = " + courseId)
             + (" ORDER BY sesd.session_data_id")
             + (" LIMIT " + offset + ", " + count)
             + ";";

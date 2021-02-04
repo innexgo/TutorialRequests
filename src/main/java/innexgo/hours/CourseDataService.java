@@ -81,26 +81,47 @@ public class CourseDataService {
      String partialDescription, //
      Boolean active, //
      boolean onlyRecent, //
+     Long schoolId,
+     Long recentMemberUserId, // 
+     Long recentStudentUserId, // 
+     Long recentInstructorUserId, // 
      long offset, //
      long count) //
  {
 
+    boolean nojoincourse = schoolId == null;
+    boolean nojoinrecentcoursemembership = recentMemberUserId == null &&
+      recentStudentUserId == null &&
+      recentInstructorUserId == null;
+
     String sql =
       "SELECT cd.* FROM course_data cd"
         + (!onlyRecent ? "" : " INNER JOIN (SELECT max(course_data_id) id FROM course_data GROUP BY course_id) maxids ON maxids.id = cd.course_data_id")
+        + (nojoincourse ? "" : " INNER JOIN course c ON cd.course_id = c.course_id")
+        // first join all course memberships
+        + (nojoinrecentcoursemembership ? "" : " INNER JOIN course_membership cm ON cd.course_id = cm.course_id")
+        // then only get recent ones
+        + (nojoinrecentcoursemembership ? "" : " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxcmids ON maxcmids.id = cm.course_membership_id")
         + " WHERE 1=1 "
-        + (courseDataId       == null ? "" : " AND cd.course_data_id = " + courseDataId)
-        + (creationTime       == null ? "" : " AND cd.creation_time = " + creationTime)
-        + (minCreationTime    == null ? "" : " AND cd.creation_time > " + minCreationTime)
-        + (maxCreationTime    == null ? "" : " AND cd.creation_time < " + maxCreationTime)
-        + (creatorUserId      == null ? "" : " AND cd.creator_user_id = " + creatorUserId)
-        + (courseId           == null ? "" : " AND cd.course_id = " + courseId)
-        + (name               == null ? "" : " AND cd.name = " + Utils.escape(name))
-        + (partialName        == null ? "" : " AND cd.name LIKE " + Utils.escape("%"+partialName+"%"))
-        + (description        == null ? "" : " AND cd.description = " + Utils.escape(description))
-        + (partialDescription == null ? "" : " AND cd.description LIKE " + Utils.escape("%"+partialDescription+"%"))
-        + (active             == null ? "" : " AND cd.active = " + active)
-        + (" ORDER BY c.courseData_id")
+        + (courseDataId           == null ? "" : " AND cd.course_data_id = " + courseDataId)
+        + (creationTime           == null ? "" : " AND cd.creation_time = " + creationTime)
+        + (minCreationTime        == null ? "" : " AND cd.creation_time > " + minCreationTime)
+        + (maxCreationTime        == null ? "" : " AND cd.creation_time < " + maxCreationTime)
+        + (creatorUserId          == null ? "" : " AND cd.creator_user_id = " + creatorUserId)
+        + (courseId               == null ? "" : " AND cd.course_id = " + courseId)
+        + (name                   == null ? "" : " AND cd.name = " + Utils.escape(name))
+        + (partialName            == null ? "" : " AND cd.name LIKE " + Utils.escape("%"+partialName+"%"))
+        + (description            == null ? "" : " AND cd.description = " + Utils.escape(description))
+        + (partialDescription     == null ? "" : " AND cd.description LIKE " + Utils.escape("%"+partialDescription+"%"))
+        + (active                 == null ? "" : " AND cd.active = " + active)
+        + (schoolId               == null ? "" : " AND c.school_id = " + schoolId)
+        + (recentMemberUserId     == null ? "" : " AND cm.user_id = " + recentMemberUserId)
+        + (recentMemberUserId     == null ? "" : " AND cm.course_membership_kind != " + CourseMembershipKind.CANCEL.value)
+        + (recentInstructorUserId == null ? "" : " AND cm.user_id = " + recentInstructorUserId)
+        + (recentInstructorUserId == null ? "" : " AND cm.course_membership_kind = " + CourseMembershipKind.INSTRUCTOR.value)
+        + (recentStudentUserId    == null ? "" : " AND cm.user_id = " + recentStudentUserId)
+        + (recentStudentUserId    == null ? "" : " AND cm.course_membership_kind = " + CourseMembershipKind.STUDENT.value)
+        + (" ORDER BY cd.course_data_id")
         + (" LIMIT " + offset + ", " + count)
         + ";";
 

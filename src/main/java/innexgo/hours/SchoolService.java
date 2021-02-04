@@ -74,8 +74,6 @@ public class SchoolService {
      Long minCreationTime, //
      Long maxCreationTime, //
      Long creatorUserId, //
-     String name, //
-     String partialName, //
      Boolean whole, //
      long offset, //
      long count) //
@@ -89,8 +87,6 @@ public class SchoolService {
         + (creationTime    == null ? "" : " AND s.creation_time = " + creationTime)
         + (minCreationTime == null ? "" : " AND s.creation_time > " + minCreationTime)
         + (maxCreationTime == null ? "" : " AND s.creation_time < " + maxCreationTime)
-        + (name            == null ? "" : " AND s.name = " + Utils.escape(name))
-        + (partialName     == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialName+"%"))
         + (whole           == null ? "" : " AND s.whole = " + whole)
         + (" ORDER BY s.school_id")
         + (" LIMIT " + offset + ", " + count)

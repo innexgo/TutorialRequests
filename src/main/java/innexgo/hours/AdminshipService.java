@@ -83,28 +83,23 @@ public class AdminshipService {
       AdminshipKind adminshipKind, //
       AdminshipSourceKind adminshipSourceKind, //
       Long adminshipRequestResponseId, //
-      String schoolName, //
-      String partialSchoolName, //
+      boolean onlyRecent, //
       String userName, //
       String partialUserName, //
-      boolean onlyRecent, //
       long offset, //
       long count) //
   {
 
     if(adminshipSourceKind != null && adminshipSourceKind != AdminshipSourceKind.REQUEST) {
         if(adminshipRequestResponseId != null) {
-
             return Stream.empty();
         }
     }
 
-    boolean nojoinschool = schoolName == null && partialSchoolName == null;
     boolean nojoinuser = userName == null && partialUserName == null;
 
     String sql = "SELECT a.* FROM adminship a"
         + (!onlyRecent ? "" : " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id")
-        + (nojoinschool ? "" : " JOIN school s ON s.school_id = a.school_id") //
         + (nojoinuser ? "" : " JOIN user u ON u.user_id = a.user_id") //
         + " WHERE 1=1 "
         + (adminshipId                == null ? "" : " AND a.adminship_id = " + adminshipId)
@@ -117,8 +112,6 @@ public class AdminshipService {
         + (adminshipKind              == null ? "" : " AND a.adminship_kind = " + adminshipKind.value)
         + (adminshipSourceKind        == null ? "" : " AND a.adminship_source_kind = " + adminshipSourceKind.value)
         + (adminshipRequestResponseId == null ? "" : " AND a.adminship_request_response_id= " + adminshipRequestResponseId)
-        + (schoolName                 == null ? "" : " AND s.name = " + Utils.escape(schoolName)) //
-        + (partialSchoolName          == null ? "" : " AND s.name LIKE " + Utils.escape("%"+partialSchoolName+"%")) //
         + (userName                   == null ? "" : " AND u.name = " + Utils.escape(userName)) //
         + (partialUserName            == null ? "" : " AND u.name LIKE " + Utils.escape("%"+partialUserName+"%")) //
         + (" ORDER BY a.adminship_id")
@@ -155,11 +148,9 @@ public class AdminshipService {
         AdminshipKind.ADMIN, // AdminshipKind adminshipKind, //
         null, // AdminshipSourceKind adminshipSourceKind, //
         null, // Long adminshipRequestResponseId, //
-        null, // String schoolName, //
-        null, // String partialSchoolName, //
+        true, // boolean onlyRecent, //
         null, // String userName, //
         null, // String partialUserName, //
-        true, // boolean onlyRecent, //
         0, // long offset
         Integer.MAX_VALUE // long count
     ).count();
@@ -178,11 +169,9 @@ public class AdminshipService {
         AdminshipKind.ADMIN, // AdminshipKind adminshipKind, //
         null, // AdminshipSourceKind adminshipSourceKind, //
         null, // Long adminshipRequestResponseId, //
-        null, // String schoolName, //
-        null, // String partialSchoolName, //
+        true, // boolean onlyRecent, //
         null, // String userName, //
         null, // String partialUserName, //
-        true, // boolean onlyRecent, //
         0, // long offset
         Integer.MAX_VALUE // long count
     ).count();

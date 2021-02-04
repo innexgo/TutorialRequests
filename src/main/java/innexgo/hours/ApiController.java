@@ -1329,8 +1329,6 @@ public class ApiController {
       @RequestParam(required = false) Long minCreationTime, //
       @RequestParam(required = false) Long maxCreationTime, //
       @RequestParam(required = false) Long creatorUserId, //
-      @RequestParam(required = false) String name, //
-      @RequestParam(required = false) String partialName, //
       @RequestParam(required = false) Boolean whole, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
@@ -1348,12 +1346,55 @@ public class ApiController {
         minCreationTime, //
         maxCreationTime, //
         creatorUserId, //
-        name, //
-        partialName, //
         whole, //
         offset, //
         count //
     ).map(x -> innexgoService.fillSchool(x));
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/schoolData/")
+  public ResponseEntity<?> viewSchoolData( //
+      @RequestParam(required = false) Long schoolDataId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long schoolId, //
+      @RequestParam(required = false) String name, //
+      @RequestParam(required = false) String partialName, //
+      @RequestParam(required = false) String description, //
+      @RequestParam(required = false) String partialDescription, //
+      @RequestParam(required = false) Boolean active, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
+      @RequestParam(required = false) Long recentAdminUserId, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey) //
+  {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    Stream<SchoolData> list = schoolDataService.query( //
+        schoolDataId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        creatorUserId, //
+        schoolId, //
+        name, //
+        partialName, //
+        description, //
+        partialDescription, //
+        active, //
+        onlyRecent, //
+        recentAdminUserId, //
+        offset, //
+        count //
+    ).map(x -> innexgoService.fillSchoolData(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1471,9 +1512,6 @@ public class ApiController {
       @RequestParam(required = false) Long maxCreationTime, //
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) Long schoolId, //
-      @RequestParam(required = false) String name, //
-      @RequestParam(required = false) String partialName, //
-      @RequestParam(required = false) String description, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -1491,12 +1529,60 @@ public class ApiController {
         maxCreationTime, //
         creatorUserId, //
         schoolId, //
-        name, //
-        partialName, //
-        description, //
         offset, //
         count //
     ).map(x -> innexgoService.fillCourse(x));
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/courseData/")
+  public ResponseEntity<?> viewCourseData( //
+      @RequestParam(required = false) Long courseDataId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long courseId, //
+      @RequestParam(required = false) String name, //
+      @RequestParam(required = false) String partialName, //
+      @RequestParam(required = false) String description, //
+      @RequestParam(required = false) String partialDescription, //
+      @RequestParam(required = false) Boolean active, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
+      @RequestParam(required = false) Long schoolId, //
+      @RequestParam(required = false) Long recentMemberUserId, //
+      @RequestParam(required = false) Long recentInstructorUserId, //
+      @RequestParam(required = false) Long recentStudentUserId, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey //
+  ) //
+  {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    Stream<CourseData> list = courseDataService.query( //
+        courseDataId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        creatorUserId, //
+        courseId, //
+        name, //
+        partialName, //
+        description, //
+        partialDescription, //
+        active, //
+        onlyRecent, //
+        schoolId, //
+        recentMemberUserId, //
+        recentInstructorUserId, //
+        recentStudentUserId, //
+        offset, //
+        count //
+    ).map(x -> innexgoService.fillCourseData(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1557,8 +1643,6 @@ public class ApiController {
       @RequestParam(required = false) CourseMembershipKind courseMembershipKind, //
       @RequestParam(required = false) CourseMembershipSourceKind courseMembershipSourceKind, //
       @RequestParam(required = false) Long courseKeyId, //
-      @RequestParam(required = false) String courseName, //
-      @RequestParam(required = false) String partialCourseName, //
       @RequestParam(required = false) String userName, //
       @RequestParam(required = false) String partialUserName, //
       @RequestParam(defaultValue = "false") boolean onlyRecent, //
@@ -1582,8 +1666,6 @@ public class ApiController {
         courseMembershipKind, //
         courseMembershipSourceKind, //
         courseKeyId, //
-        courseName, //
-        partialCourseName, //
         userName, //
         partialUserName, //
         onlyRecent, //
@@ -1594,10 +1676,14 @@ public class ApiController {
 
   @RequestMapping("/adminshipRequest/")
   public ResponseEntity<?> viewAdminshipRequest( //
-      @RequestParam(required = false) Long adminshipRequestId, @RequestParam(required = false) Long creationTime,
-      @RequestParam(required = false) Long minCreationTime, @RequestParam(required = false) Long maxCreationTime,
-      @RequestParam(required = false) Long creatorUserId, @RequestParam(required = false) Long schoolId,
-      @RequestParam(required = false) String message, @RequestParam(required = false) Boolean responded,
+      @RequestParam(required = false) Long adminshipRequestId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long schoolId, //
+      @RequestParam(required = false) String message, //
+      @RequestParam(required = false) Boolean responded, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
@@ -1670,11 +1756,9 @@ public class ApiController {
       @RequestParam(required = false) AdminshipKind adminshipKind, //
       @RequestParam(required = false) AdminshipSourceKind adminshipSourceKind, //
       @RequestParam(required = false) Long adminshipRequestResponseId, //
-      @RequestParam(required = false) String schoolName, //
-      @RequestParam(required = false) String partialSchoolName, //
+      @RequestParam(defaultValue = "false") boolean onlyRecent, //
       @RequestParam(required = false) String userName, //
       @RequestParam(required = false) String partialUserName, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) //
@@ -1695,11 +1779,9 @@ public class ApiController {
         adminshipKind, //
         adminshipSourceKind, //
         adminshipRequestResponseId, //
-        schoolName, //
-        partialSchoolName, //
+        onlyRecent, //
         userName, //
         partialUserName, //
-        onlyRecent, //
         offset, //
         count).map(x -> innexgoService.fillAdminship(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
@@ -1713,16 +1795,6 @@ public class ApiController {
       @RequestParam(required = false) Long maxCreationTime, //
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) Long courseId, //
-      @RequestParam(required = false) Long locationId, //
-      @RequestParam(required = false) String name, //
-      @RequestParam(required = false) String partialName, //
-      @RequestParam(required = false) Long startTime, //
-      @RequestParam(required = false) Long minStartTime, //
-      @RequestParam(required = false) Long maxStartTime, //
-      @RequestParam(required = false) Long duration, //
-      @RequestParam(required = false) Long minDuration, //
-      @RequestParam(required = false) Long maxDuration, //
-      @RequestParam(required = false) Boolean hidden, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey) {
@@ -1740,7 +1812,49 @@ public class ApiController {
         maxCreationTime, //
         creatorUserId, //
         courseId, //
-        locationId, //
+        offset, // long offset,
+        count // long count)
+    ).map(x -> innexgoService.fillSession(x));
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
+  @RequestMapping("/sessionData/")
+  public ResponseEntity<?> viewSessionData( //
+      @RequestParam(required = false) Long sessionDataId, //
+      @RequestParam(required = false) Long creationTime, //
+      @RequestParam(required = false) Long minCreationTime, //
+      @RequestParam(required = false) Long maxCreationTime, //
+      @RequestParam(required = false) Long creatorUserId, //
+      @RequestParam(required = false) Long sessionId, //
+      @RequestParam(required = false) String name, //
+      @RequestParam(required = false) String partialName, //
+      @RequestParam(required = false) Long startTime, //
+      @RequestParam(required = false) Long minStartTime, //
+      @RequestParam(required = false) Long maxStartTime, //
+      @RequestParam(required = false) Long duration, //
+      @RequestParam(required = false) Long minDuration, //
+      @RequestParam(required = false) Long maxDuration, //
+      @RequestParam(required = false) Boolean hidden, //
+      @RequestParam(required = false) Boolean active, //
+      @RequestParam(required = false) boolean onlyRecent, //
+      @RequestParam(required = false) Long courseId, //
+      @RequestParam(defaultValue = "0") long offset, //
+      @RequestParam(defaultValue = "100") long count, //
+      @RequestParam String apiKey) {
+
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+
+    if (key == null) {
+      return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    Stream<SessionData> list = sessionDataService.query(//
+        sessionDataId, //
+        creationTime, //
+        minCreationTime, //
+        maxCreationTime, //
+        creatorUserId, //
+        sessionId, //
         name, //
         partialName, //
         startTime, //
@@ -1750,11 +1864,16 @@ public class ApiController {
         minDuration, //
         maxDuration, //
         hidden, //
+        active, //
+        onlyRecent, //
+        courseId, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillSession(x));
+    ).map(x -> innexgoService.fillSessionData(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
+
+
 
   @RequestMapping("/sessionRequest/")
   public ResponseEntity<?> viewSessionRequest( //
