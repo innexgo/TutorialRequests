@@ -1,17 +1,49 @@
-# Innexgo Hours
-Innexgo Hours is a web-based office hours/tutorial appointment system that is currently in development. Our product streamlines tutorial/office hours by allowing students to 
-request appointments with their teachers and gives teachers the final say in who gets what time slots, because they know which students require more help.
+# hours Backend
 
-Innexgo Hours benefits all individuals in schools:
+This is a monolithic Java 11 service for the backend of hours. 
+This service is designed to run on posix environments. 
+It may work on Windows as well with extra setup, (see the Notes section)
 
-<li><b>Students</b> can request tutorial sessions with teachers. They can see all their approved tutorials on one screen and can schedule their homework and studies around their 
-allocated tutorial sessions.</li>
-<br>
-<li><b>Teachers</b> can see who has requested tutorial sessions, and then allocate time slots for them. Teachers can also request reports on how frequently and how much time 
-students are spending with them. This can be a helpful report during parent-teacher conferences.</li>
-<br>
-<li><b>Administrators</b> can request reports on student attendance during tutorials. Administrators can also obtain reports on teacher time spent on tutorials to see if teachers 
-need help to handle all students.</li>
+### Setup Instructions
 
-<br>
-Releases follow <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.
+1. Ensure you have the required dependencies: 
+    ```
+    bash
+    gradle
+    sqlite3
+    ```
+2. Initialize the database. 
+    ```
+    $ sqlite3 hours.db
+    ```
+
+    This brings you into the sqlite interactive shell.
+    In here, source the database by doing:
+
+    ```
+    sqlite> .read schema.sql
+    sqlite> .quit
+    ```
+
+3. You will need an AWS key as well as a few other environment variables set.
+In order to protect the security of these keys, they are kept in a seperate file called settings.sh not included here.
+This file SHOULD NOT be committed, and is purposely gitignored.
+
+
+### Run Instructions
+1. Ensure you have thoroughly followed the setup instructions.
+2. Execute the following commands to bring up the server.
+    ```
+    $ source settings.sh
+    $ ./gradlew bootrun
+    ```
+3. To kill the server, press Ctrl-C on the window.
+
+
+### Notes
+As long as you have the bash program installed, it's possible to run on Windows.
+However, Windows can often have problems with Gradle. 
+To minimize the risk of this occuring, you should run the server in WSL.
+If you recieve the folowing error: `./gradlew: 68: Syntax error: word unexpected (expecting "in")`, it means that git has automatically inserted CRLF line endings.
+Make sure autocrlf is set to false in your git settings.
+See https://stackoverflow.com/questions/10418975/how-to-change-line-ending-settings
