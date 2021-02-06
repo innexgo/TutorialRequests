@@ -1943,6 +1943,7 @@ public class ApiController {
       @RequestParam(required = false) Long minDuration, //
       @RequestParam(required = false) Long maxDuration, //
       @RequestParam(required = false) Boolean responded, //
+      @RequestParam(required = false) Long sessionId, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
       @RequestParam String apiKey //
@@ -1971,6 +1972,7 @@ public class ApiController {
         minDuration, //
         maxDuration, //
         responded, //
+        sessionId, //
         offset, // long offset,
         count // long count)
     ).map(x -> innexgoService.fillSessionRequestResponse(x));
