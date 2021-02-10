@@ -483,7 +483,7 @@ public class ApiController {
 
     // check that course exists
     if (courseService.getByCourseId(courseId) == null) {
-      return Errors.SCHOOL_NONEXISTENT.getResponse();
+      return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
     // if so check if key creator is admin
@@ -532,6 +532,13 @@ public class ApiController {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
+    // check that course isn't archived
+    CourseData courseData = courseDataService.getByCourseId(courseId);
+    if (!courseData.active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
+    }
+
+
     // check if the creator is an admin of this course's school or a teacher of this
     // course
     if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
@@ -571,11 +578,22 @@ public class ApiController {
       return Errors.COURSE_KEY_NONEXISTENT.getResponse();
     }
 
+    // check that course exists
+    Course course = courseService.getByCourseId(oldCourseKey.courseId);
+    if (course == null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check that course isn't archived
+    CourseData courseData = courseDataService.getByCourseId(course.courseId);
+    if (!courseData.active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
+    }
+
     if (courseMembershipService.isInstructor(key.creatorUserId, oldCourseKey.courseId)) {
       // this means the creator isnt an instructor
       // they could still be authorized to create the key if they are an admin, so
       // let's check that
-      Course course = courseService.getByCourseId(oldCourseKey.courseId);
       if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)) {
         // if they're not an admin either, return unauthorized
         return Errors.API_KEY_UNAUTHORIZED.getResponse();
@@ -597,6 +615,7 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillCourseKey(ck), HttpStatus.OK);
   }
 
+  // lets you cancel an existing course membership
   @RequestMapping("/courseMembership/newSet/")
   public ResponseEntity<?> newCourseMembershipSet( //
       @RequestParam long userId, //
@@ -617,6 +636,12 @@ public class ApiController {
     Course course = courseService.getByCourseId(courseId);
     if (course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check that course isn't archived
+    CourseData courseData = courseDataService.getByCourseId(courseId);
+    if (!courseData.active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
     }
 
     // check if the creator is an admin of this course's school or a teacher of this
@@ -668,6 +693,18 @@ public class ApiController {
     CourseKey ck = courseKeyService.getByCourseKey(courseKey);
     if (ck == null) {
       return Errors.COURSE_KEY_NONEXISTENT.getResponse();
+    }
+
+    // check that course exists
+    Course course = courseService.getByCourseId(ck.courseId);
+    if (course == null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check that course isn't archived
+    CourseData courseData = courseDataService.getByCourseId(course.courseId);
+    if (!courseData.active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
     }
 
     // check that course key isn't expired
@@ -811,6 +848,12 @@ public class ApiController {
       return Errors.SCHOOL_NONEXISTENT.getResponse();
     }
 
+    // check that school is unarchived
+    if (!schoolDataService.getBySchoolId(schoolId).active) {
+      return Errors.SCHOOL_ARCHIVED.getResponse();
+    }
+
+
     // creator must be an active subscriber in order to create a adminship request
     // for a school
     if (!subscriptionService.isSubscriber(key.creatorUserId)) {
@@ -842,12 +885,21 @@ public class ApiController {
       return Errors.ADMINSHIP_REQUEST_RESPONSE_EXISTENT.getResponse();
     }
 
-    if (!adminshipRequestService.existsByAdminshipRequestId(adminshipRequestId)) {
+    AdminshipRequest ar = adminshipRequestService.getByAdminshipRequestId(adminshipRequestId);
+    if (ar == null) {
       return Errors.ADMINSHIP_REQUEST_NONEXISTENT.getResponse();
     }
 
+    if (schoolService.getBySchoolId(ar.schoolId) == null) {
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // check that school is unarchived
+    if (!schoolDataService.getBySchoolId(ar.schoolId).active) {
+      return Errors.SCHOOL_ARCHIVED.getResponse();
+    }
+
     // a adminship may be only be dealt with by an Administrator at that school
-    AdminshipRequest ar = adminshipRequestService.getByAdminshipRequestId(adminshipRequestId);
     if (!adminshipService.isAdmin(key.creatorUserId, ar.schoolId)) { //
       // an exception is if the creator is rejecting his own appointment (cancelling
       // the request)
@@ -887,6 +939,11 @@ public class ApiController {
     // check that school exists
     if (!schoolService.existsBySchoolId(schoolId)) {
       return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // check that school is unarchived
+    if (!schoolDataService.getBySchoolId(schoolId).active) {
+      return Errors.SCHOOL_ARCHIVED.getResponse();
     }
 
     // check authorization
@@ -932,6 +989,16 @@ public class ApiController {
       return Errors.ADMINSHIP_REQUEST_RESPONSE_CANNOT_USE_OTHERS.getResponse();
     }
 
+    // check that school exists
+    if (!schoolService.existsBySchoolId(ar.schoolId)) {
+      return Errors.SCHOOL_NONEXISTENT.getResponse();
+    }
+
+    // check that school is unarchived
+    if (!schoolDataService.getBySchoolId(ar.schoolId).active) {
+      return Errors.SCHOOL_ARCHIVED.getResponse();
+    }
+
     // check creator's subscription perms
     Subscription subscription = subscriptionService.getSubscriptionByUserId(key.creatorUserId);
     if (subscription == null || subscription.subscriptionKind == SubscriptionKind.CANCEL) {
@@ -972,6 +1039,12 @@ public class ApiController {
     Course course = courseService.getByCourseId(courseId);
     if (course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check that course isn't archived
+    CourseData courseData = courseDataService.getByCourseId(course.courseId);
+    if (!courseData.active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
     }
 
     // Location location = locationService.getByLocationId(locationId);
@@ -1084,6 +1157,10 @@ public class ApiController {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
+    if (!courseDataService.getByCourseId(courseId).active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
+    }
+
     // creator must be a student of this course in order to create a session request
     // for it
     if (!courseMembershipService.isStudent(key.creatorUserId, courseId)) {
@@ -1117,6 +1194,7 @@ public class ApiController {
       return Errors.SESSION_REQUEST_RESPONSE_EXISTENT.getResponse();
     }
 
+
     if (!sessionRequestService.existsBySessionRequestId(sessionRequestId)) {
       return Errors.SESSION_REQUEST_NONEXISTENT.getResponse();
     }
@@ -1128,6 +1206,14 @@ public class ApiController {
         && !courseMembershipService.isInstructor(key.creatorUserId, sr.courseId) //
         && !adminshipService.isAdmin(key.creatorUserId, courseService.getByCourseId(sr.courseId).schoolId)) { //
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
+    }
+
+    if (courseService.getByCourseId(sr.courseId) == null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    if (!courseDataService.getByCourseId(sr.courseId).active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
     }
 
     SessionRequestResponse srr = new SessionRequestResponse();
@@ -1162,6 +1248,20 @@ public class ApiController {
     // check if creator is the sessionRequest's attendee
     // sessionRequest's course's instructor
     SessionRequest sr = sessionRequestService.getBySessionRequestId(sessionRequestId);
+    if (sr == null) {
+      return Errors.SESSION_REQUEST_NONEXISTENT.getResponse();
+    }
+
+    // check that course exists
+    if (courseService.getByCourseId(sr.courseId)== null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check that course isn't archived
+    if (! courseDataService.getByCourseId(sr.courseId).active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
+    }
+
 
     // check if the creator is an admin of request's course's school or a teacher of
     // request's
@@ -1195,10 +1295,19 @@ public class ApiController {
       return Errors.USER_NONEXISTENT.getResponse();
     }
 
-    if (!sessionService.existsBySessionId(sessionId)) {
+    Session s = sessionService.getBySessionId(sessionId);
+    if (s == null) {
       return Errors.SESSION_NONEXISTENT.getResponse();
     }
-    Session s = sessionService.getBySessionId(sessionId);
+
+    if (courseService.getByCourseId(s.courseId)== null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check that course isn't archived
+    if (!courseDataService.getByCourseId(s.courseId).active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
+    }
 
     // check if the creator is an admin of request's course's school or a teacher of
     // request's
@@ -1260,8 +1369,16 @@ public class ApiController {
     if (committment == null) {
       return Errors.COMMITTMENT_NONEXISTENT.getResponse();
     }
-
     Session s = sessionService.getBySessionId(committment.sessionId);
+
+    if (courseService.getByCourseId(s.courseId)== null) {
+      return Errors.COURSE_NONEXISTENT.getResponse();
+    }
+
+    // check that course isn't archived
+    if (!courseDataService.getByCourseId(s.courseId).active) {
+      return Errors.COURSE_ARCHIVED.getResponse();
+    }
 
     // check if the creator is an admin of request's course's school or a teacher of
     // request's

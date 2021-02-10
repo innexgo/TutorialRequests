@@ -129,4 +129,28 @@ public class CourseDataService {
     RowMapper<CourseData> rowMapper = new CourseDataRowMapper();
     return this.jdbcTemplate.query(sql, rowMapper).stream();
   }
+
+  public CourseData getByCourseId(long courseId) {
+    return query( //
+     null, //
+     null, //
+     null, //
+     null, //
+     null, //
+     courseId, //
+     null, //
+     null, //
+     null, //
+     null, //
+     null, //
+     true, //
+     null,
+     null, // 
+     null, // 
+     null, // 
+     0, //
+     1).findFirst().orElse(null);
+  }
 }
+
+
