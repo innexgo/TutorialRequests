@@ -827,7 +827,7 @@ public class ApiController {
   }
 
   @RequestMapping("/adminshipRequestResponse/new/")
-  public ResponseEntity<?> newAdminshipRequestResponseReject( //
+  public ResponseEntity<?> newAdminshipRequestResponse( //
       @RequestParam long adminshipRequestId, //
       @RequestParam String message, //
       @RequestParam boolean accept, //
