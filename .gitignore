@@ -37,5 +37,6 @@ node_modules/
 
 # Don't leak info
 env-vars.sh
+settings.sh
 hours.db
 log.txt
