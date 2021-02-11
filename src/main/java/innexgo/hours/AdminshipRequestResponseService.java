@@ -67,16 +67,18 @@ public class AdminshipRequestResponseService {
       Long creatorUserId, //
       String message, //
       Boolean accepted, //
+      Boolean responded, //
       Long requesterUserId, //
       Long schoolId, //
       long offset,
       long count) {
 
-    boolean nojoin = requesterUserId == null && schoolId == null;
+    boolean nojoinar = requesterUserId == null && schoolId == null;
 
     String sql =
         "SELECT arr.* FROM adminship_request_response arr"
-            + (nojoin ? "" : " JOIN adminship_request ar ON ar.adminship_request_id = arr.adminship_request_id")
+            + (nojoinar ? "" : " JOIN adminship_request ar ON ar.adminship_request_id = arr.adminship_request_id")
+            + (responded == null ? "" : " LEFT JOIN adminship a ON a.adminship_kind =" + AdminshipSourceKind.REQUEST.value + " AND a.adminship_request_response_id = arr.adminship_request_id")
             + " WHERE 1=1 "
             + (adminshipRequestId == null ? "" : " AND arr.adminship_request_id = " + adminshipRequestId)
             + (creatorUserId      == null ? "" : " AND arr.creator_user_id = " + creatorUserId)
@@ -85,7 +87,8 @@ public class AdminshipRequestResponseService {
             + (maxCreationTime    == null ? "" : " AND arr.creation_time < " + maxCreationTime)
             + (message            == null ? "" : " AND arr.message = " + Utils.escape(message))
             + (accepted           == null ? "" : " AND arr.accepted = " + accepted)
-            + (requesterUserId     == null ? "" : " AND ar.creator_user_id = " + requesterUserId)
+            + (responded          == null ? "" : " AND a.adminship_id IS" + (responded ? " NOT NULL" : " NULL")) //
+            + (requesterUserId    == null ? "" : " AND ar.creator_user_id = " + requesterUserId)
             + (schoolId           == null ? "" : " AND ar.school_id = " + schoolId)
             + (" ORDER BY arr.adminship_request_id")
             + (" LIMIT " + offset + ", " + count)

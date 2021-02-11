@@ -979,6 +979,10 @@ public class ApiController {
       return Errors.ADMINSHIP_REQUEST_RESPONSE_NONEXISTENT.getResponse();
     }
 
+    if (!arr.accepted) {
+      return Errors.ADMINSHIP_REQUEST_RESPONSE_INVALID.getResponse();
+    }
+
     // check that it was the same person who made it
     AdminshipRequest ar = adminshipRequestService.getByAdminshipRequestId(adminshipRequestResponseId);
     if (ar.creatorUserId != key.creatorUserId) {
@@ -1828,6 +1832,7 @@ public class ApiController {
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) String message, //
       @RequestParam(required = false) Boolean accepted, //
+      @RequestParam(required = false) Boolean responded, //
       @RequestParam(required = false) Long requesterUserId, //
       @RequestParam(required = false) Long schoolId, //
       @RequestParam(defaultValue = "0") long offset, //
@@ -1848,6 +1853,7 @@ public class ApiController {
         creatorUserId, //
         message, //
         accepted, //
+        responded, //
         requesterUserId, //
         schoolId, //
         offset, // long offset,
