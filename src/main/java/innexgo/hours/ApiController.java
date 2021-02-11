@@ -533,8 +533,7 @@ public class ApiController {
     }
 
     // check that course isn't archived
-    CourseData courseData = courseDataService.getByCourseId(courseId);
-    if (!courseData.active) {
+    if (!courseDataService.getByCourseId(courseId).active) {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
 
@@ -585,8 +584,7 @@ public class ApiController {
     }
 
     // check that course isn't archived
-    CourseData courseData = courseDataService.getByCourseId(course.courseId);
-    if (!courseData.active) {
+    if (!courseDataService.getByCourseId(course.courseId).active) {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
 
@@ -639,8 +637,7 @@ public class ApiController {
     }
 
     // check that course isn't archived
-    CourseData courseData = courseDataService.getByCourseId(courseId);
-    if (!courseData.active) {
+    if (!courseDataService.getByCourseId(courseId).active) {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
 
@@ -702,8 +699,7 @@ public class ApiController {
     }
 
     // check that course isn't archived
-    CourseData courseData = courseDataService.getByCourseId(course.courseId);
-    if (!courseData.active) {
+    if (!courseDataService.getByCourseId(course.courseId).active) {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
 
@@ -1042,8 +1038,7 @@ public class ApiController {
     }
 
     // check that course isn't archived
-    CourseData courseData = courseDataService.getByCourseId(course.courseId);
-    if (!courseData.active) {
+    if (!courseDataService.getByCourseId(course.courseId).active) {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
 

@@ -36,7 +36,6 @@ workspace/
 node_modules/
 
 # Don't leak info
-settings.sh
-settings.sh:Zone.Identifier
+env-vars.sh
 hours.db
 log.txt
