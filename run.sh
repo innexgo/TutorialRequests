@@ -1,3 +1,3 @@
-#!/bin/sh
+#!/bin/bash
 source ./env-vars.sh
-./build/libs/school.hours-0.0.1-SNAPSHOT.jar
+java -jar ./build/libs/school.hours-0.0.1-SNAPSHOT.jar
