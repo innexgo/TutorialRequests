@@ -614,11 +614,10 @@ public class ApiController {
   }
 
   // lets you cancel an existing course membership
-  @RequestMapping("/courseMembership/newSet/")
-  public ResponseEntity<?> newCourseMembershipSet( //
+  @RequestMapping("/courseMembership/newCancel/")
+  public ResponseEntity<?> newCourseMembershipCancel( //
       @RequestParam long userId, //
       @RequestParam long courseId, //
-      @RequestParam CourseMembershipKind courseMembershipKind, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
@@ -641,29 +640,24 @@ public class ApiController {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
 
-    // check if the creator is an admin of this course's school or a teacher of this
-    // course
+    // check if the creator is an admin of this course's school
+    // or an instructor of this course
+    // or student trying to remoe themself
+    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(userId, courseId);
     if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
-        && !courseMembershipService.isInstructor(key.creatorUserId, courseId)) {
+       && !(ucm != null && ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR)
+       && !(ucm != null && ucm.courseMembershipKind == CourseMembershipKind.STUDENT && ucm.userId == key.creatorUserId)
+    ) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
-    // user course membership
-    CourseMembership ucm = courseMembershipService.getByUserIdCourseId(userId, courseId);
+    // if they already have a non cancelled membership in this school:
     if (ucm != null && ucm.courseMembershipKind != CourseMembershipKind.CANCEL) {
-      switch (courseMembershipKind) {
-        case STUDENT:
-        case INSTRUCTOR: {
-          return Errors.COURSE_MEMBERSHIP_EXISTENT.getResponse();
+        // prevent removing the last instructor of a course (and orphaning it)
+        if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
+            && courseMembershipService.numInstructors(courseId) <= 1) {
+          return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
         }
-        case CANCEL: {
-          // prevent removing the last instructor of a course (and orphaning it)
-          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
-              && courseMembershipService.numInstructors(courseId) <= 1) {
-            return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
-          }
-        }
-      }
     }
 
     CourseMembership cm = new CourseMembership();
@@ -671,7 +665,7 @@ public class ApiController {
     cm.creatorUserId = key.creatorUserId;
     cm.courseId = courseId;
     cm.userId = userId;
-    cm.courseMembershipKind = courseMembershipKind;
+    cm.courseMembershipKind = CourseMembershipKind.CANCEL;
     cm.courseMembershipSourceKind = CourseMembershipSourceKind.SET;
     courseMembershipService.add(cm);
     return new ResponseEntity<>(innexgoService.fillCourseMembership(cm), HttpStatus.OK);
