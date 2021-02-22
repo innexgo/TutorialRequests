@@ -89,12 +89,14 @@ public class SessionRequestResponseService {
     }
 
     boolean nojoinsr = attendeeUserId == null && courseId == null;
-    boolean nojoinc = responded == null && sessionId == null;
+    boolean nojoincr = responded == null;
+    boolean nojoinc = sessionId == null;
 
     String sql =
         "SELECT srr.* FROM session_request_response srr"
             + (nojoinsr ? "" : " JOIN session_request sr ON sr.session_request_id = srr.session_request_id")
             + (nojoinc  ? "" : " LEFT JOIN committment c ON srr.accepted AND c.committment_id = srr.committment_id")
+            + (nojoincr ? "" : " LEFT JOIN committment_response cr ON srr.accepted AND cr.committment_id = srr.committment_id")
             + " WHERE 1=1 "
             + (sessionRequestId == null ? "" : " AND srr.session_request_id = " + sessionRequestId)
             + (creatorUserId    == null ? "" : " AND srr.creator_user_id = " + creatorUserId)
@@ -112,7 +114,7 @@ public class SessionRequestResponseService {
             + (duration         == null ? "" : " AND sr.duration = " + duration)
             + (minDuration      == null ? "" : " AND sr.duration > " + minDuration)
             + (maxDuration      == null ? "" : " AND sr.duration < " + maxDuration)
-            + (responded        == null ? "" : " AND c.committment_id IS" + (responded ? " NOT NULL" : " NULL")) //
+            + (responded        == null ? "" : " AND cr.committment_id IS" + (responded ? " NOT NULL" : " NULL")) //
             + (sessionId        == null ? "" : " AND c.session_id = " + sessionId)
             + (" ORDER BY srr.session_request_id")
             + (" LIMIT " + offset + ", " + count)
