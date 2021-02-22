@@ -236,7 +236,6 @@ public class InnexgoService {
     adminshipRequestResponse.creator = fillUser(userService.getByUserId(adminshipRequestResponse.creatorUserId));
     adminshipRequestResponse.adminshipRequest = fillAdminshipRequest(
         adminshipRequestService.getByAdminshipRequestId(adminshipRequestResponse.adminshipRequestId));
-
     return adminshipRequestResponse;
   }
 

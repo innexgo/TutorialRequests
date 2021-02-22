@@ -19,7 +19,6 @@
 
 package innexgo.hours;
 
-import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,8 +45,8 @@ public class AdminshipRequestResponseService {
     jdbcTemplate.update(
         sql,
         adminshipRequestResponse.adminshipRequestId,
-        adminshipRequestResponse.creatorUserId,
         adminshipRequestResponse.creationTime,
+        adminshipRequestResponse.creatorUserId,
         adminshipRequestResponse.message,
         adminshipRequestResponse.accepted);
   }
