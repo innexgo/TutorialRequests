@@ -482,13 +482,14 @@ public class ApiController {
     }
 
     // check that course exists
-    if (courseService.getByCourseId(courseId) == null) {
+    Course course = courseService.getByCourseId(courseId);
+    if (course == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
     // if so check if key creator is admin
-    boolean creatorAdmin = adminshipService.isAdmin(key.creatorUserId, courseId);
-    if (!creatorAdmin) {
+    if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
+        && !courseMembershipService.isInstructor(key.creatorUserId, courseId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
