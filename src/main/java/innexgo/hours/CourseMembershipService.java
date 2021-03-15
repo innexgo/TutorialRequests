@@ -198,4 +198,13 @@ public class CourseMembershipService {
     }
     return cm.courseMembershipKind == CourseMembershipKind.STUDENT;
   }
+
+  public boolean isMember(long userId, long courseId) {
+    CourseMembership cm = getByUserIdCourseId(userId, courseId);
+    if(cm == null) {
+        return false;
+    }
+    return cm.courseMembershipKind != CourseMembershipKind.CANCEL;
+  }
+
 }

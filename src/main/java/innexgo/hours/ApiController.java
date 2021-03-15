@@ -538,7 +538,6 @@ public class ApiController {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
 
-
     // check if the creator is an admin of this course's school or a teacher of this
     // course
     if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
@@ -646,19 +645,18 @@ public class ApiController {
     // or student trying to remoe themself
     CourseMembership ucm = courseMembershipService.getByUserIdCourseId(userId, courseId);
     if (!adminshipService.isAdmin(key.creatorUserId, course.schoolId)
-       && !(ucm != null && ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR)
-       && !(ucm != null && ucm.courseMembershipKind == CourseMembershipKind.STUDENT && ucm.userId == key.creatorUserId)
-    ) {
+        && !(ucm != null && ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR) && !(ucm != null
+            && ucm.courseMembershipKind == CourseMembershipKind.STUDENT && ucm.userId == key.creatorUserId)) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
     // if they already have a non cancelled membership in this school:
     if (ucm != null && ucm.courseMembershipKind != CourseMembershipKind.CANCEL) {
-        // prevent removing the last instructor of a course (and orphaning it)
-        if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
-            && courseMembershipService.numInstructors(courseId) <= 1) {
-          return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
-        }
+      // prevent removing the last instructor of a course (and orphaning it)
+      if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
+          && courseMembershipService.numInstructors(courseId) <= 1) {
+        return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
+      }
     }
 
     CourseMembership cm = new CourseMembership();
@@ -712,17 +710,17 @@ public class ApiController {
     CourseMembership ucm = courseMembershipService.getByUserIdCourseId(key.creatorUserId, ck.courseId);
     if (ucm != null && ucm.courseMembershipKind != CourseMembershipKind.CANCEL) {
       switch (ck.courseMembershipKind) {
-        case STUDENT:
-        case INSTRUCTOR: {
-          return Errors.COURSE_MEMBERSHIP_EXISTENT.getResponse();
+      case STUDENT:
+      case INSTRUCTOR: {
+        return Errors.COURSE_MEMBERSHIP_EXISTENT.getResponse();
+      }
+      case CANCEL: {
+        // prevent removing the last instructor of a course (and orphaning it)
+        if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
+            && courseMembershipService.numInstructors(ck.courseId) <= 1) {
+          return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
         }
-        case CANCEL: {
-          // prevent removing the last instructor of a course (and orphaning it)
-          if (ucm.courseMembershipKind == CourseMembershipKind.INSTRUCTOR
-              && courseMembershipService.numInstructors(ck.courseId) <= 1) {
-            return Errors.COURSE_MEMBERSHIP_CANNOT_LEAVE_EMPTY.getResponse();
-          }
-        }
+      }
       }
     }
 
@@ -843,7 +841,6 @@ public class ApiController {
     if (!schoolDataService.getBySchoolId(schoolId).active) {
       return Errors.SCHOOL_ARCHIVED.getResponse();
     }
-
 
     // creator must be an active subscriber in order to create a adminship request
     // for a school
@@ -1043,12 +1040,12 @@ public class ApiController {
 
     // Location location = locationService.getByLocationId(locationId);
     // if (location == null) {
-    //   return Errors.LOCATION_NONEXISTENT.getResponse();
+    // return Errors.LOCATION_NONEXISTENT.getResponse();
     // }
 
     // // TODO a working permissioning system + figure out what to do with location
     // if (location.schoolId != course.schoolId) {
-    //   return Errors.LOCATION_NONEXISTENT.getResponse();
+    // return Errors.LOCATION_NONEXISTENT.getResponse();
     // }
 
     if (duration < 0) {
@@ -1188,7 +1185,6 @@ public class ApiController {
       return Errors.SESSION_REQUEST_RESPONSE_EXISTENT.getResponse();
     }
 
-
     if (!sessionRequestService.existsBySessionRequestId(sessionRequestId)) {
       return Errors.SESSION_REQUEST_NONEXISTENT.getResponse();
     }
@@ -1247,15 +1243,14 @@ public class ApiController {
     }
 
     // check that course exists
-    if (courseService.getByCourseId(sr.courseId)== null) {
+    if (courseService.getByCourseId(sr.courseId) == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
     // check that course isn't archived
-    if (! courseDataService.getByCourseId(sr.courseId).active) {
+    if (!courseDataService.getByCourseId(sr.courseId).active) {
       return Errors.COURSE_ARCHIVED.getResponse();
     }
-
 
     // check if the creator is an admin of request's course's school or a teacher of
     // request's
@@ -1294,7 +1289,7 @@ public class ApiController {
       return Errors.SESSION_NONEXISTENT.getResponse();
     }
 
-    if (courseService.getByCourseId(s.courseId)== null) {
+    if (courseService.getByCourseId(s.courseId) == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
@@ -1365,7 +1360,7 @@ public class ApiController {
     }
     Session s = sessionService.getBySessionId(committment.sessionId);
 
-    if (courseService.getByCourseId(s.courseId)== null) {
+    if (courseService.getByCourseId(s.courseId) == null) {
       return Errors.COURSE_NONEXISTENT.getResponse();
     }
 
@@ -1418,6 +1413,8 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can only view subscriptions that you own
+
     Stream<Subscription> list = subscriptionService.query( //
         subscriptionId, //
         creationTime, //
@@ -1429,7 +1426,7 @@ public class ApiController {
         onlyRecent, //
         offset, //
         count //
-    ).map(x -> innexgoService.fillSubscription(x));
+    ).filter(x -> x.creatorUserId == key.creatorUserId).map(x -> innexgoService.fillSubscription(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1450,6 +1447,8 @@ public class ApiController {
     if (key == null) {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
+
+    // you can view any school
 
     Stream<School> list = schoolService.query( //
         schoolId, //
@@ -1489,6 +1488,8 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view any schoolData
+
     Stream<SchoolData> list = schoolDataService.query( //
         schoolDataId, //
         creationTime, //
@@ -1506,112 +1507,6 @@ public class ApiController {
         offset, //
         count //
     ).map(x -> innexgoService.fillSchoolData(x));
-    return new ResponseEntity<>(list, HttpStatus.OK);
-  }
-
-  @RequestMapping("/user/")
-  public ResponseEntity<?> viewUser( //
-      @RequestParam(required = false) Long userId, //
-      @RequestParam(required = false) Long creationTime, //
-      @RequestParam(required = false) Long minCreationTime, //
-      @RequestParam(required = false) Long maxCreationTime, //
-      @RequestParam(required = false) String userName, //
-      @RequestParam(required = false) String partialUserName, //
-      @RequestParam(required = false) String userEmail, //
-      @RequestParam(defaultValue = "0") long offset, //
-      @RequestParam(defaultValue = "100") long count, //
-      @RequestParam String apiKey //
-  ) {
-
-    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
-    }
-
-    Stream<User> list = userService.query( //
-        userId, //
-        creationTime, //
-        minCreationTime, //
-        maxCreationTime, //
-        userName, //
-        partialUserName, //
-        userEmail, //
-        offset, //
-        count //
-    ).map(x -> innexgoService.fillUser(x));
-    return new ResponseEntity<>(list, HttpStatus.OK);
-  }
-
-  @RequestMapping("/password/")
-  public ResponseEntity<?> viewPassword( //
-      @RequestParam(required = false) Long passwordId, //
-      @RequestParam(required = false) Long creationTime, //
-      @RequestParam(required = false) Long minCreationTime, //
-      @RequestParam(required = false) Long maxCreationTime, //
-      @RequestParam(required = false) Long creatorUserId, //
-      @RequestParam(required = false) Long userId, //
-      @RequestParam(required = false) PasswordKind passwordKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent, //
-      @RequestParam(defaultValue = "0") long offset, //
-      @RequestParam(defaultValue = "100") long count, //
-      @RequestParam String apiKey //
-  ) {
-
-    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
-    }
-
-    Stream<Password> list = passwordService.query( //
-        passwordId, //
-        creationTime, //
-        minCreationTime, //
-        maxCreationTime, //
-        creatorUserId, //
-        userId, //
-        passwordKind, //
-        onlyRecent, //
-        offset, //
-        count //
-    ).map(x -> innexgoService.fillPassword(x));
-    return new ResponseEntity<>(list, HttpStatus.OK);
-  }
-
-  public ResponseEntity<?> viewApiKey( //
-      @RequestParam(required = false) Long apiKeyId, //
-      @RequestParam(required = false) Long creatorUserId, //
-      @RequestParam(required = false) Long creationTime, //
-      @RequestParam(required = false) Long minCreationTime, //
-      @RequestParam(required = false) Long maxCreationTime, //
-      @RequestParam(required = false) Long duration, //
-      @RequestParam(required = false) Long minDuration, //
-      @RequestParam(required = false) Long maxDuration, //
-      @RequestParam(required = false) ApiKeyKind apiKeyKind, //
-      @RequestParam(defaultValue = "false") boolean onlyRecent, //
-      @RequestParam(defaultValue = "0") long offset, //
-      @RequestParam(defaultValue = "100") long count, //
-      @RequestParam String apiKey //
-  ) {
-
-    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
-    if (key == null) {
-      return Errors.API_KEY_UNAUTHORIZED.getResponse();
-    }
-
-    Stream<ApiKey> list = apiKeyService.query( //
-        apiKeyId, //
-        creatorUserId, //
-        creationTime, //
-        minCreationTime, //
-        maxCreationTime, //
-        duration, //
-        minDuration, //
-        maxDuration, //
-        apiKeyKind, //
-        onlyRecent, //
-        offset, //
-        count //
-    ).map(x -> innexgoService.fillApiKey(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1633,6 +1528,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // students and instructors can see the courses they are a member of
+    // administrators can see those plus the courses that they own
+
     Stream<Course> list = courseService.query( //
         courseId, //
         creationTime, //
@@ -1642,7 +1540,8 @@ public class ApiController {
         schoolId, //
         offset, //
         count //
-    ).map(x -> innexgoService.fillCourse(x));
+    ).filter(x -> courseMembershipService.isMember(key.creatorUserId, x.courseId)
+        || adminshipService.isAdmin(key.creatorUserId, x.schoolId)).map(x -> innexgoService.fillCourse(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1674,6 +1573,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // students and instructors can see the courses they are a member of
+    // administrators can see those plus the courses that they own
+
     Stream<CourseData> list = courseDataService.query( //
         courseDataId, //
         creationTime, //
@@ -1693,7 +1595,12 @@ public class ApiController {
         recentStudentUserId, //
         offset, //
         count //
-    ).map(x -> innexgoService.fillCourseData(x));
+    )
+    // TODO how do i make this less expensive? we have so many different database
+    // requests
+    .map(x -> innexgoService.fillCourseData(x))
+    .filter(x -> courseMembershipService.isMember(key.creatorUserId, x.courseId)
+        || adminshipService.isAdmin(key.creatorUserId, x.course.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1738,7 +1645,12 @@ public class ApiController {
         onlyRecent, //
         offset, //
         count //
-    ).map(x -> innexgoService.fillCourseKey(x));
+    )
+    // you can view if you are an instructor of said course or a school admin
+    .map(x -> innexgoService.fillCourseKey(x))
+    .filter(x -> //
+           courseMembershipService.isInstructor(key.creatorUserId, x.courseId) //
+        || adminshipService.isAdmin(key.creatorUserId, x.course.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1766,6 +1678,11 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are the attendee
+    // you can view if you are an member of the course of the the membership
+    // you can view of you are an admin of the school of the course of the
+    // membership
+
     Stream<CourseMembership> list = courseMembershipService.query( //
         courseMembershipId, //
         creationTime, //
@@ -1781,7 +1698,13 @@ public class ApiController {
         partialUserName, //
         onlyRecent, //
         offset, //
-        count).map(x -> innexgoService.fillCourseMembership(x));
+        count)
+        // TODO this is really slow
+        .map(x -> innexgoService.fillCourseMembership(x)) //
+        .filter(x -> //
+                (key.creatorUserId == x.userId) //
+                || courseMembershipService.isMember(key.creatorUserId, x.courseId) //
+                || adminshipService.isAdmin(key.creatorUserId, x.course.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1804,6 +1727,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are the creator of the request or you are an admin of the
+    // school that was requested
+
     Stream<AdminshipRequest> list = adminshipRequestService.query( //
         adminshipRequestId, //
         creationTime, //
@@ -1814,7 +1740,9 @@ public class ApiController {
         message, //
         responded, //
         offset, //
-        count).map(x -> innexgoService.fillAdminshipRequest(x));
+        count)
+        .filter(x -> (key.creatorUserId == x.creatorUserId) || adminshipService.isAdmin(key.creatorUserId, x.schoolId))
+        .map(x -> innexgoService.fillAdminshipRequest(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1840,6 +1768,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are the creator of the request or you are an admin of the
+    // school that was requested
+
     Stream<AdminshipRequestResponse> list = adminshipRequestResponseService.query( //
         adminshipRequestId, //
         creationTime, //
@@ -1853,7 +1784,10 @@ public class ApiController {
         schoolId, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillAdminshipRequestResponse(x));
+    ).map(x -> innexgoService.fillAdminshipRequestResponse(x))
+        // TODO slow
+        .filter(x -> (key.creatorUserId == x.creatorUserId)
+            || adminshipService.isAdmin(key.creatorUserId, x.adminshipRequest.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1881,6 +1815,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are the creator of the request or you are an admin of the
+    // school that was requested
+
     Stream<Adminship> list = adminshipService.query( //
         adminshipId, //
         creationTime, //
@@ -1896,7 +1833,9 @@ public class ApiController {
         userName, //
         partialUserName, //
         offset, //
-        count).map(x -> innexgoService.fillAdminship(x));
+        count)
+        .filter(x -> (key.creatorUserId == x.creatorUserId) || adminshipService.isAdmin(key.creatorUserId, x.schoolId))
+        .map(x -> innexgoService.fillAdminship(x));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1918,6 +1857,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are a member of the course or an admin of the course's
+    // school
+
     Stream<Session> list = sessionService.query(//
         sessionId, //
         creationTime, //
@@ -1927,7 +1869,10 @@ public class ApiController {
         courseId, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillSession(x));
+    ).map(x -> innexgoService.fillSession(x))
+        // TODO slow
+        .filter(x -> courseMembershipService.isInstructor(key.creatorUserId, x.courseId)
+            || adminshipService.isAdmin(key.creatorUserId, x.course.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -1961,6 +1906,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are a member of the course or an admin of the course's
+    // school
+
     Stream<SessionData> list = sessionDataService.query(//
         sessionDataId, //
         creationTime, //
@@ -1982,11 +1930,12 @@ public class ApiController {
         courseId, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillSessionData(x));
+    ).map(x -> innexgoService.fillSessionData(x))
+        // TODO slow
+        .filter(x -> courseMembershipService.isMember(key.creatorUserId, x.session.courseId)
+            || adminshipService.isAdmin(key.creatorUserId, x.session.course.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
-
-
 
   @RequestMapping("/sessionRequest/")
   public ResponseEntity<?> viewSessionRequest( //
@@ -2015,6 +1964,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are an instructor of the course, an admin of the course's
+    // school, or the attendee of the request
+
     Stream<SessionRequest> list = sessionRequestService.query(//
         sessionRequestId, //
         creationTime, //
@@ -2033,7 +1985,10 @@ public class ApiController {
         responded, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillSessionRequest(x));
+    ).map(x -> innexgoService.fillSessionRequest(x))
+        .filter(x -> (x.attendeeUserId == key.creatorUserId)
+            || courseMembershipService.isInstructor(key.creatorUserId, x.courseId)
+            || adminshipService.isAdmin(key.creatorUserId, x.course.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -2067,6 +2022,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are the admin of the school, an instructor of the course,
+    // or the attendee
+
     Stream<SessionRequestResponse> list = sessionRequestResponseService.query( //
         sessionRequestId, //
         creatorUserId, //
@@ -2088,7 +2046,12 @@ public class ApiController {
         sessionId, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillSessionRequestResponse(x));
+    ).map(x -> innexgoService.fillSessionRequestResponse(x))
+        // TODO slow
+        .filter(x -> (x.sessionRequest.attendeeUserId == key.creatorUserId)
+            || courseMembershipService.isInstructor(key.creatorUserId, x.sessionRequest.courseId)
+            || adminshipService.isAdmin(key.creatorUserId, x.sessionRequest.course.schoolId));
+
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -2121,6 +2084,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are the attendee, the admin of the school, or the
+    // instructor of the session's course
+
     Stream<Committment> list = committmentService.query( //
         committmentId, //
         creationTime, //
@@ -2141,7 +2107,11 @@ public class ApiController {
         fromRequestResponse, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillCommittment(x));
+    ).map(x -> innexgoService.fillCommittment(x))
+        // TODO slow
+        .filter(x -> (x.attendeeUserId == key.creatorUserId)
+            || courseMembershipService.isInstructor(key.creatorUserId, x.session.courseId)
+            || adminshipService.isAdmin(key.creatorUserId, x.session.course.schoolId));
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
@@ -2172,6 +2142,9 @@ public class ApiController {
       return Errors.API_KEY_UNAUTHORIZED.getResponse();
     }
 
+    // you can view if you are the attendee, the admin of the school, or the
+    // instructor of the session's course
+
     Stream<CommittmentResponse> list = committmentResponseService.query( //
         committmentId, //
         creatorUserId, //
@@ -2190,7 +2163,12 @@ public class ApiController {
         sessionId, //
         offset, // long offset,
         count // long count)
-    ).map(x -> innexgoService.fillCommittmentResponse(x));
+    ).map(x -> innexgoService.fillCommittmentResponse(x))
+        // TODO slow
+        .filter(x -> (x.committment.attendeeUserId == key.creatorUserId)
+            || courseMembershipService.isInstructor(key.creatorUserId, x.committment.session.courseId)
+            || adminshipService.isAdmin(key.creatorUserId, x.committment.session.course.schoolId));
+
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
