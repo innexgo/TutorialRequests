@@ -1,55 +1,67 @@
+package innexgo.hours;
+
+import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.HashMap;
 import java.util.Map;
-import static spark.Spark.get;
-import static spark.Spark.post;
-import static spark.Spark.port;
-import static spark.Spark.staticFiles;
-import com.google.gson.Gson;
 
 import com.stripe.Stripe;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 
-@Value("${STRIPE_SECRET_KEY}")
-String stripe_secret_key;
 
-public class Server {
-  private static Gson gson = new Gson();
 
-  public static void main(String[] args) {
-    port(8080);
-    Stripe.apiKey = stripe_secret_key;
+public class StripeCreateCheckout {
 
-    post("/create-checkout-session", (request, response) -> {
-      response.type("application/json");
+  @Autowired
+  InnexgoService innexgoService;
 
-      SessionCreateParams params =
+  @Value("${STRIPE_SECRET_KEY}")
+  private String stripe_secret_key;
+  @RequestMapping("/create-checkout-session")
+  public ResponseEntity<?> newCheckout( //
+      @RequestParam String apiKey) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+    SessionCreateParams params =
         SessionCreateParams.builder()
-          .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-          .setMode(SessionCreateParams.Mode.PAYMENT)
-          .setSuccessUrl("https://localhost:8080/paymentsuccess")
-          .setCancelUrl("https://localhost:8080/paymentfailure")
-          .addLineItem(
-          SessionCreateParams.LineItem.builder()
+            .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+            .setMode(SessionCreateParams.Mode.PAYMENT)
+            .setSuccessUrl("/paymentsuccess")
+            .setCancelUrl("/paymentfailure")
+            .addLineItem(
+            SessionCreateParams.LineItem.builder()
             .setQuantity(1L)
             .setPriceData(
-              SessionCreateParams.LineItem.PriceData.builder()
+                SessionCreateParams.LineItem.PriceData.builder()
                 .setCurrency("usd")
-                .setUnitAmount(10L)
+                .setUnitAmount(1000L)
                 .setProductData(
-                  SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                    .setName("Innexgo Subscription")
+                    SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                    .setName("Innexgo Hours Subscription")
                     .build())
                 .build())
             .build())
-          .build();
+            .build();
 
-      Session session = Session.create(params);
+    Session session = Session.create(params);
 
-      Map<String, String> responseData = new HashMap();
-      responseData.put("id", session.getId());
-
-      return gson.toJson(responseData);
-    });
+    Map<String, String> responseData = new HashMap();
+    responseData.put("id", session.getId());
+       
+    return new ResponseEntity<>(responseData, HttpStatus.OK);
   }
+
 }
