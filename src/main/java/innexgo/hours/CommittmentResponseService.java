@@ -80,13 +80,14 @@ public class CommittmentResponseService {
     // avoid joins to save performance
     boolean joinsesd = 
       startTime != null || minStartTime != null || maxStartTime != null ||
-      duration != null  || minDuration != null  || maxDuration != null ||
-      courseId != null;
+      duration != null  || minDuration != null  || maxDuration != null;
+    boolean joinses = courseId != null;
     boolean joinc = joinsesd || attendeeUserId != null || sessionId != null;
 
     String sql=
       "SELECT cr.* FROM committment_response cr"
         + (!joinc ?    "" : " INNER JOIN committment c ON c.committment_id = cr.committment_id")
+        + (!joinses ?  "" : " INNER JOIN session ses ON ses.session_id = c.session_id")
         + (!joinsesd ? "" : " INNER JOIN session_data sesd ON sesd.session_id = c.session_id")
         + (!joinsesd ? "" : " INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id")
         + " WHERE 1=1 "
@@ -98,7 +99,7 @@ public class CommittmentResponseService {
         + (committmentResponseKind== null ? "" : " AND cr.committment_response_kind = " + committmentResponseKind.value)
         + (attendeeUserId         == null ? "" : " AND c.attendee_user_id = " + attendeeUserId)
         + (sessionId              == null ? "" : " AND c.session_id = " + sessionId)
-        + (courseId               == null ? "" : " AND sesd.course_id = " + courseId)
+        + (courseId               == null ? "" : " AND ses.course_id = " + courseId)
         + (startTime              == null ? "" : " AND sesd.start_time = " + startTime)
         + (minStartTime           == null ? "" : " AND sesd.start_time > " + minStartTime)
         + (maxStartTime           == null ? "" : " AND sesd.start_time < " + maxStartTime)

@@ -100,13 +100,16 @@ public class CommittmentService {
       long offset, //
       long count) //
   {
+
+    boolean joinses =  courseId != null;
+
     // avoid joins to save performance
     boolean joinsesd = 
       startTime != null || minStartTime != null || maxStartTime != null ||
-      duration != null  || minDuration != null  || maxDuration != null ||
-      courseId != null;
+      duration != null  || minDuration != null  || maxDuration != null;
 
     String sql = "SELECT c.* FROM committment c" //
+        + (!joinses ?  "" : " INNER JOIN session ses ON ses.session_id = c.session_id")
         + (!joinsesd ? "" : " INNER JOIN session_data sesd ON sesd.session_id = c.session_id")
         + (!joinsesd ? "" : " INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id")
         + (responded           == null ? "" : " LEFT JOIN committment_response cr ON cr.committment_id = c.committment_id") //
@@ -126,7 +129,7 @@ public class CommittmentService {
         + (duration            == null ? "" : " AND sesd.duration = " + duration) //
         + (minDuration         == null ? "" : " AND sesd.duration > " + minDuration) //
         + (maxDuration         == null ? "" : " AND sesd.duration < " + maxDuration) //
-        + (courseId            == null ? "" : " AND sesd.course_id = " + courseId) //
+        + (courseId            == null ? "" : " AND ses.course_id = " + courseId) //
         + (responded           == null ? "" : " AND cr.committment_id IS" + (responded ? " NOT NULL" : " NULL")) //
         + (fromRequestResponse == null ? "" : " AND srr.committment_id IS" + (fromRequestResponse ? " NOT NULL" : " NULL")) //
         + (" ORDER BY c.committment_id") //
