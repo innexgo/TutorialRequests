@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.stripe.model.PaymentIntent;
+
 @CrossOrigin
 @RestController
 @RequestMapping(value = { "/api" })
@@ -64,8 +66,6 @@ public class ApiController {
   @Autowired
   VerificationChallengeService verificationChallengeService;
   @Autowired
-  MailService mailService;
-  @Autowired
   PasswordService passwordService;
   @Autowired
   PasswordResetService passwordResetService;
@@ -85,6 +85,12 @@ public class ApiController {
   CourseMembershipService courseMembershipService;
   @Autowired
   InnexgoService innexgoService;
+
+  @Autowired
+  MailService mailService;
+  @Autowired
+  PaymentService paymentService;
+
 
   // The website where this application is hosted
   @Value("${INNEXGO_HOURS_SITE}")
@@ -397,9 +403,26 @@ public class ApiController {
     return new ResponseEntity<>(innexgoService.fillPassword(password), HttpStatus.OK);
   }
 
+  @RequestMapping("/subscription/newIntent/")
+  public ResponseEntity<?> newSubscriptionIntent( //
+      @RequestParam String apiKey //
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    try {
+       PaymentIntent pi = paymentService.createPaymentIntent(10);
+       return new ResponseEntity<>(pi, HttpStatus.OK);
+    } catch(Exception e) {
+       return Errors.PAYMENT_FAILED_UNKNOWN.getResponse();
+    }
+  }
+
   @RequestMapping("/subscription/new/")
   public ResponseEntity<?> newSubscription( //
-      @RequestParam SubscriptionKind subscriptionKind, //
+  //    @RequestParam long paymentId, //
       @RequestParam String apiKey) {
     ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
     if (key == null) {
@@ -409,12 +432,34 @@ public class ApiController {
     Subscription subscription = new Subscription();
     subscription.creationTime = System.currentTimeMillis();
     subscription.creatorUserId = key.creatorUserId;
-    subscription.subscriptionKind = subscriptionKind;
+    subscription.subscriptionKind = SubscriptionKind.VALID;
     subscription.maxUses = 1;
     subscriptionService.add(subscription);
 
     return new ResponseEntity<>(innexgoService.fillSubscription(subscription), HttpStatus.OK);
   }
+
+
+  @RequestMapping("/subscription/newCancel/")
+  public ResponseEntity<?> newSubscriptionCancel( //
+      @RequestParam String apiKey
+  ) {
+    ApiKey key = innexgoService.getApiKeyIfValid(apiKey);
+    if (key == null) {
+      return Errors.API_KEY_NONEXISTENT.getResponse();
+    }
+
+    Subscription subscription = new Subscription();
+    subscription.creationTime = System.currentTimeMillis();
+    subscription.creatorUserId = key.creatorUserId;
+    subscription.subscriptionKind = SubscriptionKind.CANCEL;
+    subscription.maxUses = 0;
+    subscription.paymentId = 0;
+    subscriptionService.add(subscription);
+
+    return new ResponseEntity<>(innexgoService.fillSubscription(subscription), HttpStatus.OK);
+  }
+
 
   @RequestMapping("/course/new/")
   public ResponseEntity<?> newCourse( //
@@ -1402,6 +1447,7 @@ public class ApiController {
       @RequestParam(required = false) Long creatorUserId, //
       @RequestParam(required = false) SubscriptionKind subscriptionKind, //
       @RequestParam(required = false) Long maxUses, //
+      @RequestParam(required = false) Long paymentId, //
       @RequestParam(defaultValue = "false") boolean onlyRecent, //
       @RequestParam(defaultValue = "0") long offset, //
       @RequestParam(defaultValue = "100") long count, //
@@ -1423,6 +1469,7 @@ public class ApiController {
         creatorUserId, //
         subscriptionKind, //
         maxUses, //
+        paymentId, //
         onlyRecent, //
         offset, //
         count //

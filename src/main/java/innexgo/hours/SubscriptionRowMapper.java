@@ -32,6 +32,7 @@ public class SubscriptionRowMapper implements RowMapper<Subscription> {
     subscription.creatorUserId = row.getLong("creator_user_id");
     subscription.subscriptionKind = SubscriptionKind.from(row.getInt("subscription_kind"));
     subscription.maxUses = row.getLong("max_uses");
+    subscription.paymentId = row.getLong("payment_id");
     return subscription;
   }
 }

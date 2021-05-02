@@ -49,16 +49,8 @@ create table subscription(
   creation_time integer not null,
   creator_user_id integer not null,
   subscription_kind integer not null, -- VALID | CANCEL
-  max_uses integer not null -- only valid if VALID
-);
-
-drop table if exists invoice;
-create table invoice(
-  invoice_id integer not null primary key,
-  creation_time integer not null,
-  creator_user_id integer not null,
-  subscription_id integer not null,
-  amount_cents integer not null
+  max_uses integer not null, -- only valid if VALID
+  payment_id integer not null -- only valid if VALID
 );
 
 -- there can be multiple schools with full_school = false, but only one with full_school = true

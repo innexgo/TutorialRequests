@@ -24,6 +24,7 @@ public class Subscription {
   long creatorUserId;
   public SubscriptionKind subscriptionKind;
   public long maxUses;
+  public long paymentId;
 
   // for jackson
   public User creator;
