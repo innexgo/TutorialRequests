@@ -21,6 +21,8 @@ mod handlers;
 mod adminship_request_response_service;
 mod adminship_request_service;
 mod adminship_service;
+mod committment_response_service;
+mod committment_service;
 mod course_data_service;
 mod course_key_service;
 mod course_membership_service;

@@ -66,13 +66,13 @@ pub async fn query(
 ) -> Result<Vec<Session>, tokio_postgres::Error> {
   let results = con
     .query(
-      " SELECT s.* FROM session s WHERE 1 = 1
-        AND ($1::bigint[] IS NULL OR s.session_id IN $1)
-        AND ($2::bigint   IS NULL OR s.creation_time >= $2)
-        AND ($3::bigint   IS NULL OR s.creation_time <= $3)
-        AND ($4::bigint   IS NULL OR s.creator_user_id = $4)
-        AND ($5::bigint   IS NULL OR s.course_id = $5)
-        ORDER BY s.session_id
+      " SELECT ses.* FROM session ses WHERE 1 = 1
+        AND ($1::bigint[] IS NULL OR ses.session_id IN $1)
+        AND ($2::bigint   IS NULL OR ses.creation_time >= $2)
+        AND ($3::bigint   IS NULL OR ses.creation_time <= $3)
+        AND ($4::bigint   IS NULL OR ses.creator_user_id = $4)
+        AND ($5::bigint   IS NULL OR ses.course_id = $5)
+        ORDER BY ses.session_id
         LIMIT $6
         OFFSET $7
       ",

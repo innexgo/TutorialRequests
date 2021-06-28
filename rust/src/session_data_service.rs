@@ -95,28 +95,28 @@ pub async fn query(
   // TODO prevent getting meaningless duration
 
   let sql = [
-    "SELECT sd.* FROM session_data sd",
+    "SELECT sesd.* FROM session_data sesd",
     if props.only_recent {
       " INNER JOIN
           (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids
-          ON maxids.id = sd.session_data_id"
+          ON maxids.id = sesd.session_data_id"
     } else {
       ""
     },
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR sd.session_data_id IN $1)",
-    " AND ($2::bigint   IS NULL OR sd.creation_time >= $2)",
-    " AND ($3::bigint   IS NULL OR sd.creation_time <= $3)",
-    " AND ($4::bigint   IS NULL OR sd.creator_user_id = $4)",
-    " AND ($5::bigint   IS NULL OR sd.session_id = $5)",
-    " AND ($6::text     IS NULL OR sd.name = $6)",
-    " AND ($7::text     IS NULL OR sd.name LIKE CONCAT('%',$7,'%'))",
-    " AND ($8::bigint   IS NULL OR sd.start_time >= $8)",
-    " AND ($9::bigint   IS NULL OR sd.start_time <= $9)",
-    " AND ($10::bigint  IS NULL OR sd.end_time >= $10)",
-    " AND ($11::bigint  IS NULL OR sd.end_time <= $11)",
-    " AND ($12::bool    IS NULL OR sd.active = $12)",
-    " ORDER BY sd.session_data_id",
+    " AND ($1::bigint[] IS NULL OR sesd.session_data_id IN $1)",
+    " AND ($2::bigint   IS NULL OR sesd.creation_time >= $2)",
+    " AND ($3::bigint   IS NULL OR sesd.creation_time <= $3)",
+    " AND ($4::bigint   IS NULL OR sesd.creator_user_id = $4)",
+    " AND ($5::bigint   IS NULL OR sesd.session_id = $5)",
+    " AND ($6::text     IS NULL OR sesd.name = $6)",
+    " AND ($7::text     IS NULL OR sesd.name LIKE CONCAT('%',$7,'%'))",
+    " AND ($8::bigint   IS NULL OR sesd.start_time >= $8)",
+    " AND ($9::bigint   IS NULL OR sesd.start_time <= $9)",
+    " AND ($10::bigint  IS NULL OR sesd.end_time >= $10)",
+    " AND ($11::bigint  IS NULL OR sesd.end_time <= $11)",
+    " AND ($12::bool    IS NULL OR sesd.active = $12)",
+    " ORDER BY sesd.session_data_id",
     " LIMIT $13",
     " OFFSET $14",
   ]
