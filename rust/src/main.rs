@@ -105,7 +105,7 @@ async fn main() {
     });
   });
 
-  let api = innexgo_hours_api::api(Config { site_external_url }, db, auth_service);
+  let api = api::api(Config { site_external_url }, db, auth_service);
 
   warp::serve(api.with(log)).run(([0, 0, 0, 0], port)).await;
 }

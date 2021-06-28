@@ -35,7 +35,7 @@ pub async fn add(
            message,
            accepted
        )
-       VALUES($1, $2, $3, $4)
+       VALUES($1, $2, $3, $4, $5)
        RETURNING adminship_request_id
       ",
       &[&adminship_request_id, &creation_time, &creator_user_id, &message, &accepted],
