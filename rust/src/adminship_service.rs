@@ -101,13 +101,13 @@ pub async fn query(
     " AND ($3::bigint   IS NULL OR a.creation_time <= $3)",
     " AND ($4::bigint   IS NULL OR a.creator_user_id = $4)",
     " AND ($5::bigint   IS NULL OR a.user_id = $5)",
-    " AND ($5::bigint   IS NULL OR a.school_id = $5)",
-    " AND ($6::bigint   IS NULL OR a.adminship_kind = $6)",
-    " AND ($7::bool     IS NULL OR arr.adminship_request_id IS NOT NULL)",
-    " AND ($8::bigint   IS NULL OR arr.adminship_request_id == $8 IS TRUE)",
+    " AND ($6::bigint   IS NULL OR a.school_id = $6)",
+    " AND ($7::bigint   IS NULL OR a.adminship_kind = $7)",
+    " AND ($8::bool     IS NULL OR arr.adminship_request_id IS NOT NULL = $8)",
+    " AND ($9::bigint   IS NULL OR arr.adminship_request_id == $9 IS TRUE)",
     " ORDER BY a.adminship_id",
-    " LIMIT $9",
-    " OFFSET $10",
+    " LIMIT $10",
+    " OFFSET $11",
   ]
   .join("");
 
