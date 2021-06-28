@@ -115,8 +115,7 @@ pub struct SessionData {
   pub session_id: i64,
   pub name: String,
   pub start_time: i64,
-  pub duration: i64,
-  pub hidden: bool,
+  pub end_time: i64,
   pub active: bool,
 }
 

@@ -73,17 +73,7 @@ create table adminship(
   user_id bigint not null,
   school_id bigint not null,
   adminship_kind bigint not null, -- ADMIN, CANCEL
-  adminship_request_response_id bigint -- NULLABLE only valid if REQUEST
-);
-
-drop table if exists location;
-create table location(
-  location_id bigserial primary key,
-  creation_time bigint not null,
-  creator_user_id bigint not null,
-  school_id bigint not null,
-  name text not null,
-  description text not null
+  adminship_request_id bigint -- NULLABLE only valid if REQUEST
 );
 
 drop table if exists course;
@@ -105,13 +95,13 @@ create table course_data(
   active bool not null 
 );
 
+-- TODO: kind of bad table rn, see if we can make it more elegant
 drop table if exists course_key;
 create table course_key(
   course_key_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   course_id bigint not null,
-  key varchar(64) not null,
   duration bigint not null,
   max_uses bigint not null,
   course_membership_kind bigint -- NULLABLE (if null, means that the course key is cancelled)
@@ -146,8 +136,7 @@ create table session_data(
   session_id bigint not null,
   name text not null,
   start_time bigint not null,
-  duration bigint not null,
-  hidden bool not null, -- boolean
+  end_time bigint not null,
   active bool not null -- boolean
 );
 
