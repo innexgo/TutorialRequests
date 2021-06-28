@@ -1,73 +1,156 @@
-use todo_app_service_api::request::GoalDataStatusKind;
+use innexgo_hours_api::request::AdminshipKind;
+use innexgo_hours_api::request::CommittmentResponseKind;
+use innexgo_hours_api::request::CourseMembershipKind;
+use innexgo_hours_api::request::SubscriptionKind;
 
-// Represents an unscheduled goal with minimal user input
-// We can detect its edits later
-#[derive(Clone, Debug)]
-pub struct GoalIntent {
-  pub goal_intent_id: i64,
+pub struct Subscription {
+  pub subscription_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
+  pub subscription_kind: SubscriptionKind,
+  pub payment_id: i64,
 }
 
-#[derive(Clone, Debug)]
-pub struct GoalIntentData {
-  pub goal_intent_data_id: i64,
+pub struct School {
+  pub school_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub goal_intent_id: i64,
+  pub whole: bool,
+}
+
+pub struct SchoolData {
+  pub school_data_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub school_id: i64,
   pub name: String,
+  pub description: String,
   pub active: bool,
 }
 
-#[derive(Clone, Debug)]
-pub struct Goal {
-  pub goal_id: i64,
+pub struct AdminshipRequest {
+  pub adminship_request_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub goal_intent_id: Option<i64>
+  pub school_id: i64,
+  pub message: String,
 }
 
-#[derive(Clone, Debug)]
-pub struct GoalData {
-  pub goal_data_id: i64,
+pub struct AdminshipRequestResponse {
+  pub adminship_request_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub goal_id: i64,
+  pub message: String,
+  pub accepted: bool,
+}
+
+pub struct Adminship {
+  pub adminship_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub user_id: i64,
+  pub school_id: i64,
+  pub adminship_kind: AdminshipKind,
+  pub adminship_request_response_id: Option<i64>,
+}
+
+pub struct Location {
+  pub location_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub school_id: i64,
   pub name: String,
-  pub tags: Vec<String>,
-  pub duration_estimate: i64,
-  pub time_utility_function_id: i64,
-  pub parent_goal_id: Option<i64>,
-  pub time_span: Option<(i64, i64)>,
-  pub status: GoalDataStatusKind,
+  pub description: String,
 }
 
-// made seperate to avoid having to regenerate it
-#[derive(Clone, Debug)]
-pub struct TimeUtilityFunction {
-  pub time_utility_function_id: i64,
+pub struct Course {
+  pub course_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub start_times: Vec<i64>,
-  pub utils: Vec<i64>,
+  pub school_id: i64,
 }
 
-
-#[derive(Clone, Debug)]
-pub struct ExternalEvent {
-  pub external_event_id: i64,
+pub struct CourseData {
+  pub course_data_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
+  pub course_id: i64,
+  pub name: String,
+  pub description: String,
+  pub active: bool,
 }
 
-#[derive(Clone, Debug)]
-pub struct ExternalEventData {
-  pub external_event_data_id: i64,
+pub struct CourseKey {
+  pub course_key_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub external_event_id: i64,
+  pub course_id: i64,
+  pub key: String,
+  pub duration: i64,
+  pub max_uses: i64,
+  pub course_membership_kind: Option<CourseMembershipKind>,
+}
+
+pub struct CourseMembership {
+  pub course_membership_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub user_id: i64,
+  pub course_id: i64,
+  pub course_membership_kind: CourseMembershipKind,
+  pub course_key_id: Option<i64>,
+}
+
+pub struct Session {
+  pub session_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub course_id: i64,
+}
+
+pub struct SessionData {
+  pub session_data_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub session_id: i64,
   pub name: String,
   pub start_time: i64,
-  pub end_time: i64,
+  pub duration: i64,
+  pub hidden: bool,
   pub active: bool,
+}
+
+pub struct SessionRequest {
+  pub session_request_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub attendee_user_id: i64,
+  pub course_id: i64,
+  pub message: String,
+  pub start_time: i64,
+  pub duration: i64,
+}
+
+pub struct SessionRequestResponse {
+  pub session_request_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub message: String,
+  pub committment_id: Option<i64>,
+}
+
+pub struct Committment {
+  pub committment_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub attendee_user_id: i64,
+  pub session_id: i64,
+  pub cancellable: bool,
+}
+
+pub struct CommittmentResponse {
+  pub committment_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub committment_response_kind: CommittmentResponseKind,
 }

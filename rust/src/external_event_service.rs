@@ -1,7 +1,7 @@
-use super::todo_app_db_types::*;
+use super::db_types::*;
 use super::utils::current_time_millis;
 use tokio_postgres::GenericClient;
-use todo_app_service_api::request;
+use innexgo_hours_api::request;
 
 impl From<tokio_postgres::row::Row> for ExternalEvent {
   // select * from external_event order only, otherwise it will fail

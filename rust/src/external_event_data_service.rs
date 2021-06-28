@@ -1,4 +1,4 @@
-use super::todo_app_db_types::*;
+use super::db_types::*;
 use super::utils::current_time_millis;
 use std::convert::From;
 use tokio_postgres::GenericClient;
@@ -90,7 +90,7 @@ pub async fn get_by_external_event_data_id(
 
 pub async fn query(
   con: &mut impl GenericClient,
-  props: todo_app_service_api::request::ExternalEventDataViewProps,
+  props: innexgo_hours_api::request::ExternalEventDataViewProps,
 ) -> Result<Vec<ExternalEventData>, tokio_postgres::Error> {
   // TODO prevent getting meaningless duration
 

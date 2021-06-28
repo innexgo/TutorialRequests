@@ -1,7 +1,7 @@
-use super::todo_app_db_types::*;
+use super::db_types::*;
 use super::utils::current_time_millis;
 use std::convert::TryInto;
-use todo_app_service_api::request;
+use innexgo_hours_api::request;
 use tokio_postgres::GenericClient;
 
 impl From<tokio_postgres::row::Row> for GoalData {
@@ -109,7 +109,7 @@ pub async fn get_by_goal_data_id(
 
 pub async fn query(
   con: &mut impl GenericClient,
-  props: todo_app_service_api::request::GoalDataViewProps,
+  props: innexgo_hours_api::request::GoalDataViewProps,
 ) -> Result<Vec<GoalData>, tokio_postgres::Error> {
   let sql = [
     "SELECT gd.* FROM goal_data gd",

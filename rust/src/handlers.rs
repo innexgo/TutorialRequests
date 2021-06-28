@@ -3,10 +3,10 @@ use auth_service_api::client::AuthService;
 use auth_service_api::response::AuthError;
 use auth_service_api::response::User;
 
-use todo_app_service_api::request;
-use todo_app_service_api::response;
+use innexgo_hours_api::request;
+use innexgo_hours_api::response;
 
-use super::todo_app_db_types::*;
+use super::db_types::*;
 use super::utils;
 
 use super::external_event_data_service;

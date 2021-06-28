@@ -19,7 +19,6 @@ create table subscription(
   creation_time bigint not null,
   creator_user_id bigint not null,
   subscription_kind bigint not null, -- VALID | CANCEL
-  max_uses bigint not null, -- only valid if VALID
   payment_id bigint not null -- only valid if VALID
 );
 
@@ -50,7 +49,7 @@ create table school_data(
 
 drop table if exists adminship_request; 
 create table adminship_request(
-  adminship_request_id not null primary key,
+  adminship_request_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   school_id bigint not null,
@@ -59,16 +58,16 @@ create table adminship_request(
 
 drop table if exists adminship_request_response; 
 create table adminship_request_response(
-  adminship_request_id bigserial primary key,
+  adminship_request_id bigint primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   message text not null,
-  accepted bigint not null -- boolean
+  accepted bool not null
 );
 
 drop table if exists adminship;
 create table adminship(
-  adminship_id not null primary key,
+  adminship_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   user_id bigint not null,

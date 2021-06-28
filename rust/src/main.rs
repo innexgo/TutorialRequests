@@ -20,11 +20,18 @@ mod handlers;
 // db
 mod external_event_data_service;
 mod external_event_service;
-mod goal_data_service;
-mod goal_intent_data_service;
-mod goal_intent_service;
-mod goal_service;
-mod time_utility_function_service;
+mod subscription_service;
+mod course_service;
+mod course_data_service;
+mod school_service;
+mod school_data_service;
+mod adminship_service;
+mod adminship_request_service;
+mod adminship_request_response_service;
+mod session_request_service;
+mod session_request_response_service;
+mod session_service;
+mod session_data_service;
 
 static SERVICE_NAME: &str = "innexgo-hours-service";
 
