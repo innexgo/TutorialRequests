@@ -19,6 +19,7 @@ create table subscription(
   creation_time bigint not null,
   creator_user_id bigint not null,
   subscription_kind bigint not null, -- VALID | CANCEL
+  max_uses bigint not null,
   payment_id bigint not null -- only valid if VALID
 );
 
@@ -45,24 +46,24 @@ create table school_data(
   description text not null,
   active bool not null
 );
-  
 
-drop table if exists adminship_request; 
-create table adminship_request(
-  adminship_request_id bigserial primary key,
+drop table if exists school_key;
+create table school_key(
+  school_key_key text primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   school_id bigint not null,
-  message text not null
+  start_time bigint not null,
+  end_time bigint not null
 );
 
-drop table if exists adminship_request_response; 
-create table adminship_request_response(
-  adminship_request_id bigint primary key,
+drop table if exists school_key_data;
+create table school_key_data(
+  school_key_data_id bigserial primary key, 
   creation_time bigint not null,
   creator_user_id bigint not null,
-  message text not null,
-  accepted bool not null
+  school_key_key text not null,
+  active bool not null
 );
 
 drop table if exists adminship;
@@ -73,7 +74,7 @@ create table adminship(
   user_id bigint not null,
   school_id bigint not null,
   adminship_kind bigint not null, -- ADMIN, CANCEL
-  adminship_request_id bigint -- NULLABLE only valid if REQUEST
+  school_key_key text -- NULLABLE (not all adminships are from keys
 );
 
 drop table if exists course;
@@ -95,16 +96,25 @@ create table course_data(
   active bool not null 
 );
 
--- TODO: kind of bad table rn, see if we can make it more elegant
 drop table if exists course_key;
 create table course_key(
-  course_key_id bigserial primary key,
+  course_key_key text primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   course_id bigint not null,
-  duration bigint not null,
   max_uses bigint not null,
-  course_membership_kind bigint -- NULLABLE (if null, means that the course key is cancelled)
+  course_membership_kind bigint not null,
+  start_time bigint not null,
+  end_time bigint not null
+);
+
+drop table if exists course_key_data;
+create table course_key_data(
+  course_key_data_id bigserial primary key, 
+  creation_time bigint not null,
+  creator_user_id bigint not null,
+  course_key_key bigint not null,
+  active bool not null
 );
 
 -- Many to Many mapper for users to course
@@ -151,7 +161,7 @@ create table session_request(
   course_id bigint not null,
   message text not null,
   start_time bigint not null,
-  duration bigint not null
+  end_time bigint not null
 );
 
 -- a response to the course session request

@@ -16,7 +16,7 @@ impl From<tokio_postgres::row::Row> for CourseMembership {
       course_membership_kind: (row.get::<_, i64>("course_membership_kind") as u8)
         .try_into()
         .unwrap(),
-      course_key_id: row.get("course_key_id"),
+      course_key_key: row.get("course_key_key"),
     }
   }
 }
@@ -28,7 +28,7 @@ pub async fn add(
   user_id: i64,
   course_id: i64,
   course_membership_kind: request::CourseMembershipKind,
-  course_key_id: Option<i64>,
+  course_key_key: Option<String>,
 ) -> Result<CourseMembership, tokio_postgres::Error> {
   let creation_time = current_time_millis();
 
@@ -41,7 +41,7 @@ pub async fn add(
            user_id,
            course_id,
            course_membership_kind,
-           course_key_id
+           course_key_key
        )
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING course_membership_id
@@ -52,7 +52,7 @@ pub async fn add(
         &user_id,
         &course_id,
         &(course_membership_kind.clone() as i64),
-        &course_key_id,
+        &course_key_key,
       ],
     )
     .await?
@@ -66,7 +66,7 @@ pub async fn add(
     user_id,
     course_id,
     course_membership_kind,
-    course_key_id,
+    course_key_key,
   })
 }
 
@@ -104,8 +104,8 @@ pub async fn query(
     " AND ($5::bigint   IS NULL OR cm.user_id = $5)",
     " AND ($6::bigint   IS NULL OR cm.course_id = $6)",
     " AND ($7::bigint   IS NULL OR cm.course_membership_kind = $7)",
-    " AND ($8::bool     IS NULL OR cm.course_key_id IS NOT NULL = $8)",
-    " AND ($9::bigint   IS NULL OR cm.course_key_id = $9 IS TRUE)",
+    " AND ($8::bool     IS NULL OR cm.course_key_key IS NOT NULL = $8)",
+    " AND ($9::bigint   IS NULL OR cm.course_key_key = $9 IS TRUE)",
     " ORDER BY cm.course_membership_id",
     " LIMIT $10",
     " OFFSET $11",
@@ -126,7 +126,7 @@ pub async fn query(
         &props.course_id,
         &props.course_membership_kind.map(|x| x as i64),
         &props.course_membership_from_key,
-        &props.course_key_id,
+        &props.course_key_key,
         &props.count.unwrap_or(100),
         &props.offset.unwrap_or(0),
       ],

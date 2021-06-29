@@ -45,15 +45,15 @@ pub fn api(
       config.clone(),
       db.clone(),
       auth_service.clone(),
-      warp::path!("public" / "course_key" / "new_valid"),
-      handlers::course_key_new_valid,
+      warp::path!("public" / "course_key" / "new"),
+      handlers::course_key_new,
     ))
     .or(adapter(
       config.clone(),
       db.clone(),
       auth_service.clone(),
-      warp::path!("public" / "course_key" / "new_cancel"),
-      handlers::course_key_new_cancel,
+      warp::path!("public" / "course_key_data" / "new"),
+      handlers::course_key_data_new,
     ))
     .or(adapter(
       config.clone(),
@@ -80,15 +80,15 @@ pub fn api(
       config.clone(),
       db.clone(),
       auth_service.clone(),
-      warp::path!("public" / "adminship_request" / "new"),
-      handlers::adminship_request_new,
+      warp::path!("public" / "school_key" / "new"),
+      handlers::school_key_new,
     ))
     .or(adapter(
       config.clone(),
       db.clone(),
       auth_service.clone(),
-      warp::path!("public" / "adminship_request_response" / "new"),
-      handlers::adminship_request_response_new,
+      warp::path!("public" / "school_key_data" / "new"),
+      handlers::school_key_data_new,
     ))
     .or(adapter(
       config.clone(),
@@ -283,7 +283,7 @@ where
         .await
         .map_err(innexgo_hours_error)
     })
-    .map(|x| warp::reply::json(&Ok::<ResponseType, ()>(x)))
+    .map(|x| warp::reply::json(&Ok::<_, ()>(x)))
 }
 
 // This function receives a `Rejection` and tries to return a custom
@@ -319,7 +319,7 @@ async fn handle_rejection(err: warp::Rejection) -> Result<impl warp::Reply, Infa
   }
 
   Ok(warp::reply::with_status(
-    warp::reply::json(&Err::<(), InnexgoHoursError>(message)),
+    warp::reply::json(&Err::<(), _>(message)),
     code,
   ))
 }

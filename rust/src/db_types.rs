@@ -8,6 +8,7 @@ pub struct Subscription {
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub subscription_kind: SubscriptionKind,
+  pub max_uses: i64,
   pub payment_id: i64,
 }
 
@@ -28,20 +29,23 @@ pub struct SchoolData {
   pub active: bool,
 }
 
-pub struct AdminshipRequest {
-  pub adminship_request_id: i64,
+pub struct SchoolKey {
+  pub school_key_key: String,
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub school_id: i64,
-  pub message: String,
+  pub max_uses: i64,
+  pub adminship_kind: AdminshipKind,
+  pub start_time: i64,
+  pub end_time: i64,
 }
 
-pub struct AdminshipRequestResponse {
-  pub adminship_request_id: i64,
+pub struct SchoolKeyData {
+  pub school_key_data_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub message: String,
-  pub accepted: bool,
+  pub school_key_key: String,
+  pub active: bool,
 }
 
 pub struct Adminship {
@@ -51,7 +55,7 @@ pub struct Adminship {
   pub user_id: i64,
   pub school_id: i64,
   pub adminship_kind: AdminshipKind,
-  pub adminship_request_response_id: Option<i64>,
+  pub school_key_key: Option<String>,
 }
 
 pub struct Location {
@@ -81,14 +85,22 @@ pub struct CourseData {
 }
 
 pub struct CourseKey {
-  pub course_key_id: i64,
+  pub course_key_key: String,
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub course_id: i64,
-  pub key: String,
-  pub duration: i64,
   pub max_uses: i64,
-  pub course_membership_kind: Option<CourseMembershipKind>,
+  pub course_membership_kind: CourseMembershipKind,
+  pub start_time: i64,
+  pub end_time: i64,
+}
+
+pub struct CourseKeyData {
+  pub course_key_data_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub course_key_key: String,
+  pub active: bool,
 }
 
 pub struct CourseMembership {
@@ -98,7 +110,7 @@ pub struct CourseMembership {
   pub user_id: i64,
   pub course_id: i64,
   pub course_membership_kind: CourseMembershipKind,
-  pub course_key_id: Option<i64>,
+  pub course_key_key: Option<String>,
 }
 
 pub struct Session {

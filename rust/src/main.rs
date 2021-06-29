@@ -18,18 +18,17 @@ mod db_types;
 mod handlers;
 
 // db
-mod adminship_request_response_service;
-mod adminship_request_service;
 mod adminship_service;
 mod committment_response_service;
 mod committment_service;
 mod course_data_service;
+mod course_key_data_service;
 mod course_key_service;
 mod course_membership_service;
 mod course_service;
-mod external_event_data_service;
-mod external_event_service;
 mod school_data_service;
+mod school_key_data_service;
+mod school_key_service;
 mod school_service;
 mod session_data_service;
 mod session_request_response_service;

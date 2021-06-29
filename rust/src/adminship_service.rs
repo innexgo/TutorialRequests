@@ -14,7 +14,7 @@ impl From<tokio_postgres::row::Row> for Adminship {
       user_id: row.get("user_id"),
       school_id: row.get("school_id"),
       adminship_kind: (row.get::<_, i64>("adminship_kind") as u8).try_into().unwrap(),
-      adminship_request_response_id: row.get("adminship_request_response_id"),
+      school_key_key: row.get("school_key_key"),
     }
   }
 }
@@ -26,7 +26,7 @@ pub async fn add(
   user_id: i64,
   school_id: i64,
   adminship_kind: request::AdminshipKind,
-  adminship_request_response_id: Option<i64>,
+  school_key_key: Option<String>,
 ) -> Result<Adminship, tokio_postgres::Error> {
   let creation_time = current_time_millis();
 
@@ -39,7 +39,7 @@ pub async fn add(
            user_id,
            school_id,
            adminship_kind
-           adminship_request_response_id
+           school_key_key
        )
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING adminship_id
@@ -50,7 +50,7 @@ pub async fn add(
         &user_id,
         &school_id,
         &(adminship_kind.clone() as i64),
-        &adminship_request_response_id,
+        &school_key_key,
       ],
     )
     .await?
@@ -64,7 +64,7 @@ pub async fn add(
     user_id,
     school_id,
     adminship_kind,
-    adminship_request_response_id,
+    school_key_key,
   })
 }
 
@@ -94,7 +94,7 @@ pub async fn query(
     } else {
       ""
     },
-    " LEFT JOIN adminship_request_response arr ON a.adminship_request_id = arr.adminship_request_id",
+    " LEFT JOIN school_key sk ON a.school_key_key = sk.school_key_key",
     " WHERE 1 = 1",
     " AND ($1::bigint[] IS NULL OR a.adminship_id IN $1)",
     " AND ($2::bigint   IS NULL OR a.creation_time >= $2)",
@@ -103,8 +103,8 @@ pub async fn query(
     " AND ($5::bigint   IS NULL OR a.user_id = $5)",
     " AND ($6::bigint   IS NULL OR a.school_id = $6)",
     " AND ($7::bigint   IS NULL OR a.adminship_kind = $7)",
-    " AND ($8::bool     IS NULL OR arr.adminship_request_id IS NOT NULL = $8)",
-    " AND ($9::bigint   IS NULL OR arr.adminship_request_id == $9 IS TRUE)",
+    " AND ($8::bool     IS NULL OR sk.adminship_request_id IS NOT NULL = $8)",
+    " AND ($9::text     IS NULL OR sk.school_key_key == $9 IS TRUE)",
     " ORDER BY a.adminship_id",
     " LIMIT $10",
     " OFFSET $11",
@@ -125,7 +125,7 @@ pub async fn query(
         &props.school_id,
         &props.adminship_kind.map(|x| x as i64),
         &props.adminship_has_source,
-        &props.adminship_request_id,
+        &props.school_key_key,
         &props.count.unwrap_or(100),
         &props.offset.unwrap_or(0),
       ],
