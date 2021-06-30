@@ -66,6 +66,13 @@ pub fn api(
       config.clone(),
       db.clone(),
       auth_service.clone(),
+      warp::path!("public" / "course_membership" / "new_cancel"),
+      handlers::course_membership_new_cancel,
+    ))
+    .or(adapter(
+      config.clone(),
+      db.clone(),
+      auth_service.clone(),
       warp::path!("public" / "school" / "new"),
       handlers::school_new,
     ))
@@ -94,8 +101,8 @@ pub fn api(
       config.clone(),
       db.clone(),
       auth_service.clone(),
-      warp::path!("public" / "adminship" / "new_valid"),
-      handlers::adminship_new_valid,
+      warp::path!("public" / "adminship" / "new_key"),
+      handlers::adminship_new_key,
     ))
     .or(adapter(
       config.clone(),
@@ -171,6 +178,20 @@ pub fn api(
       config.clone(),
       db.clone(),
       auth_service.clone(),
+      warp::path!("public" / "school_key" / "view"),
+      handlers::school_key_view,
+    ))
+    .or(adapter(
+      config.clone(),
+      db.clone(),
+      auth_service.clone(),
+      warp::path!("public" / "school_key_data" / "view"),
+      handlers::school_key_data_view,
+    ))
+    .or(adapter(
+      config.clone(),
+      db.clone(),
+      auth_service.clone(),
       warp::path!("public" / "course" / "view"),
       handlers::course_view,
     ))
@@ -206,22 +227,15 @@ pub fn api(
       config.clone(),
       db.clone(),
       auth_service.clone(),
+      warp::path!("public" / "course_key_data" / "view"),
+      handlers::course_key_data_view,
+    ))
+    .or(adapter(
+      config.clone(),
+      db.clone(),
+      auth_service.clone(),
       warp::path!("public" / "course_membership" / "view"),
       handlers::course_membership_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "adminship_request" / "view"),
-      handlers::adminship_request_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "adminship_request_response" / "view"),
-      handlers::adminship_request_response_view,
     ))
     .or(adapter(
       config.clone(),

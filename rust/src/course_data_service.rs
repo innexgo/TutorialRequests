@@ -1,7 +1,7 @@
 use super::db_types::*;
 use super::utils::current_time_millis;
-use std::convert::TryInto;
 use innexgo_hours_api::request;
+use std::convert::TryInto;
 use tokio_postgres::GenericClient;
 
 impl From<tokio_postgres::row::Row> for CourseData {
@@ -68,6 +68,41 @@ pub async fn add(
   })
 }
 
+pub async fn get_by_course_id(
+  con: &mut impl GenericClient,
+  course_id: i64,
+) -> Result<Option<CourseData>, tokio_postgres::Error> {
+  let result = con
+    .query_opt(
+      "
+      SELECT cd.* FROM course_data cd
+      INNER JOIN (
+          SELECT max(course_data_id) id
+          FROM course_data
+          GROUP BY course_id
+      ) maxids
+      ON maxids.id = cd.course_data_id
+      WHERE cd.course_id = $1
+      ",
+      &[&course_id],
+    )
+    .await?
+    .map(|x| x.into());
+  Ok(result)
+}
+
+pub async fn is_active_by_course_id(
+  con: &mut impl GenericClient,
+  course_id: i64,
+) -> Result<bool, tokio_postgres::Error> {
+  let result = match get_by_course_id(con, course_id).await? {
+    Some(CourseData { active: true, .. }) => true,
+    _ => false,
+  };
+
+  Ok(result)
+}
+
 pub async fn get_by_course_data_id(
   con: &mut impl GenericClient,
   course_data_id: i64,
@@ -86,7 +121,6 @@ pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::CourseDataViewProps,
 ) -> Result<Vec<CourseData>, tokio_postgres::Error> {
-
   let sql = [
     "SELECT cd.* FROM course_data cd",
     " JOIN course c ON cd.course_id = c.course_id",

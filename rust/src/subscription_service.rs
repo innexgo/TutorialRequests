@@ -24,6 +24,7 @@ pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
   subscription_kind: request::SubscriptionKind,
+  max_uses: i64,
   payment_id: i64,
 ) -> Result<Subscription, tokio_postgres::Error> {
   let creation_time = current_time_millis();
@@ -38,12 +39,13 @@ pub async fn add(
            subscription_kind,
            payment_id
        )
-       VALUES($1, $2, $3, $4)
+       VALUES($1, $2, $3, $4, $5)
        RETURNING subscription_id
       ",
       &[
         &creation_time,
         &creator_user_id,
+        &max_uses,
         &(subscription_kind.clone() as i64),
         &payment_id,
       ],
@@ -60,6 +62,28 @@ pub async fn add(
     subscription_kind,
     payment_id,
   })
+}
+
+pub async fn get_by_user_id(
+  con: &mut impl GenericClient,
+  user_id: i64,
+) -> Result<Option<Subscription>, tokio_postgres::Error> {
+  let result = con
+    .query_opt(
+      "
+      SELECT s.* FROM subscription s
+      INNER JOIN (
+          SELECT max(subscription_id) id
+          FROM subscription GROUP BY creator_user_id
+      ) maxids ON maxids.id = s.subscription_id
+      WHERE 1 = 1
+      AND s.creator_user_id = $1
+      ",
+      &[&user_id],
+    )
+    .await?
+    .map(|x| x.into());
+  Ok(result)
 }
 
 pub async fn get_by_subscription_id(
@@ -81,7 +105,7 @@ pub async fn query(
   let sql = [
     "SELECT s.* FROM subscription s",
      if props.only_recent {
-         " INNER JOIN (SELECT max(subscription_id) id FROM subscription GROUP BY creator_user_id) maxids ON maxids.id = a.subscription_id"
+         " INNER JOIN (SELECT max(subscription_id) id FROM subscription GROUP BY creator_user_id) maxids ON maxids.id = s.subscription_id"
      } else {
          ""
      },

@@ -18,7 +18,6 @@ impl From<tokio_postgres::row::Row> for SchoolData {
   }
 }
 
-// TODO we need to figure out a way to make scheduled and unscheduled goals work better
 pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
@@ -81,13 +80,45 @@ pub async fn get_by_school_data_id(
   Ok(result)
 }
 
-// TODO need to fix
+pub async fn get_by_school_id(
+  con: &mut impl GenericClient,
+  school_id: i64,
+) -> Result<Option<SchoolData>, tokio_postgres::Error> {
+  let result = con
+    .query_opt(
+      "
+      SELECT sd.* FROM school_data sd
+      INNER JOIN (
+          SELECT max(school_data_id) id
+          FROM school_data
+          GROUP BY school_id
+      ) maxids
+      ON maxids.id = sd.school_data_id
+      WHERE sd.school_id = $1
+      ",
+      &[&school_id],
+    )
+    .await?
+    .map(|x| x.into());
+  Ok(result)
+}
+
+pub async fn is_active_by_school_id(
+  con: &mut impl GenericClient,
+  school_id: i64,
+) -> Result<bool, tokio_postgres::Error> {
+  let result = match get_by_school_id(con, school_id).await? {
+    Some(SchoolData { active: true, .. }) => true,
+    _ => false,
+  };
+
+  Ok(result)
+}
 
 pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::SchoolDataViewProps,
 ) -> Result<Vec<SchoolData>, tokio_postgres::Error> {
-  // TODO prevent getting meaningless duration
 
   let sql = [
     "SELECT sd.* FROM school_data sd",

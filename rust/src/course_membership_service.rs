@@ -81,6 +81,94 @@ pub async fn get_by_course_membership_id(
     )
     .await?
     .map(|x| x.into());
+
+  Ok(result)
+}
+
+pub async fn get_by_course_key_key(
+  con: &mut impl GenericClient,
+  course_key_key: &str,
+) -> Result<Vec<CourseMembership>, tokio_postgres::Error> {
+  let result = con
+    .query(
+      "SELECT * FROM course_membership WHERE course_key_key=$1",
+      &[&course_key_key],
+    )
+    .await?
+    .into_iter()
+    .map(|x| x.into())
+    .collect();
+
+  Ok(result)
+}
+
+pub async fn count_course_key_uses(
+  con: &mut impl GenericClient,
+  course_key_key: &str,
+) -> Result<i64, tokio_postgres::Error> {
+  Ok(
+    get_by_course_key_key(con, course_key_key)
+      .await?
+      .into_iter()
+      .count() as i64,
+  )
+}
+
+pub async fn get_by_user_id_course_id(
+  con: &mut impl GenericClient,
+  user_id: i64,
+  course_id: i64,
+) -> Result<Option<CourseMembership>, tokio_postgres::Error> {
+  let result = con
+    .query_opt(
+      "
+      SELECT cm.* FROM course_membership cm
+      INNER JOIN (
+          SELECT max(course_membership_id) id
+          FROM course_membership
+          GROUP BY user_id, course_id
+      ) maxids ON maxids.id = cm.course_membership_id
+      WHERE 1 = 1
+      AND cm.user_id = $1
+      AND cm.course_id = $2
+      ",
+      &[&user_id, &course_id],
+    )
+    .await?
+    .map(|x| x.into());
+
+  Ok(result)
+}
+
+pub async fn is_student(
+  con: &mut impl GenericClient,
+  user_id: i64,
+  course_id: i64,
+) -> Result<bool, tokio_postgres::Error> {
+  let result = match get_by_user_id_course_id(con, user_id, course_id).await? {
+    Some(CourseMembership {
+      course_membership_kind: request::CourseMembershipKind::Student,
+      ..
+    }) => true,
+    _ => false,
+  };
+
+  Ok(result)
+}
+
+pub async fn is_instructor(
+  con: &mut impl GenericClient,
+  user_id: i64,
+  course_id: i64,
+) -> Result<bool, tokio_postgres::Error> {
+  let result = match get_by_user_id_course_id(con, user_id, course_id).await? {
+    Some(CourseMembership {
+      course_membership_kind: request::CourseMembershipKind::Instructor,
+      ..
+    }) => true,
+    _ => false,
+  };
+
   Ok(result)
 }
 

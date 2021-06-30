@@ -1,7 +1,7 @@
 use super::db_types::*;
 use super::utils::current_time_millis;
-use std::convert::TryInto;
 use innexgo_hours_api::request;
+use std::convert::TryInto;
 use tokio_postgres::GenericClient;
 
 impl From<tokio_postgres::row::Row> for Adminship {
@@ -13,13 +13,14 @@ impl From<tokio_postgres::row::Row> for Adminship {
       creator_user_id: row.get("creator_user_id"),
       user_id: row.get("user_id"),
       school_id: row.get("school_id"),
-      adminship_kind: (row.get::<_, i64>("adminship_kind") as u8).try_into().unwrap(),
+      adminship_kind: (row.get::<_, i64>("adminship_kind") as u8)
+        .try_into()
+        .unwrap(),
       school_key_key: row.get("school_key_key"),
     }
   }
 }
 
-// TODO we need to figure out a way to make scheduled and unscheduled goals work better
 pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
@@ -38,7 +39,7 @@ pub async fn add(
            creator_user_id,
            user_id,
            school_id,
-           adminship_kind
+           adminship_kind,
            school_key_key
        )
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -82,14 +83,92 @@ pub async fn get_by_adminship_id(
   Ok(result)
 }
 
+pub async fn get_by_user_id_school_id(
+  con: &mut impl GenericClient,
+  user_id: i64,
+  school_id: i64,
+) -> Result<Option<Adminship>, tokio_postgres::Error> {
+  let result = con
+    .query_opt(
+      "
+      SELECT a.* FROM adminship a
+      INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id
+      WHERE 1 = 1
+      AND a.user_id = $1
+      AND a.school_id = $2
+      ",
+      &[
+        &user_id,
+        &school_id,
+      ],
+    )
+    .await?
+    .map(|x| x.into());
+
+  Ok(result)
+}
+
+pub async fn is_admin(
+  con: &mut impl GenericClient,
+  user_id: i64,
+  school_id: i64,
+) -> Result<bool, tokio_postgres::Error> {
+  let result = match get_by_user_id_school_id(con, user_id, school_id).await? {
+    Some(Adminship {
+      adminship_kind: request::AdminshipKind::Admin,
+      ..
+    }) => true,
+    _ => false,
+  };
+
+  Ok(result)
+}
+
+pub async fn get_by_user_id(
+  con: &mut impl GenericClient,
+  user_id: i64,
+) -> Result<Vec<Adminship>, tokio_postgres::Error> {
+  let result = con
+    .query(
+      "
+      SELECT a.* FROM adminship a
+      INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id
+      WHERE 1 = 1
+      AND a.user_id = $1
+      ",
+      &[
+        &user_id,
+      ],
+    )
+    .await?
+    .into_iter()
+    .map(|x| x.into())
+    .collect();
+
+  Ok(result)
+}
+
+pub async fn count_valid_adminships_by_user_id(
+  con: &mut impl GenericClient,
+  user_id: i64,
+) -> Result<i64, tokio_postgres::Error> {
+  Ok(
+    get_by_user_id(con, user_id)
+      .await?
+      .into_iter()
+      .filter(|x| matches!(x.adminship_kind, request::AdminshipKind::Admin))
+      .count() as i64,
+  )
+}
+
 pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::AdminshipViewProps,
 ) -> Result<Vec<Adminship>, tokio_postgres::Error> {
   let sql = [
-    "SELECT a.* FROM adminship gd",
+    "SELECT a.* FROM adminship a",
     if props.only_recent {
-      " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id) maxids
+      " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids
         ON maxids.id = a.adminship_id"
     } else {
       ""
