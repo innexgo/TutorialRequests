@@ -1,3 +1,4 @@
+#![recursion_limit="256"]
 #![feature(async_closure)]
 #![feature(never_type)]
 use clap::Clap;

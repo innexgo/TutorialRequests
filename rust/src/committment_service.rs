@@ -12,7 +12,6 @@ impl From<tokio_postgres::row::Row> for Committment {
       creator_user_id: row.get("creator_user_id"),
       attendee_user_id: row.get("attendee_user_id"),
       session_id: row.get("session_id"),
-      cancellable: row.get("cancellable"),
     }
   }
 }
@@ -22,7 +21,6 @@ pub async fn add(
   creator_user_id: i64,
   attendee_user_id: i64,
   session_id: i64,
-  cancellable: bool,
 ) -> Result<Committment, tokio_postgres::Error> {
   let creation_time = current_time_millis();
 
@@ -33,10 +31,9 @@ pub async fn add(
            creation_time,
            creator_user_id,
            attendee_user_id,
-           session_id,
-           cancellable
+           session_id
        )
-       VALUES($1, $2, $3, $4)
+       VALUES($1, $2, $3)
        RETURNING committment_id
       ",
       &[
@@ -44,7 +41,6 @@ pub async fn add(
         &creator_user_id,
         &attendee_user_id,
         &session_id,
-        &cancellable,
       ],
     )
     .await?
@@ -57,7 +53,6 @@ pub async fn add(
     creator_user_id,
     attendee_user_id,
     session_id,
-    cancellable,
   })
 }
 
@@ -69,6 +64,22 @@ pub async fn get_by_committment_id(
     .query_opt(
       "SELECT * FROM committment WHERE committment_id=$1",
       &[&committment_id],
+    )
+    .await?
+    .map(|x| x.into());
+
+  Ok(result)
+}
+
+pub async fn get_by_attendee_user_id_session_id(
+  con: &mut impl GenericClient,
+  attendee_user_id: i64,
+  session_id: i64,
+) -> Result<Option<Committment>, tokio_postgres::Error> {
+  let result = con
+    .query_opt(
+      "SELECT * FROM committment WHERE attendee_user_id=$1 AND session_id=$2",
+      &[&attendee_user_id, &session_id],
     )
     .await?
     .map(|x| x.into());
@@ -94,17 +105,16 @@ pub async fn query(
      AND ($4::bigint   IS NULL OR c.creator_user_id = $4)
      AND ($5::bigint   IS NULL OR c.attendee_user_id = $5)
      AND ($6::bigint   IS NULL OR c.session_id = $6)
-     AND ($7::bool     IS NULL OR c.cancellable = $7)
-     AND ($8::bigint   IS NULL OR ses.course_id = $8)
-     AND ($9::bigint   IS NULL OR sesd.start_time >= $9)
-     AND ($10::bigint  IS NULL OR sesd.start_time <= $10)
-     AND ($11::bigint  IS NULL OR sesd.end_time >= $11)
-     AND ($12::bigint  IS NULL OR sesd.end_time <= $12)
-     AND ($13::bool    IS NULL OR cr.committment_id IS NOT NULL = $13)
-     AND ($14::bool    IS NULL OR srr.committment_id IS NOT NULL = $14)
+     AND ($7::bigint   IS NULL OR ses.course_id = $7)
+     AND ($8::bigint   IS NULL OR sesd.start_time >= $8)
+     AND ($9::bigint   IS NULL OR sesd.start_time <= $9)
+     AND ($10::bigint  IS NULL OR sesd.end_time >= $10)
+     AND ($11::bigint  IS NULL OR sesd.end_time <= $11)
+     AND ($12::bool    IS NULL OR cr.committment_id IS NOT NULL = $12)
+     AND ($13::bool    IS NULL OR srr.committment_id IS NOT NULL = $13)
      ORDER BY c.committment_id
-     LIMIT $15
-     OFFSET $16
+     LIMIT $14
+     OFFSET $15
      ";
 
   let stmnt = con.prepare(sql).await?;
@@ -119,7 +129,6 @@ pub async fn query(
         &props.creator_user_id,
         &props.attendee_user_id,
         &props.session_id,
-        &props.cancellable,
         &props.course_id,
         &props.min_start_time,
         &props.max_start_time,

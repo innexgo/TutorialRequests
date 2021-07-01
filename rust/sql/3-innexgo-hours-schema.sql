@@ -147,7 +147,7 @@ create table session_data(
   name text not null,
   start_time bigint not null,
   end_time bigint not null,
-  active bool not null -- boolean
+  active bool not null
 );
 
 -- a request from a student to a course for a specific time
@@ -157,7 +157,6 @@ create table session_request(
   session_request_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
-  attendee_user_id bigint not null,
   course_id bigint not null,
   message text not null,
   start_time bigint not null,
@@ -181,8 +180,7 @@ create table committment(
   creation_time bigint not null,
   creator_user_id bigint not null,
   attendee_user_id bigint not null,
-  session_id bigint not null,
-  cancellable bool not null -- boolean
+  session_id bigint not null
 );
 
 -- a response to the commitment
@@ -193,4 +191,3 @@ create table committment_response(
   creator_user_id bigint not null,
   committment_response_kind bigint not null -- can be PRESENT, TARDY, ABSENT, CANCEL
 );
-

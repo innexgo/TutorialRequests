@@ -21,7 +21,6 @@ impl From<tokio_postgres::row::Row> for CourseMembership {
   }
 }
 
-// TODO we need to figure out a way to make scheduled and unscheduled courses work better
 pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
@@ -170,6 +169,53 @@ pub async fn is_instructor(
   };
 
   Ok(result)
+}
+
+pub async fn get_by_course_id(
+  con: &mut impl GenericClient,
+  course_id: i64,
+) -> Result<Vec<CourseMembership>, tokio_postgres::Error> {
+  let result = con
+    .query(
+      "
+      SELECT cm.* FROM course_membership cm
+      INNER JOIN (
+          SELECT max(course_membership_id) id
+          FROM course_membership
+          GROUP BY user_id, course_id
+      ) maxids ON maxids.id = cm.course_membership_id
+      WHERE 1 = 1
+      AND cm.course_id = $1
+      ",
+      &[&course_id],
+    )
+    .await?
+    .into_iter()
+    .map(|x| x.into())
+    .collect();
+
+  Ok(result)
+}
+
+pub async fn count_instructors(
+  con: &mut impl GenericClient,
+  course_id: i64,
+) -> Result<i64, tokio_postgres::Error> {
+  let result = get_by_course_id(con, course_id)
+    .await?
+    .into_iter()
+    .filter(|x| {
+      matches!(
+        x,
+        CourseMembership {
+          course_membership_kind: request::CourseMembershipKind::Instructor,
+          ..
+        },
+      )
+    })
+    .count();
+
+  Ok(result as i64)
 }
 
 pub async fn query(

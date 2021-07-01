@@ -1,7 +1,6 @@
 use super::db_types::*;
 use super::utils::current_time_millis;
 use innexgo_hours_api::request;
-use std::convert::TryInto;
 use tokio_postgres::GenericClient;
 
 impl From<tokio_postgres::row::Row> for SchoolKey {

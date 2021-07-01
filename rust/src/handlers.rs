@@ -338,7 +338,6 @@ async fn fill_session_request(
     session_request_id: session_request.session_request_id,
     creation_time: session_request.creation_time,
     creator_user_id: session_request.creator_user_id,
-    attendee_user_id: session_request.attendee_user_id,
     course: fill_course(con, course).await?,
     message: session_request.message,
     start_time: session_request.start_time,
@@ -394,7 +393,6 @@ async fn fill_committment(
     creator_user_id: committment.creator_user_id,
     attendee_user_id: committment.attendee_user_id,
     session: fill_session(con, session).await?,
-    cancellable: committment.cancellable,
   })
 }
 
@@ -531,12 +529,9 @@ pub async fn course_data_new(
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
 
-  if !adminship_service::is_admin(&mut sp, user.user_id, course.school_id)
+  if !course_membership_service::is_instructor(&mut sp, user.user_id, props.course_id)
     .await
     .map_err(report_postgres_err)?
-    && !course_membership_service::is_instructor(&mut sp, user.user_id, props.course_id)
-      .await
-      .map_err(report_postgres_err)?
   {
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
@@ -565,6 +560,10 @@ pub async fn course_key_new(
   auth_service: AuthService,
   props: request::CourseKeyNewProps,
 ) -> Result<response::CourseKeyData, response::InnexgoHoursError> {
+  if props.start_time > props.end_time {
+    return Err(response::InnexgoHoursError::NegativeDuration);
+  }
+
   // validate api key
   let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
 
@@ -585,12 +584,9 @@ pub async fn course_key_new(
   }
 
   // get instructor or admin
-  if !adminship_service::is_admin(&mut sp, user.user_id, course.school_id)
+  if !course_membership_service::is_instructor(&mut sp, user.user_id, props.course_id)
     .await
     .map_err(report_postgres_err)?
-    && !course_membership_service::is_instructor(&mut sp, user.user_id, props.course_id)
-      .await
-      .map_err(report_postgres_err)?
   {
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
@@ -653,14 +649,10 @@ pub async fn course_key_data_new(
     return Err(response::InnexgoHoursError::CourseArchived);
   }
 
-  // get instructor or admin
-  if true
-    && !adminship_service::is_admin(&mut sp, user.user_id, course.school_id)
-      .await
-      .map_err(report_postgres_err)?
-    && !course_membership_service::is_instructor(&mut sp, user.user_id, course.course_id)
-      .await
-      .map_err(report_postgres_err)?
+  // is valid instructor
+  if !course_membership_service::is_instructor(&mut sp, user.user_id, course.course_id)
+    .await
+    .map_err(report_postgres_err)?
   {
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
@@ -695,7 +687,7 @@ pub async fn course_membership_new_key(
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
   // get course key
-  let course_key = course_key_service::get_by_course_key_key(&mut sp, props.course_key)
+  let course_key = course_key_service::get_by_course_key_key(&mut sp, props.course_key_key)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseKeyNonexistent)?;
@@ -723,30 +715,12 @@ pub async fn course_membership_new_key(
     return Err(response::InnexgoHoursError::CourseArchived);
   }
 
-  // get corresponding course
-  let course = course_service::get_by_course_id(&mut sp, course_key.course_id)
-    .await
-    .map_err(report_postgres_err)?
-    .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
-
-  // get instructor or admin
-  if true
-    && !adminship_service::is_admin(&mut sp, user.user_id, course.school_id)
-      .await
-      .map_err(report_postgres_err)?
-    && !course_membership_service::is_instructor(&mut sp, user.user_id, course.course_id)
-      .await
-      .map_err(report_postgres_err)?
-  {
-    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
-  }
-
   // now create membership
   let course_membership = course_membership_service::add(
     &mut sp,
     user.user_id,
     user.user_id,
-    course.course_id,
+    course_key.course_id,
     course_key.course_membership_kind,
     Some(course_key.course_key_key),
   )
@@ -778,6 +752,12 @@ pub async fn course_membership_new_cancel(
   let con = &mut *db.lock().await;
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
+  // get corresponding course
+  let course = course_service::get_by_course_id(&mut sp, props.course_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
+
   // check that course isn't archived
   if course_data_service::is_active_by_course_id(&mut sp, props.course_id)
     .await
@@ -786,26 +766,28 @@ pub async fn course_membership_new_cancel(
     return Err(response::InnexgoHoursError::CourseArchived);
   }
 
-  // get corresponding course
-  let course = course_service::get_by_course_id(&mut sp, props.course_id)
-    .await
-    .map_err(report_postgres_err)?
-    .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
+  let is_instructor =
+    course_membership_service::is_instructor(&mut sp, user.user_id, course.course_id)
+      .await
+      .map_err(report_postgres_err)?;
 
-
-  // TODO get criteria right
+  let is_self_cancel = user.user_id == props.user_id;
 
   // if user_id == creator_user_id then authorize
   // otherwise creator_user_id must be an admin or instructor
-  if user.user_id != props.user_id
-    && !adminship_service::is_admin(&mut sp, user.user_id, course.school_id)
-      .await
-      .map_err(report_postgres_err)?
-    && !course_membership_service::is_instructor(&mut sp, user.user_id, course.course_id)
-      .await
-      .map_err(report_postgres_err)?
-  {
+  if !(is_self_cancel || is_instructor) {
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // make sure we cannot leave the course without an instructor
+  if is_instructor {
+    let num_instructors = course_membership_service::count_instructors(&mut sp, course.course_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if num_instructors <= 1 {
+      return Err(response::InnexgoHoursError::CourseMembershipCannotLeaveEmpty);
+    }
   }
 
   // now create membership
@@ -845,8 +827,6 @@ pub async fn school_new(
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::SubscriptionNonexistent)?;
-
-  // get numbers of uses
 
   // check if subscription is authorized
   if adminship_service::count_valid_adminships_by_user_id(&mut sp, user.user_id)
@@ -930,166 +910,524 @@ pub async fn school_data_new(
   fill_school_data(con, school_data).await
 }
 
-pub async fn external_event_new(
+pub async fn school_key_new(
   _config: Config,
   db: Db,
   auth_service: AuthService,
-  props: request::ExternalEventNewProps,
-) -> Result<response::ExternalEventData, response::InnexgoHoursError> {
-  // validate api key
-  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
-
-  // validate
-  if props.start_time < 0 {
-    return Err(response::InnexgoHoursError::NegativeStartTime);
-  }
-  if props.start_time >= props.end_time {
+  props: request::SchoolKeyNewProps,
+) -> Result<response::SchoolKeyData, response::InnexgoHoursError> {
+  if props.start_time > props.end_time {
     return Err(response::InnexgoHoursError::NegativeDuration);
   }
-
-  let con = &mut *db.lock().await;
-
-  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
-
-  // create event
-  let external_event = external_event_service::add(&mut sp, user.user_id)
-    .await
-    .map_err(report_postgres_err)?;
-
-  // create data
-  let external_event_data = external_event_data_service::add(
-    &mut sp,
-    user.user_id,
-    external_event.external_event_id,
-    props.name,
-    props.start_time,
-    props.end_time,
-    true,
-  )
-  .await
-  .map_err(report_postgres_err)?;
-
-  sp.commit().await.map_err(report_postgres_err)?;
-
-  // return json
-  fill_external_event_data(con, external_event_data).await
-}
-
-pub async fn external_event_data_new(
-  _config: Config,
-  db: Db,
-  auth_service: AuthService,
-  props: request::ExternalEventDataNewProps,
-) -> Result<response::ExternalEventData, response::InnexgoHoursError> {
-  // validate api key
-  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
-
-  // validate
-  if props.start_time < 0 {
-    return Err(response::InnexgoHoursError::NegativeStartTime);
-  }
-  if props.start_time >= props.end_time {
-    return Err(response::InnexgoHoursError::NegativeDuration);
-  }
-
-  let con = &mut *db.lock().await;
-
-  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
-
-  let external_event =
-    external_event_service::get_by_external_event_id(&mut sp, props.external_event_id)
-      .await
-      .map_err(report_postgres_err)?
-      .ok_or(response::InnexgoHoursError::ExternalEventNonexistent)?;
-
-  // validate event is owned by correct user
-  if external_event.creator_user_id != user.user_id {
-    return Err(response::InnexgoHoursError::ExternalEventNonexistent);
-  }
-
-  // now we can update data
-  let external_event_data = external_event_data_service::add(
-    &mut sp,
-    user.user_id,
-    external_event.external_event_id,
-    props.name,
-    props.start_time,
-    props.end_time,
-    true,
-  )
-  .await
-  .map_err(report_postgres_err)?;
-
-  sp.commit().await.map_err(report_postgres_err)?;
-
-  // return json
-  fill_external_event_data(con, external_event_data).await
-}
-
-pub async fn goal_intent_new(
-  _config: Config,
-  db: Db,
-  auth_service: AuthService,
-  props: request::GoalIntentNewProps,
-) -> Result<response::GoalIntentData, response::InnexgoHoursError> {
   // validate api key
   let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
 
   let con = &mut *db.lock().await;
-
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
-  // create intent
-  let goal_intent = goal_intent_service::add(&mut sp, user.user_id)
-    .await
-    .map_err(report_postgres_err)?;
-
-  // create data
-  let goal_intent_data = goal_intent_data_service::add(
-    &mut sp,
-    user.user_id,
-    goal_intent.goal_intent_id,
-    props.name,
-    true,
-  )
-  .await
-  .map_err(report_postgres_err)?;
-
-  sp.commit().await.map_err(report_postgres_err)?;
-
-  // return json
-  fill_goal_intent_data(con, goal_intent_data).await
-}
-
-pub async fn goal_intent_data_new(
-  _config: Config,
-  db: Db,
-  auth_service: AuthService,
-  props: request::GoalIntentDataNewProps,
-) -> Result<response::GoalIntentData, response::InnexgoHoursError> {
-  // validate api key
-  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
-
-  let con = &mut *db.lock().await;
-
-  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
-
-  let goal_intent = goal_intent_service::get_by_goal_intent_id(&mut sp, props.goal_intent_id)
+  let school = school_service::get_by_school_id(&mut sp, props.school_id)
     .await
     .map_err(report_postgres_err)?
-    .ok_or(response::InnexgoHoursError::GoalIntentNonexistent)?;
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
 
-  // validate intent is owned by correct user
-  if goal_intent.creator_user_id != user.user_id {
-    return Err(response::InnexgoHoursError::GoalIntentNonexistent);
+  // check that school isn't archived
+  if school_data_service::is_active_by_school_id(&mut sp, props.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::SchoolArchived);
+  }
+
+  // get is admin
+  if !adminship_service::is_admin(&mut sp, user.user_id, school.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // now create key
+  let school_key = school_key_service::add(
+    &mut sp,
+    user.user_id,
+    props.school_id,
+    props.max_uses,
+    props.start_time,
+    props.end_time,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  // create key data
+  let school_key_data =
+    school_key_data_service::add(&mut sp, user.user_id, school_key.school_key_key, true)
+      .await
+      .map_err(report_postgres_err)?;
+
+  // commit changes
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_school_key_data(con, school_key_data).await
+}
+
+pub async fn school_key_data_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SchoolKeyDataNewProps,
+) -> Result<response::SchoolKeyData, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // get school key
+  let school_key = school_key_service::get_by_school_key_key(&mut sp, props.school_key_key)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolKeyNonexistent)?;
+
+  // get corresponding school
+  let school = school_service::get_by_school_id(&mut sp, school_key.school_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
+
+  // check that school isn't archived
+  if school_data_service::is_active_by_school_id(&mut sp, school_key.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::SchoolArchived);
+  }
+
+  // get admin
+  if !adminship_service::is_admin(&mut sp, user.user_id, school.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // create key data
+  let school_key_data = school_key_data_service::add(
+    &mut sp,
+    user.user_id,
+    school_key.school_key_key,
+    props.active,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  // commit changes
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_school_key_data(con, school_key_data).await
+}
+
+pub async fn adminship_new_key(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::AdminshipNewKeyProps,
+) -> Result<response::Adminship, response::InnexgoHoursError> {
+  // validate api membership
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // get school key
+  let school_key = school_key_service::get_by_school_key_key(&mut sp, props.school_key_key)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolKeyNonexistent)?;
+
+  // time is within range
+  let now = utils::current_time_millis();
+  if now < school_key.start_time || now > school_key.end_time {
+    return Err(response::InnexgoHoursError::SchoolKeyExpired);
+  }
+
+  // check that school isn't archived
+  if school_data_service::is_active_by_school_id(&mut sp, school_key.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::SchoolArchived);
+  }
+
+  // it fits under max uses
+  if adminship_service::count_school_key_uses(&mut sp, &school_key.school_key_key)
+    .await
+    .map_err(report_postgres_err)?
+    >= school_key.max_uses
+  {
+    return Err(response::InnexgoHoursError::SchoolKeyUsed);
+  }
+
+  // now create adminship
+  let adminship = adminship_service::add(
+    &mut sp,
+    user.user_id,
+    user.user_id,
+    school_key.school_id,
+    request::AdminshipKind::Admin,
+    Some(school_key.school_key_key),
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  // commit changes
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_adminship(con, adminship).await
+}
+
+pub async fn adminship_new_cancel(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::AdminshipNewCancelProps,
+) -> Result<response::Adminship, response::InnexgoHoursError> {
+  // validate api membership
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  // validate target exists
+  let target = auth_service
+    .get_user_by_id(props.user_id)
+    .await
+    .map_err(report_auth_err)?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // check that school isn't archived
+  if school_data_service::is_active_by_school_id(&mut sp, props.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::SchoolArchived);
+  }
+
+  // get corresponding school
+  let school = school_service::get_by_school_id(&mut sp, props.school_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
+
+  if !adminship_service::is_admin(&mut sp, user.user_id, school.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // make sure we cannot leave the school without an admin
+  if adminship_service::count_admins(&mut sp, school.school_id)
+    .await
+    .map_err(report_postgres_err)?
+    <= 1
+  {
+    return Err(response::InnexgoHoursError::AdminshipCannotLeaveEmpty);
+  }
+
+  // now create cancel
+  let adminship = adminship_service::add(
+    &mut sp,
+    user.user_id,
+    props.user_id,
+    school.school_id,
+    request::AdminshipKind::Cancel,
+    None,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  // commit changes
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_adminship(con, adminship).await
+}
+
+pub async fn session_request_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SessionRequestNewProps,
+) -> Result<response::SessionRequest, response::InnexgoHoursError> {
+  if props.start_time > props.end_time {
+    return Err(response::InnexgoHoursError::NegativeDuration);
+  }
+
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // check course exists
+  let _ = course_service::get_by_course_id(&mut sp, props.course_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
+  // check that course isn't archived
+  if course_data_service::is_active_by_course_id(&mut sp, props.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::CourseArchived);
+  }
+
+  // check is student of course
+  if !course_membership_service::is_student(&mut sp, user.user_id, props.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // create request
+  let session_request = session_request_service::add(
+    &mut sp,
+    user.user_id,
+    props.course_id,
+    props.message,
+    props.start_time,
+    props.end_time,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_session_request(con, session_request).await
+}
+
+pub async fn session_request_response_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SessionRequestResponseNewProps,
+) -> Result<response::SessionRequestResponse, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // check session request exists
+  let session_request =
+    session_request_service::get_by_session_request_id(&mut sp, props.session_request_id)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::SessionRequestNonexistent)?;
+
+  // check that session request response doesn't exist
+  if session_request_response_service::get_by_session_request_id(&mut sp, props.session_request_id)
+    .await
+    .map_err(report_postgres_err)?
+    .is_some()
+  {
+    return Err(response::InnexgoHoursError::SessionRequestResponseExistent);
+  }
+
+  // check that course isn't archived
+  if course_data_service::is_active_by_course_id(&mut sp, session_request.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::CourseArchived);
+  }
+
+  // check this user is instructor
+  let is_instructor =
+    course_membership_service::is_instructor(&mut sp, user.user_id, session_request.course_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+  let is_creator = user.user_id == session_request.creator_user_id;
+
+  let committment_id = match props.session_id {
+    None => {
+      // either the creator of the request or the instructor may cancel
+      if !is_instructor && !is_creator {
+        return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+      }
+      None
+    }
+    // if accepted
+    Some(session_id) => {
+      // only the instructor can create a committment
+      if !is_instructor {
+        return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+      }
+
+      // check if session id is valid
+      let session = session_service::get_by_session_id(&mut sp, session_id)
+        .await
+        .map_err(report_postgres_err)?
+        .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
+
+      // check that session is compatible with session_request's course
+      if session_request.course_id != session.course_id {
+        return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+      }
+
+      // check if we already have a committment
+      let maybe_committment = committment_service::get_by_attendee_user_id_session_id(
+        &mut sp,
+        session_request.creator_user_id,
+        session_id,
+      )
+      .await
+      .map_err(report_postgres_err)?;
+
+      let committment = match maybe_committment {
+        // use committment if exists
+        Some(committment) => committment,
+
+        // otherwise add one
+        None => committment_service::add(
+          &mut sp,
+          user.user_id,
+          session_request.creator_user_id,
+          session_id,
+        )
+        .await
+        .map_err(report_postgres_err)?,
+      };
+
+      // return
+      Some(committment.committment_id)
+    }
+  };
+
+  // create request response
+  let session_request_response = session_request_response_service::add(
+    &mut sp,
+    props.session_request_id,
+    user.user_id,
+    props.message,
+    committment_id,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_session_request_response(con, session_request_response).await
+}
+
+pub async fn session_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SessionNewProps,
+) -> Result<response::SessionData, response::InnexgoHoursError> {
+  if props.start_time > props.end_time {
+    return Err(response::InnexgoHoursError::NegativeDuration);
+  }
+
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // validate course exists
+  let _ = course_service::get_by_course_id(&mut sp, props.course_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
+
+  // ensure session creator is instrutor
+  if !course_membership_service::is_instructor(&mut sp, user.user_id, props.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // check that course isn't archived
+  if course_data_service::is_active_by_course_id(&mut sp, props.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::CourseArchived);
+  }
+
+  // create session
+  let session = session_service::add(&mut sp, user.user_id, props.course_id)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // create session data
+  let session_data = session_data_service::add(
+    &mut sp,
+    user.user_id,
+    session.session_id,
+    props.name,
+    props.start_time,
+    props.end_time,
+    true,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_session_data(con, session_data).await
+}
+
+pub async fn session_data_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SessionDataNewProps,
+) -> Result<response::SessionData, response::InnexgoHoursError> {
+  // prevent negative duration
+  if props.start_time > props.end_time {
+    return Err(response::InnexgoHoursError::NegativeDuration);
+  }
+
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  let session = session_service::get_by_session_id(&mut sp, props.session_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
+
+  // ensure session creator is instrutor
+  if !course_membership_service::is_instructor(&mut sp, user.user_id, session.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
 
   // now we can update data
-  let goal_intent_data = goal_intent_data_service::add(
+  let session_data = session_data_service::add(
     &mut sp,
     user.user_id,
-    goal_intent.goal_intent_id,
+    session.session_id,
     props.name,
+    props.start_time,
+    props.end_time,
     props.active,
   )
   .await
@@ -1098,166 +1436,70 @@ pub async fn goal_intent_data_new(
   sp.commit().await.map_err(report_postgres_err)?;
 
   // return json
-  fill_goal_intent_data(con, goal_intent_data).await
+  fill_session_data(con, session_data).await
 }
 
-pub async fn goal_new(
+pub async fn committment_new(
   _config: Config,
   db: Db,
   auth_service: AuthService,
-  props: request::GoalNewProps,
-) -> Result<response::GoalData, response::InnexgoHoursError> {
+  props: request::CommittmentNewProps,
+) -> Result<response::Committment, response::InnexgoHoursError> {
   // validate api key
   let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
 
   let con = &mut *db.lock().await;
-
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
-  // validate start and end time
-  if let Some((start_time, end_time)) = props.time_span {
-    if start_time < 0 {
-      return Err(response::InnexgoHoursError::NegativeStartTime);
-    }
-    if start_time >= end_time {
-      return Err(response::InnexgoHoursError::NegativeDuration);
-    }
-  }
-
-  // ensure time utility function exists and belongs to you
-  let time_utility_function = time_utility_function_service::get_by_time_utility_function_id(
-    &mut sp,
-    props.time_utility_function_id,
-  )
-  .await
-  .map_err(report_postgres_err)?
-  .ok_or(response::InnexgoHoursError::TimeUtilityFunctionNonexistent)?;
-  // validate intent is owned by correct user
-  if time_utility_function.creator_user_id != user.user_id {
-    return Err(response::InnexgoHoursError::TimeUtilityFunctionNonexistent);
-  }
-
-  // validate that parent exists and belongs to you
-  if let Some(parent_goal_id) = props.parent_goal_id {
-    let goal = goal_service::get_by_goal_id(&mut sp, parent_goal_id)
-      .await
-      .map_err(report_postgres_err)?
-      .ok_or(response::InnexgoHoursError::GoalNonexistent)?;
-    // validate intent is owned by correct user
-    if goal.creator_user_id != user.user_id {
-      return Err(response::InnexgoHoursError::GoalNonexistent);
-    }
-  }
-
-  // validate that intent exists and belongs to you
-  if let Some(goal_intent_id) = props.goal_intent_id {
-    let goal_intent = goal_intent_service::get_by_goal_intent_id(&mut sp, goal_intent_id)
-      .await
-      .map_err(report_postgres_err)?
-      .ok_or(response::InnexgoHoursError::GoalIntentNonexistent)?;
-    // validate intent is owned by correct user
-    if goal_intent.creator_user_id != user.user_id {
-      return Err(response::InnexgoHoursError::GoalIntentNonexistent);
-    }
-  }
-
-  // create goal
-  let goal = goal_service::add(&mut sp, user.user_id, props.goal_intent_id)
-    .await
-    .map_err(report_postgres_err)?;
-
-  // create goal data
-  let goal_data = goal_data_service::add(
-    &mut sp,
-    user.user_id,
-    goal.goal_id,
-    props.name,
-    props.tags,
-    props.duration_estimate,
-    props.time_utility_function_id,
-    props.parent_goal_id,
-    props.time_span,
-    request::GoalDataStatusKind::Pending,
-  )
-  .await
-  .map_err(report_postgres_err)?;
-
-  sp.commit().await.map_err(report_postgres_err)?;
-
-  // return json
-  fill_goal_data(con, goal_data).await
-}
-
-pub async fn goal_data_new(
-  _config: Config,
-  db: Db,
-  auth_service: AuthService,
-  props: request::GoalDataNewProps,
-) -> Result<response::GoalData, response::InnexgoHoursError> {
-  // validate api key
-  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
-
-  let con = &mut *db.lock().await;
-
-  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
-
-  // validate start and end time
-  if let Some((start_time, end_time)) = props.time_span {
-    if start_time < 0 {
-      return Err(response::InnexgoHoursError::NegativeStartTime);
-    }
-    if start_time >= end_time {
-      return Err(response::InnexgoHoursError::NegativeDuration);
-    }
-  }
-
-  // ensure time utility function exists and belongs to you
-  let time_utility_function = time_utility_function_service::get_by_time_utility_function_id(
-    &mut sp,
-    props.time_utility_function_id,
-  )
-  .await
-  .map_err(report_postgres_err)?
-  .ok_or(response::InnexgoHoursError::TimeUtilityFunctionNonexistent)?;
-  // validate intent is owned by correct user
-  if time_utility_function.creator_user_id != user.user_id {
-    return Err(response::InnexgoHoursError::TimeUtilityFunctionNonexistent);
-  }
-
-  // validate that parent exists and belongs to you
-  if let Some(parent_goal_id) = props.parent_goal_id {
-    let goal = goal_service::get_by_goal_id(&mut sp, parent_goal_id)
-      .await
-      .map_err(report_postgres_err)?
-      .ok_or(response::InnexgoHoursError::GoalNonexistent)?;
-    // validate intent is owned by correct user
-    if goal.creator_user_id != user.user_id {
-      return Err(response::InnexgoHoursError::GoalNonexistent);
-    }
-  }
-
-  // ensure that goal exists and belongs to you
-  let goal = goal_service::get_by_goal_id(&mut sp, props.goal_id)
+  // validate session exists
+  let session = session_service::get_by_session_id(&mut sp, props.session_id)
     .await
     .map_err(report_postgres_err)?
-    .ok_or(response::InnexgoHoursError::GoalNonexistent)?;
-  // validate intent is owned by correct user
-  if goal.creator_user_id != user.user_id {
-    return Err(response::InnexgoHoursError::GoalNonexistent);
+    .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
+
+  // ensure committment creator is instructor of the session's course
+  if !course_membership_service::is_instructor(&mut sp, user.user_id, session.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
 
-  // create goal data
-  let goal_data = goal_data_service::add(
+  // ensure attendee is the student of the session's course
+  if !course_membership_service::is_student(&mut sp, props.attendee_user_id, session.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // check that course isn't archived
+  if course_data_service::is_active_by_course_id(&mut sp, session.course_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::CourseArchived);
+  }
+
+  // ensure committment doesnt yet exist
+  if committment_service::get_by_attendee_user_id_session_id(
+    &mut sp,
+    props.attendee_user_id,
+    props.session_id,
+  )
+  .await
+  .map_err(report_postgres_err)?
+  .is_some()
+  {
+    return Err(response::InnexgoHoursError::CommittmentExistent);
+  }
+
+  // create committment
+  let committment = committment_service::add(
     &mut sp,
     user.user_id,
-    goal.goal_id,
-    props.name,
-    props.tags,
-    props.duration_estimate,
-    props.time_utility_function_id,
-    props.parent_goal_id,
-    props.time_span,
-    props.status,
+    props.attendee_user_id,
+    props.session_id,
   )
   .await
   .map_err(report_postgres_err)?;
@@ -1265,33 +1507,77 @@ pub async fn goal_data_new(
   sp.commit().await.map_err(report_postgres_err)?;
 
   // return json
-  fill_goal_data(con, goal_data).await
+  fill_committment(con, committment).await
 }
 
-pub async fn time_utility_function_new(
+pub async fn committment_response_new(
   _config: Config,
   db: Db,
   auth_service: AuthService,
-  props: request::TimeUtilityFunctionNewProps,
-) -> Result<response::TimeUtilityFunction, response::InnexgoHoursError> {
+  props: request::CommittmentResponseNewProps,
+) -> Result<response::CommittmentResponse, response::InnexgoHoursError> {
   // validate api key
   let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
 
-  // check that utils length == start_times length
-  if props.start_times.len() != props.utils.len() {
-    return Err(response::InnexgoHoursError::TimeUtilityFunctionNotValid);
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // check that committment exists
+  let committment = committment_service::get_by_committment_id(&mut sp, props.committment_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::CommittmentNonexistent)?;
+
+  // check that committment response doesn't exist
+  if committment_response_service::get_by_committment_id(&mut sp, props.committment_id)
+    .await
+    .map_err(report_postgres_err)?
+    .is_some()
+  {
+    return Err(response::InnexgoHoursError::CommittmentResponseExistent);
   }
 
-  let con = &mut *db.lock().await;
+  // get session to make sure that course has it
+  let session = session_service::get_by_session_id(&mut sp, committment.session_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
 
-  // create tuf
-  let time_utility_function =
-    time_utility_function_service::add(con, user.user_id, props.start_times, props.utils)
+  let is_instructor =
+    !course_membership_service::is_instructor(&mut sp, user.user_id, session.course_id)
       .await
       .map_err(report_postgres_err)?;
 
+  let is_attendee = user.user_id == committment.attendee_user_id;
+
+  // ensure committment creator is instrutor
+  match props.committment_response_kind {
+    request::CommittmentResponseKind::Cancelled => {
+      if !is_attendee && !is_instructor {
+        return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+      }
+    }
+    _ => {
+      if !is_instructor {
+        return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+      }
+    }
+  }
+
+  // now we can update response
+  let committment_response = committment_response_service::add(
+    &mut sp,
+    committment.committment_id,
+    user.user_id,
+    props.committment_response_kind,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
   // return json
-  fill_time_utility_function(con, time_utility_function).await
+  fill_committment_response(con, committment_response).await
 }
 
 pub async fn subscription_view(
@@ -1616,6 +1902,60 @@ pub async fn session_data_view(
   }
 
   Ok(resp_session_datas)
+}
+
+pub async fn session_request_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SessionRequestViewProps,
+) -> Result<Vec<response::SessionRequest>, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let session_request = session_request_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // return session_requests
+  let mut resp_session_requests = vec![];
+  for u in session_request
+    .into_iter()
+    .filter(|u| u.creator_user_id == user.user_id)
+  {
+    resp_session_requests.push(fill_session_request(con, u).await?);
+  }
+
+  Ok(resp_session_requests)
+}
+
+pub async fn session_request_response_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SessionRequestResponseViewProps,
+) -> Result<Vec<response::SessionRequestResponse>, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let session_request_response = session_request_response_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // return session_request_responses
+  let mut resp_session_request_responses = vec![];
+  for u in session_request_response
+    .into_iter()
+    .filter(|u| u.creator_user_id == user.user_id)
+  {
+    resp_session_request_responses.push(fill_session_request_response(con, u).await?);
+  }
+
+  Ok(resp_session_request_responses)
 }
 
 pub async fn school_key_view(

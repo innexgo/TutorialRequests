@@ -161,6 +161,82 @@ pub async fn count_valid_adminships_by_user_id(
   )
 }
 
+pub async fn get_by_school_key_key(
+  con: &mut impl GenericClient,
+  school_key_key: &str,
+) -> Result<Vec<Adminship>, tokio_postgres::Error> {
+  let result = con
+    .query(
+      "SELECT * FROM adminship WHERE school_key_key = $1",
+      &[&school_key_key],
+    )
+    .await?
+    .into_iter()
+    .map(|x| x.into())
+    .collect();
+
+  Ok(result)
+}
+
+pub async fn count_school_key_uses(
+  con: &mut impl GenericClient,
+  school_key_key: &str,
+) -> Result<i64, tokio_postgres::Error> {
+  Ok(
+    get_by_school_key_key(con, school_key_key)
+      .await?
+      .into_iter()
+      .count() as i64,
+  )
+}
+
+pub async fn get_by_school_id(
+  con: &mut impl GenericClient,
+  school_id: i64,
+) -> Result<Vec<Adminship>, tokio_postgres::Error> {
+  let result = con
+    .query(
+      "
+      SELECT cm.* FROM adminship cm
+      INNER JOIN (
+          SELECT max(adminship_id) id
+          FROM adminship
+          GROUP BY user_id, school_id
+      ) maxids ON maxids.id = cm.adminship_id
+      WHERE 1 = 1
+      AND cm.school_id = $1
+      ",
+      &[&school_id],
+    )
+    .await?
+    .into_iter()
+    .map(|x| x.into())
+    .collect();
+
+  Ok(result)
+}
+
+pub async fn count_admins(
+  con: &mut impl GenericClient,
+  school_id: i64,
+) -> Result<i64, tokio_postgres::Error> {
+  let result = get_by_school_id(con, school_id)
+    .await?
+    .into_iter()
+    .filter(|x| {
+      matches!(
+        x,
+        Adminship {
+          adminship_kind: request::AdminshipKind::Admin,
+          ..
+        },
+      )
+    })
+    .count();
+
+  Ok(result as i64)
+}
+
 pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::AdminshipViewProps,

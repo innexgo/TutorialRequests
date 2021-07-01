@@ -27,7 +27,7 @@ dependencies = [
 [[package]]
 name = "auth-service-api"
 version = "0.7.7"
-source = "git+https://github.com/innexgo/auth-service-api#64047c83da6e07af17242842677110b69ee90840"
+source = "git+https://github.com/innexgo/auth-service-api#f222cbf9a264d3085f993571a811829366405a05"
 dependencies = [
  "reqwest",
  "serde",
@@ -523,7 +523,7 @@ dependencies = [
 [[package]]
 name = "innexgo-hours-api"
 version = "0.0.1"
-source = "git+https://github.com/innexgo/innexgo-hours-api#eba9ec8421d31783bd5a833299b59d0fb5551b3e"
+source = "git+https://github.com/innexgo/innexgo-hours-api#8cdf5a0dfe7b6f74a5ea90fa7c41dd461aeab176"
 dependencies = [
  "reqwest",
  "serde",

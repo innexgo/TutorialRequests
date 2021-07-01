@@ -10,7 +10,6 @@ impl From<tokio_postgres::row::Row> for SessionRequest {
       session_request_id: row.get("session_request_id"),
       creation_time: row.get("creation_time"),
       creator_user_id: row.get("creator_user_id"),
-      attendee_user_id: row.get("attendee_user_id"),
       course_id: row.get("course_id"),
       message: row.get("message"),
       start_time: row.get("start_time"),
@@ -22,7 +21,6 @@ impl From<tokio_postgres::row::Row> for SessionRequest {
 pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
-  attendee_user_id: i64,
   course_id: i64,
   message: String,
   start_time: i64,
@@ -36,19 +34,17 @@ pub async fn add(
        session_request(
            creation_time,
            creator_user_id,
-           attendee_user_id,
            course_id,
            message,
            start_time,
            end_time
        )
-       VALUES($1, $2, $3, $4, $5, $6, $7)
+       VALUES($1, $2, $3, $4, $5, $6)
        RETURNING session_request_id
       ",
       &[
         &creation_time,
         &creator_user_id,
-        &attendee_user_id,
         &course_id,
         &message,
         &start_time,
@@ -63,7 +59,6 @@ pub async fn add(
     session_request_id,
     creation_time,
     creator_user_id,
-    attendee_user_id,
     course_id,
     message,
     start_time,
@@ -98,14 +93,13 @@ pub async fn query(
      AND ($2::bigint   IS NULL OR sr.creation_time >= $2)
      AND ($3::bigint   IS NULL OR sr.creation_time <= $3)
      AND ($4::bigint   IS NULL OR sr.creator_user_id = $4)
-     AND ($5::bigint   IS NULL OR sr.attendee_user_id = $5)
-     AND ($6::bigint   IS NULL OR sr.course_id = $6)
-     AND ($7::text     IS NULL OR sr.message = $7)
-     AND ($8::text     IS NULL OR sr.message LIKE CONCAT('%',$8,'%'))
-     AND ($9::bool     IS NULL OR srr.session_request_id IS NOT NULL = $9)
+     AND ($5::bigint   IS NULL OR sr.course_id = $5)
+     AND ($6::text     IS NULL OR sr.message = $6)
+     AND ($7::text     IS NULL OR sr.message LIKE CONCAT('%',$7,'%'))
+     AND ($8::bool     IS NULL OR srr.session_request_id IS NOT NULL = $8)
      ORDER BY sr.session_request_id
-     LIMIT $10
-     OFFSET $11
+     LIMIT $9
+     OFFSET $10
      ";
 
   let stmnt = con.prepare(sql).await?;

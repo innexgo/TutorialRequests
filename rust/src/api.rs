@@ -4,12 +4,23 @@ use super::Config;
 use super::Db;
 use super::SERVICE_NAME;
 use auth_service_api::client::AuthService;
+use innexgo_hours_api::response::InnexgoHoursError;
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::future::Future;
-use innexgo_hours_api::response::InnexgoHoursError;
 use warp::http::StatusCode;
 use warp::Filter;
+
+/// Helper to combine the multiple filters together with Filter::or, possibly boxing the types in
+/// the process. This greatly helps the build times for `ipfs-http`.
+/// https://github.com/seanmonstar/warp/issues/507#issuecomment-615974062
+macro_rules! combine {
+  ($x:expr, $($y:expr),+) => {{
+      let filter = ($x).boxed();
+      $( let filter = (filter.or($y)).boxed(); )+
+      filter
+  }}
+}
 
 /// The function that will show all ones to call
 pub fn api(
@@ -17,246 +28,261 @@ pub fn api(
   db: Db,
   auth_service: AuthService,
 ) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
-
   // public API
   api_info()
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "subscription" / "new"),
-      handlers::subscription_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course" / "new"),
-      handlers::course_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_data" / "new"),
-      handlers::course_data_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_key" / "new"),
-      handlers::course_key_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_key_data" / "new"),
-      handlers::course_key_data_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_membership" / "new_key"),
-      handlers::course_membership_new_key,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_membership" / "new_cancel"),
-      handlers::course_membership_new_cancel,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school" / "new"),
-      handlers::school_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school_data" / "new"),
-      handlers::school_data_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school_key" / "new"),
-      handlers::school_key_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school_key_data" / "new"),
-      handlers::school_key_data_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "adminship" / "new_key"),
-      handlers::adminship_new_key,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "adminship" / "new_cancel"),
-      handlers::adminship_new_cancel,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "session_request" / "new"),
-      handlers::session_request_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "session_request_response" / "new"),
-      handlers::session_request_response_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "session" / "new"),
-      handlers::session_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "session_data" / "new"),
-      handlers::session_data_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "committment" / "new"),
-      handlers::committment_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "committment_response" / "new"),
-      handlers::committment_response_new,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "subscription" / "view"),
-      handlers::subscription_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school" / "view"),
-      handlers::school_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school_data" / "view"),
-      handlers::school_data_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school_key" / "view"),
-      handlers::school_key_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "school_key_data" / "view"),
-      handlers::school_key_data_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course" / "view"),
-      handlers::course_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_data" / "view"),
-      handlers::course_data_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "session" / "view"),
-      handlers::session_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "session_data" / "view"),
-      handlers::session_data_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_key" / "view"),
-      handlers::course_key_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_key_data" / "view"),
-      handlers::course_key_data_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "course_membership" / "view"),
-      handlers::course_membership_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "adminship" / "view"),
-      handlers::adminship_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "committment" / "view"),
-      handlers::committment_view,
-    ))
-    .or(adapter(
-      config.clone(),
-      db.clone(),
-      auth_service.clone(),
-      warp::path!("public" / "committment_response" / "view"),
-      handlers::committment_response_view,
+    .or(combine!(
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "subscription" / "new"),
+        handlers::subscription_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course" / "new"),
+        handlers::course_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_data" / "new"),
+        handlers::course_data_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_key" / "new"),
+        handlers::course_key_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_key_data" / "new"),
+        handlers::course_key_data_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_membership" / "new_key"),
+        handlers::course_membership_new_key,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_membership" / "new_cancel"),
+        handlers::course_membership_new_cancel,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school" / "new"),
+        handlers::school_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school_data" / "new"),
+        handlers::school_data_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school_key" / "new"),
+        handlers::school_key_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school_key_data" / "new"),
+        handlers::school_key_data_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "adminship" / "new_key"),
+        handlers::adminship_new_key,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "adminship" / "new_cancel"),
+        handlers::adminship_new_cancel,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session_request" / "new"),
+        handlers::session_request_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session_request_response" / "new"),
+        handlers::session_request_response_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session" / "new"),
+        handlers::session_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session_data" / "new"),
+        handlers::session_data_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "committment" / "new"),
+        handlers::committment_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "committment_response" / "new"),
+        handlers::committment_response_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "subscription" / "view"),
+        handlers::subscription_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school" / "view"),
+        handlers::school_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school_data" / "view"),
+        handlers::school_data_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school_key" / "view"),
+        handlers::school_key_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "school_key_data" / "view"),
+        handlers::school_key_data_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course" / "view"),
+        handlers::course_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_data" / "view"),
+        handlers::course_data_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session" / "view"),
+        handlers::session_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session_data" / "view"),
+        handlers::session_data_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session_request" / "view"),
+        handlers::session_request_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "session_request_response" / "view"),
+        handlers::session_request_response_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_key" / "view"),
+        handlers::course_key_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_key_data" / "view"),
+        handlers::course_key_data_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "course_membership" / "view"),
+        handlers::course_membership_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "adminship" / "view"),
+        handlers::adminship_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "committment" / "view"),
+        handlers::committment_view,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "committment_response" / "view"),
+        handlers::committment_response_view,
+      )
     ))
     .recover(handle_rejection)
 }
@@ -276,7 +302,7 @@ fn adapter<PropsType, ResponseType, F>(
   auth_service: AuthService,
   filter: impl Filter<Extract = (), Error = warp::Rejection> + Clone,
   handler: fn(Config, Db, AuthService, PropsType) -> F,
-) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone
+) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone
 where
   F: Future<Output = Result<ResponseType, InnexgoHoursError>> + Send,
   PropsType: Send + serde::de::DeserializeOwned,
@@ -288,11 +314,9 @@ where
   }
 
   filter
-    .and(with(config))
-    .and(with(db))
-    .and(with(auth_service))
+    .and(with((config, db, auth_service)))
     .and(warp::body::json())
-    .and_then(async move |config, db, auth_service, props| {
+    .and_then(async move |(config, db, auth_service), props| {
       handler(config, db, auth_service, props)
         .await
         .map_err(innexgo_hours_error)

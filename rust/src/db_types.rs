@@ -35,7 +35,6 @@ pub struct SchoolKey {
   pub creator_user_id: i64,
   pub school_id: i64,
   pub max_uses: i64,
-  pub adminship_kind: AdminshipKind,
   pub start_time: i64,
   pub end_time: i64,
 }
@@ -135,7 +134,6 @@ pub struct SessionRequest {
   pub session_request_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub attendee_user_id: i64,
   pub course_id: i64,
   pub message: String,
   pub start_time: i64,
@@ -156,7 +154,6 @@ pub struct Committment {
   pub creator_user_id: i64,
   pub attendee_user_id: i64,
   pub session_id: i64,
-  pub cancellable: bool,
 }
 
 pub struct CommittmentResponse {
