@@ -93,14 +93,15 @@ pub async fn is_active_by_course_id(
   con: &mut impl GenericClient,
   course_id: i64,
 ) -> Result<bool, tokio_postgres::Error> {
-  let result = match get_by_course_id(con, course_id).await? {
-    Some(CourseData { active: true, .. }) => true,
-    _ => false,
-  };
+  let result = matches!(
+    get_by_course_id(con, course_id).await?,
+    Some(CourseData { active: true, .. })
+  );
 
   Ok(result)
 }
 
+#[allow(unused)]
 pub async fn get_by_course_data_id(
   con: &mut impl GenericClient,
   course_data_id: i64,
@@ -129,20 +130,18 @@ pub async fn query(
       ""
     },
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR cd.course_data_id IN $1)",
-    " AND ($2::bigint   IS NULL OR cd.creation_time >= $2)",
-    " AND ($3::bigint   IS NULL OR cd.creation_time <= $3)",
-    " AND ($4::bigint   IS NULL OR cd.creator_user_id = $4)",
-    " AND ($5::bigint   IS NULL OR cd.course_id = $5)",
-    " AND ($6::text     IS NULL OR cd.name = $6)",
-    " AND ($7::text     IS NULL OR cd.name LIKE CONCAT('%',$7,'%'))",
-    " AND ($8::text     IS NULL OR cd.description = $8)",
-    " AND ($9::text     IS NULL OR cd.description LIKE CONCAT('%',$9,'%'))",
-    " AND ($10::bool    IS NULL OR cd.active = $10)",
-    " AND ($11::bigint  IS NULL OR c.school_id = $11)",
+    " AND ($1::bigint[]  IS NULL OR cd.course_data_id IN $1)",
+    " AND ($2::bigint    IS NULL OR cd.creation_time >= $2)",
+    " AND ($3::bigint    IS NULL OR cd.creation_time <= $3)",
+    " AND ($4::bigint[]  IS NULL OR cd.creator_user_id IN $4)",
+    " AND ($5::bigint[]  IS NULL OR cd.course_id IN $5)",
+    " AND ($6::text[]    IS NULL OR cd.name IN $6)",
+    " AND ($7::text      IS NULL OR cd.name LIKE CONCAT('%',$7,'%'))",
+    " AND ($8::text[]    IS NULL OR cd.description IN $8)",
+    " AND ($9::text      IS NULL OR cd.description LIKE CONCAT('%',$9,'%'))",
+    " AND ($10::bool     IS NULL OR cd.active = $10)",
+    " AND ($11::bigint[] IS NULL OR c.school_id IN $11)",
     " ORDER BY cd.course_data_id",
-    " LIMIT $12",
-    " OFFSET $13",
   ]
   .join("");
 
@@ -163,8 +162,6 @@ pub async fn query(
         &props.partial_description,
         &props.active,
         &props.school_id,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

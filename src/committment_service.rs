@@ -113,8 +113,6 @@ pub async fn query(
      AND ($12::bool    IS NULL OR cr.committment_id IS NOT NULL = $12)
      AND ($13::bool    IS NULL OR srr.committment_id IS NOT NULL = $13)
      ORDER BY c.committment_id
-     LIMIT $14
-     OFFSET $15
      ";
 
   let stmnt = con.prepare(sql).await?;
@@ -136,8 +134,6 @@ pub async fn query(
         &props.max_end_time,
         &props.responded,
         &props.from_request_response,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

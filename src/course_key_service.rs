@@ -71,7 +71,7 @@ pub async fn add(
     max_uses,
     course_membership_kind,
     start_time,
-    end_time
+    end_time,
   })
 }
 
@@ -94,24 +94,21 @@ pub async fn query(
   con: &mut impl GenericClient,
   props: request::CourseKeyViewProps,
 ) -> Result<Vec<CourseKey>, tokio_postgres::Error> {
-
   let sql = "
     SELECT ck.* FROM course_key ck
     WHERE 1 = 1
     AND ($1::text[]   IS NULL OR ck.course_key_key IN $1)
     AND ($2::bigint   IS NULL OR ck.creation_time >= $2)
     AND ($3::bigint   IS NULL OR ck.creation_time <= $3)
-    AND ($4::bigint   IS NULL OR ck.creator_user_id = $4)
-    AND ($5::bigint   IS NULL OR ck.course_id = $5)
-    AND ($6::bigint   IS NULL OR ck.max_uses = $6)
-    AND ($7::bigint   IS NULL OR ck.course_membership_kind = $7)
+    AND ($4::bigint[] IS NULL OR ck.creator_user_id IN $4)
+    AND ($5::bigint[] IS NULL OR ck.course_id IN $5)
+    AND ($6::bigint[] IS NULL OR ck.max_uses IN $6)
+    AND ($7::bigint[] IS NULL OR ck.course_membership_kind IN $7)
     AND ($8::bigint   IS NULL OR ck.start_time >= $8)
     AND ($9::bigint   IS NULL OR ck.start_time <= $9)
     AND ($10::bigint  IS NULL OR ck.end_time >= $10)
     AND ($11::bigint  IS NULL OR ck.end_time <= $11)
     ORDER BY ck.course_key_key
-    LIMIT $12
-    OFFSET $13
   ";
 
   let stmnt = con.prepare(sql).await?;
@@ -126,13 +123,13 @@ pub async fn query(
         &props.creator_user_id,
         &props.course_id,
         &props.max_uses,
-        &props.course_membership_kind.map(|x| x as i64),
+        &props
+          .course_membership_kind
+          .map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
         &props.min_start_time,
         &props.max_start_time,
         &props.min_end_time,
         &props.max_end_time,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

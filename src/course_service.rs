@@ -63,15 +63,14 @@ pub async fn query(
   con: &mut impl GenericClient,
   props: request::CourseViewProps,
 ) -> Result<Vec<Course>, tokio_postgres::Error> {
-  let sql = "SELECT g.* FROM course g WHERE 1 = 1
-     AND ($1::bigint[] IS NULL OR g.course_id IN $1)
-     AND ($2::bigint   IS NULL OR g.creation_time >= $2)
-     AND ($3::bigint   IS NULL OR g.creation_time <= $3)
-     AND ($4::bigint   IS NULL OR g.creator_user_id = $4)
-     AND ($5::bigint   IS NULL OR g.school_id = $5)
-     ORDER BY g.course_id
-     OFFSET $6,
-     LIMIT $7";
+  let sql = "SELECT c.* FROM course c WHERE 1 = 1
+     AND ($1::bigint[] IS NULL OR c.course_id IN $1)
+     AND ($2::bigint   IS NULL OR c.creation_time >= $2)
+     AND ($3::bigint   IS NULL OR c.creation_time <= $3)
+     AND ($4::bigint[] IS NULL OR c.creator_user_id IN $4)
+     AND ($5::bigint[] IS NULL OR c.school_id IN $5)
+     ORDER BY c.course_id
+     ";
 
   let stmnt = con.prepare(sql).await?;
 
@@ -84,8 +83,6 @@ pub async fn query(
         &props.max_creation_time,
         &props.creator_user_id,
         &props.school_id,
-        &props.offset,
-        &props.count,
       ],
     )
     .await?

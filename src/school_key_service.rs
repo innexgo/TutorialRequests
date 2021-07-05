@@ -88,21 +88,19 @@ pub async fn query(
 ) -> Result<Vec<SchoolKey>, tokio_postgres::Error> {
 
   let sql = "
-    SELECT ck.* FROM school_key ck
+    SELECT sk.* FROM school_key sk
     WHERE 1 = 1
-    AND ($1::text[]   IS NULL OR ck.school_key_key IN $1)
-    AND ($2::bigint   IS NULL OR ck.creation_time >= $2)
-    AND ($3::bigint   IS NULL OR ck.creation_time <= $3)
-    AND ($4::bigint   IS NULL OR ck.creator_user_id = $4)
-    AND ($5::bigint   IS NULL OR ck.school_id = $5)
-    AND ($6::bigint   IS NULL OR ck.max_uses = $6)
-    AND ($7::bigint   IS NULL OR ck.start_time >= $7)
-    AND ($8::bigint   IS NULL OR ck.start_time <= $8)
-    AND ($9::bigint  IS NULL OR ck.end_time >= $9)
-    AND ($10::bigint  IS NULL OR ck.end_time <= $10)
-    ORDER BY ck.school_key_key
-    LIMIT $11
-    OFFSET $12
+    AND ($1::text[]   IS NULL OR sk.school_key_key IN $1)
+    AND ($2::bigint   IS NULL OR sk.creation_time >= $2)
+    AND ($3::bigint   IS NULL OR sk.creation_time <= $3)
+    AND ($4::bigint[] IS NULL OR sk.creator_user_id IN $4)
+    AND ($5::bigint[] IS NULL OR sk.school_id IN $5)
+    AND ($6::bigint[] IS NULL OR sk.max_uses IN $6)
+    AND ($7::bigint   IS NULL OR sk.start_time >= $7)
+    AND ($8::bigint   IS NULL OR sk.start_time <= $8)
+    AND ($9::bigint   IS NULL OR sk.end_time >= $9)
+    AND ($10::bigint  IS NULL OR sk.end_time <= $10)
+    ORDER BY sk.school_key_key
   ";
 
   let stmnt = con.prepare(sql).await?;
@@ -121,8 +119,6 @@ pub async fn query(
         &props.max_start_time,
         &props.min_end_time,
         &props.max_end_time,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

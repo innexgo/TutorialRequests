@@ -56,6 +56,7 @@ pub async fn add(
   })
 }
 
+#[allow(unused)]
 pub async fn get_by_school_key_data_id(
   con: &mut impl GenericClient,
   school_key_data_id: i64,
@@ -88,18 +89,16 @@ pub async fn query(
     " AND ($1::bigint[] IS NULL OR ckd.school_key_data_id IN $1)",
     " AND ($2::bigint   IS NULL OR ckd.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR ckd.creation_time <= $3)",
-    " AND ($4::bigint   IS NULL OR ckd.creator_user_id = $4)",
-    " AND ($5::text     IS NULL OR ckd.school_key_key = $5)",
+    " AND ($4::bigint[] IS NULL OR ckd.creator_user_id = $4)",
+    " AND ($5::text[]   IS NULL OR ckd.school_key_key = $5)",
     " AND ($6::bool     IS NULL OR ckd.active = $6)",
-    " AND ($7::bigint   IS NULL OR ck.school_id = $7)",
-    " AND ($8::bigint   IS NULL OR ck.max_uses = $8)",
+    " AND ($7::bigint[] IS NULL OR ck.school_id = $7)",
+    " AND ($8::bigint[] IS NULL OR ck.max_uses = $8)",
     " AND ($9::bigint   IS NULL OR ck.start_time >= $9)",
     " AND ($10::bigint  IS NULL OR ck.start_time <= $10)",
     " AND ($11::bigint  IS NULL OR ck.end_time >= $11)",
     " AND ($12::bigint  IS NULL OR ck.end_time <= $12)",
     " ORDER BY ckd.school_key_data_id",
-    " LIMIT $13",
-    " OFFSET $14",
   ]
   .join("");
 
@@ -121,8 +120,6 @@ pub async fn query(
         &props.max_start_time,
         &props.min_end_time,
         &props.max_end_time,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

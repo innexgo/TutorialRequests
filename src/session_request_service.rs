@@ -92,14 +92,12 @@ pub async fn query(
      AND ($1::bigint[] IS NULL OR sr.session_request_id IN $1)
      AND ($2::bigint   IS NULL OR sr.creation_time >= $2)
      AND ($3::bigint   IS NULL OR sr.creation_time <= $3)
-     AND ($4::bigint   IS NULL OR sr.creator_user_id = $4)
-     AND ($5::bigint   IS NULL OR sr.course_id = $5)
-     AND ($6::text     IS NULL OR sr.message = $6)
+     AND ($4::bigint[] IS NULL OR sr.creator_user_id IN $4)
+     AND ($5::bigint[] IS NULL OR sr.course_id IN $5)
+     AND ($6::text[]   IS NULL OR sr.message IN $6)
      AND ($7::text     IS NULL OR sr.message LIKE CONCAT('%',$7,'%'))
      AND ($8::bool     IS NULL OR srr.session_request_id IS NOT NULL = $8)
      ORDER BY sr.session_request_id
-     LIMIT $9
-     OFFSET $10
      ";
 
   let stmnt = con.prepare(sql).await?;
@@ -116,8 +114,6 @@ pub async fn query(
         &props.message,
         &props.partial_message,
         &props.responded,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

@@ -113,13 +113,13 @@ pub async fn is_admin(
   user_id: i64,
   school_id: i64,
 ) -> Result<bool, tokio_postgres::Error> {
-  let result = match get_by_user_id_school_id(con, user_id, school_id).await? {
+  let result = matches!(
+    get_by_user_id_school_id(con, user_id, school_id).await?,
     Some(Adminship {
       adminship_kind: request::AdminshipKind::Admin,
       ..
-    }) => true,
-    _ => false,
-  };
+    })
+  );
 
   Ok(result)
 }
@@ -182,12 +182,7 @@ pub async fn count_school_key_uses(
   con: &mut impl GenericClient,
   school_key_key: &str,
 ) -> Result<i64, tokio_postgres::Error> {
-  Ok(
-    get_by_school_key_key(con, school_key_key)
-      .await?
-      .into_iter()
-      .count() as i64,
-  )
+  Ok(get_by_school_key_key(con, school_key_key).await?.len() as i64)
 }
 
 pub async fn get_by_school_id(
@@ -254,15 +249,13 @@ pub async fn query(
     " AND ($1::bigint[] IS NULL OR a.adminship_id IN $1)",
     " AND ($2::bigint   IS NULL OR a.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR a.creation_time <= $3)",
-    " AND ($4::bigint   IS NULL OR a.creator_user_id = $4)",
-    " AND ($5::bigint   IS NULL OR a.user_id = $5)",
-    " AND ($6::bigint   IS NULL OR a.school_id = $6)",
-    " AND ($7::bigint   IS NULL OR a.adminship_kind = $7)",
+    " AND ($4::bigint[] IS NULL OR a.creator_user_id IN $4)",
+    " AND ($5::bigint[] IS NULL OR a.user_id IN $5)",
+    " AND ($6::bigint[] IS NULL OR a.school_id IN $6)",
+    " AND ($7::bigint[] IS NULL OR a.adminship_kind IN $7)",
     " AND ($8::bool     IS NULL OR sk.adminship_request_id IS NOT NULL = $8)",
-    " AND ($9::text     IS NULL OR sk.school_key_key == $9 IS TRUE)",
+    " AND ($9::text[]   IS NULL OR sk.school_key_key IN $9)",
     " ORDER BY a.adminship_id",
-    " LIMIT $10",
-    " OFFSET $11",
   ]
   .join("");
 
@@ -278,11 +271,11 @@ pub async fn query(
         &props.creator_user_id,
         &props.user_id,
         &props.school_id,
-        &props.adminship_kind.map(|x| x as i64),
+        &props
+          .adminship_kind
+          .map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
         &props.adminship_has_source,
         &props.school_key_key,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

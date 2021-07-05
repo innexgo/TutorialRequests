@@ -66,15 +66,14 @@ pub async fn query(
 ) -> Result<Vec<School>, tokio_postgres::Error> {
   let results = con
     .query(
-      " SELECT gi.* FROM school gi WHERE 1 = 1
-        AND ($1::bigint[] IS NULL OR gi.school_id IN $1)
-        AND ($2::bigint   IS NULL OR gi.creation_time >= $2)
-        AND ($3::bigint   IS NULL OR gi.creation_time <= $3)
-        AND ($4::bigint   IS NULL OR gi.creator_user_id = $4)
-        AND ($5::bool     IS NULL OR gi.whole = $5)
-        ORDER BY gi.school_id
-        LIMIT $6
-        OFFSET $7
+      "
+        SELECT sc.* FROM school sc WHERE 1 = 1
+        AND ($1::bigint[] IS NULL OR sc.school_id IN $1)
+        AND ($2::bigint   IS NULL OR sc.creation_time >= $2)
+        AND ($3::bigint   IS NULL OR sc.creation_time <= $3)
+        AND ($4::bigint[] IS NULL OR sc.creator_user_id IN $4)
+        AND ($5::bool     IS NULL OR sc.whole = $5)
+        ORDER BY sc.school_id
       ",
       &[
         &props.school_id,
@@ -82,8 +81,6 @@ pub async fn query(
         &props.max_creation_time,
         &props.creator_user_id,
         &props.whole,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     ).await?
     .into_iter()

@@ -234,15 +234,13 @@ pub async fn query(
     " AND ($1::bigint[] IS NULL OR cm.course_membership_id IN $1)",
     " AND ($2::bigint   IS NULL OR cm.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR cm.creation_time <= $3)",
-    " AND ($4::bigint   IS NULL OR cm.creator_user_id = $4)",
-    " AND ($5::bigint   IS NULL OR cm.user_id = $5)",
-    " AND ($6::bigint   IS NULL OR cm.course_id = $6)",
-    " AND ($7::bigint   IS NULL OR cm.course_membership_kind = $7)",
+    " AND ($4::bigint[] IS NULL OR cm.creator_user_id IN $4)",
+    " AND ($5::bigint[] IS NULL OR cm.user_id IN $5)",
+    " AND ($6::bigint[] IS NULL OR cm.course_id IN $6)",
+    " AND ($7::bigint[] IS NULL OR cm.course_membership_kind IN $7)",
     " AND ($8::bool     IS NULL OR cm.course_key_key IS NOT NULL = $8)",
-    " AND ($9::bigint   IS NULL OR cm.course_key_key = $9 IS TRUE)",
+    " AND ($9::bigint[] IS NULL OR cm.course_key_key IN $9)",
     " ORDER BY cm.course_membership_id",
-    " LIMIT $10",
-    " OFFSET $11",
   ]
   .join("");
 
@@ -258,11 +256,9 @@ pub async fn query(
         &props.creator_user_id,
         &props.user_id,
         &props.course_id,
-        &props.course_membership_kind.map(|x| x as i64),
+        &props.course_membership_kind.map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
         &props.course_membership_from_key,
         &props.course_key_key,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

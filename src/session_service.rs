@@ -70,11 +70,9 @@ pub async fn query(
         AND ($1::bigint[] IS NULL OR ses.session_id IN $1)
         AND ($2::bigint   IS NULL OR ses.creation_time >= $2)
         AND ($3::bigint   IS NULL OR ses.creation_time <= $3)
-        AND ($4::bigint   IS NULL OR ses.creator_user_id = $4)
-        AND ($5::bigint   IS NULL OR ses.course_id = $5)
+        AND ($4::bigint[] IS NULL OR ses.creator_user_id IN $4)
+        AND ($5::bigint[] IS NULL OR ses.course_id IN $5)
         ORDER BY ses.session_id
-        LIMIT $6
-        OFFSET $7
       ",
       &[
         &props.session_id,
@@ -82,8 +80,6 @@ pub async fn query(
         &props.max_creation_time,
         &props.creator_user_id,
         &props.course_id,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     ).await?
     .into_iter()

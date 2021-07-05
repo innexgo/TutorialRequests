@@ -86,6 +86,7 @@ pub async fn get_by_user_id(
   Ok(result)
 }
 
+#[allow(unused)]
 pub async fn get_by_subscription_id(
   con: &mut impl GenericClient,
   subscription_id: i64,
@@ -113,11 +114,9 @@ pub async fn query(
      " AND ($1::bigint[] IS NULL OR s.subscription_id IN $1)",
      " AND ($2::bigint   IS NULL OR s.creation_time >= $2)",
      " AND ($3::bigint   IS NULL OR s.creation_time <= $3)",
-     " AND ($4::bigint   IS NULL OR s.creator_user_id = $4)",
-     " AND ($5::bigint   IS NULL OR s.subscription_kind = $5)",
+     " AND ($4::bigint[] IS NULL OR s.creator_user_id IN $4)",
+     " AND ($5::bigint[] IS NULL OR s.subscription_kind IN $5)",
      " ORDER BY s.subscription_id",
-     " LIMIT $6",
-     " OFFSET $7",
      ].join("") ;
 
   let stmnt = con.prepare(&sql).await?;
@@ -130,9 +129,7 @@ pub async fn query(
         &props.min_creation_time,
         &props.max_creation_time,
         &props.creator_user_id,
-        &props.subscription_kind.map(|x| x as i64),
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
+        &props.subscription_kind.map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
       ],
     )
     .await?

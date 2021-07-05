@@ -71,6 +71,7 @@ pub async fn add(
   })
 }
 
+#[allow(unused)]
 pub async fn get_by_session_data_id(
   con: &mut impl GenericClient,
   session_data_id: &i64,
@@ -86,13 +87,10 @@ pub async fn get_by_session_data_id(
   Ok(result)
 }
 
-// TODO nsd to fix
-
 pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::SessionDataViewProps,
 ) -> Result<Vec<SessionData>, tokio_postgres::Error> {
-  // TODO prevent getting meaningless duration
 
   let sql = [
     "SELECT sesd.* FROM session_data sesd",
@@ -103,22 +101,22 @@ pub async fn query(
     } else {
       ""
     },
+    " INNER JOIN session ses ON sesd.session_id = ses.session_id",
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR sesd.session_data_id IN $1)",
-    " AND ($2::bigint   IS NULL OR sesd.creation_time >= $2)",
-    " AND ($3::bigint   IS NULL OR sesd.creation_time <= $3)",
-    " AND ($4::bigint   IS NULL OR sesd.creator_user_id = $4)",
-    " AND ($5::bigint   IS NULL OR sesd.session_id = $5)",
-    " AND ($6::text     IS NULL OR sesd.name = $6)",
-    " AND ($7::text     IS NULL OR sesd.name LIKE CONCAT('%',$7,'%'))",
-    " AND ($8::bigint   IS NULL OR sesd.start_time >= $8)",
-    " AND ($9::bigint   IS NULL OR sesd.start_time <= $9)",
-    " AND ($10::bigint  IS NULL OR sesd.end_time >= $10)",
-    " AND ($11::bigint  IS NULL OR sesd.end_time <= $11)",
-    " AND ($12::bool    IS NULL OR sesd.active = $12)",
+    " AND ($1::bigint[]  IS NULL OR sesd.session_data_id IN $1)",
+    " AND ($2::bigint    IS NULL OR sesd.creation_time >= $2)",
+    " AND ($3::bigint    IS NULL OR sesd.creation_time <= $3)",
+    " AND ($4::bigint[]  IS NULL OR sesd.creator_user_id IN $4)",
+    " AND ($5::bigint[]  IS NULL OR sesd.session_id IN $5)",
+    " AND ($6::text[]    IS NULL OR sesd.name IN $6)",
+    " AND ($7::text      IS NULL OR sesd.name LIKE CONCAT('%',$7,'%'))",
+    " AND ($8::bigint    IS NULL OR sesd.start_time >= $8)",
+    " AND ($9::bigint    IS NULL OR sesd.start_time <= $9)",
+    " AND ($10::bigint   IS NULL OR sesd.end_time >= $10)",
+    " AND ($11::bigint   IS NULL OR sesd.end_time <= $11)",
+    " AND ($12::bool     IS NULL OR sesd.active = $12)",
+    " AND ($13::bigint[] IS NULL OR ses.course_id IN $13)",
     " ORDER BY sesd.session_data_id",
-    " LIMIT $13",
-    " OFFSET $14",
   ]
   .join("");
 
@@ -140,8 +138,7 @@ pub async fn query(
         &props.min_end_time,
         &props.max_end_time,
         &props.active,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
+        &props.course_id,
       ],
     )
     .await?

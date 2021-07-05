@@ -86,18 +86,16 @@ pub async fn query(
      AND ($1::bigint[] IS NULL OR cr.committment_id IN $1)
      AND ($2::bigint   IS NULL OR cr.creation_time >= $2)
      AND ($3::bigint   IS NULL OR cr.creation_time <= $3)
-     AND ($4::bigint   IS NULL OR cr.creator_user_id = $4)
-     AND ($5::bigint   IS NULL OR cr.committment_response_kind = $5)
-     AND ($6::bigint   IS NULL OR c.attendee_user_id = $6)
-     AND ($7::bigint   IS NULL OR c.session_id = $7)
-     AND ($8::bigint   IS NULL OR ses.course_id = $8)
+     AND ($4::bigint[] IS NULL OR cr.creator_user_id IN $4)
+     AND ($5::bigint[] IS NULL OR cr.committment_response_kind IN $5)
+     AND ($6::bigint[] IS NULL OR c.attendee_user_id IN $6)
+     AND ($7::bigint[] IS NULL OR c.session_id IN $7)
+     AND ($8::bigint[] IS NULL OR ses.course_id IN $8)
      AND ($9::bigint   IS NULL OR sesd.start_time >= $9)
      AND ($10::bigint  IS NULL OR sesd.start_time <= $10)
      AND ($11::bigint  IS NULL OR sesd.end_time >= $11)
      AND ($12::bigint  IS NULL OR sesd.end_time <= $12)
      ORDER BY cr.committment_id
-     LIMIT $13
-     OFFSET $14
      ";
 
   let stmnt = con.prepare(sql).await?;
@@ -110,7 +108,9 @@ pub async fn query(
         &props.min_creation_time,
         &props.max_creation_time,
         &props.creator_user_id,
-        &props.committment_response_kind.map(|x| x as i64),
+        &props
+          .committment_response_kind
+          .map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
         &props.attendee_user_id,
         &props.session_id,
         &props.course_id,
@@ -118,8 +118,6 @@ pub async fn query(
         &props.max_start_time,
         &props.min_end_time,
         &props.max_end_time,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?

@@ -24,8 +24,8 @@ create table subscription(
 );
 
 -- there can be multiple schools with full_school = false, but only one with full_school = true
--- full school is when the entire school district / school has signed on 
--- !full_school when one or more teachers is managing the school
+-- whole is when the entire school district / school has signed on 
+-- !whole when one or more teachers is managing the school
 -- You can only create a school when you have a valid subscription
 -- Also, we no longer let you add random people to an adminship, you must create a school_key
 drop table if exists school;

@@ -65,6 +65,7 @@ pub async fn add(
   })
 }
 
+#[allow(unused)]
 pub async fn get_by_school_data_id(
   con: &mut impl GenericClient,
   school_data_id: &i64,
@@ -107,10 +108,10 @@ pub async fn is_active_by_school_id(
   con: &mut impl GenericClient,
   school_id: i64,
 ) -> Result<bool, tokio_postgres::Error> {
-  let result = match get_by_school_id(con, school_id).await? {
-    Some(SchoolData { active: true, .. }) => true,
-    _ => false,
-  };
+  let result = matches!(
+    get_by_school_id(con, school_id).await?,
+    Some(SchoolData { active: true, .. })
+  );
 
   Ok(result)
 }
@@ -119,7 +120,6 @@ pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::SchoolDataViewProps,
 ) -> Result<Vec<SchoolData>, tokio_postgres::Error> {
-
   let sql = [
     "SELECT sd.* FROM school_data sd",
     if props.only_recent {
@@ -133,16 +133,14 @@ pub async fn query(
     " AND ($1::bigint[] IS NULL OR sd.school_data_id IN $1)",
     " AND ($2::bigint   IS NULL OR sd.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR sd.creation_time <= $3)",
-    " AND ($4::bigint   IS NULL OR sd.creator_user_id = $4)",
-    " AND ($5::bigint   IS NULL OR sd.school_id = $5)",
-    " AND ($6::text     IS NULL OR sd.name = $6)",
+    " AND ($4::bigint[] IS NULL OR sd.creator_user_id IN $4)",
+    " AND ($5::bigint[] IS NULL OR sd.school_id IN $5)",
+    " AND ($6::text[]   IS NULL OR sd.name IN $6)",
     " AND ($7::text     IS NULL OR sd.name LIKE CONCAT('%',$7,'%'))",
-    " AND ($8::text     IS NULL OR sd.description = $8)",
+    " AND ($8::text[]   IS NULL OR sd.description IN $8)",
     " AND ($9::text     IS NULL OR sd.description LIKE CONCAT('%',$9,'%'))",
     " AND ($10::bool    IS NULL OR sd.active = $10)",
     " ORDER BY sd.school_data_id",
-    " LIMIT $11",
-    " OFFSET $12",
   ]
   .join("");
 
@@ -162,8 +160,6 @@ pub async fn query(
         &props.description,
         &props.partial_description,
         &props.active,
-        &props.count.unwrap_or(100),
-        &props.offset.unwrap_or(0),
       ],
     )
     .await?
