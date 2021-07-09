@@ -33,7 +33,7 @@ pub async fn add(
            attendee_user_id,
            session_id
        )
-       VALUES($1, $2, $3)
+       VALUES($1, $2, $3, $4)
        RETURNING committment_id
       ",
       &[

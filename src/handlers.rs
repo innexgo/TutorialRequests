@@ -1544,7 +1544,7 @@ pub async fn committment_response_new(
     .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
 
   let is_instructor =
-    !course_membership_service::is_instructor(&mut sp, user.user_id, session.course_id)
+    course_membership_service::is_instructor(&mut sp, user.user_id, session.course_id)
       .await
       .map_err(report_postgres_err)?;
 
