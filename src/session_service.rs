@@ -1,7 +1,7 @@
 use super::db_types::*;
 use super::utils::current_time_millis;
-use tokio_postgres::GenericClient;
 use innexgo_hours_api::request;
+use tokio_postgres::GenericClient;
 
 impl From<tokio_postgres::row::Row> for Session {
   // select * from session order only, otherwise it will fail
@@ -33,8 +33,9 @@ pub async fn add(
        VALUES($1, $2, $3)
        RETURNING session_id
       ",
-      &[&creation_time, &creator_user_id],
-    ).await?
+      &[&creation_time, &creator_user_id, &course_id],
+    )
+    .await?
     .get(0);
 
   // return session
@@ -51,10 +52,8 @@ pub async fn get_by_session_id(
   session_id: i64,
 ) -> Result<Option<Session>, tokio_postgres::Error> {
   let result = con
-    .query_opt(
-      "SELECT * FROM session WHERE session_id=$1",
-      &[&session_id],
-    ).await?
+    .query_opt("SELECT * FROM session WHERE session_id=$1", &[&session_id])
+    .await?
     .map(|x| x.into());
 
   Ok(result)
@@ -66,13 +65,14 @@ pub async fn query(
 ) -> Result<Vec<Session>, tokio_postgres::Error> {
   let results = con
     .query(
-      " SELECT ses.* FROM session ses WHERE 1 = 1
-        AND ($1::bigint[] IS NULL OR ses.session_id IN $1)
-        AND ($2::bigint   IS NULL OR ses.creation_time >= $2)
-        AND ($3::bigint   IS NULL OR ses.creation_time <= $3)
-        AND ($4::bigint[] IS NULL OR ses.creator_user_id IN $4)
-        AND ($5::bigint[] IS NULL OR ses.course_id IN $5)
-        ORDER BY ses.session_id
+      "
+      SELECT ses.* FROM session ses WHERE 1 = 1
+      AND ($1::bigint[] IS NULL OR ses.session_id = ANY $1)
+      AND ($2::bigint   IS NULL OR ses.creation_time >= $2)
+      AND ($3::bigint   IS NULL OR ses.creation_time <= $3)
+      AND ($4::bigint[] IS NULL OR ses.creator_user_id = ANY($4))
+      AND ($5::bigint[] IS NULL OR ses.course_id = ANY($5))
+      ORDER BY ses.session_id
       ",
       &[
         &props.session_id,
@@ -81,7 +81,8 @@ pub async fn query(
         &props.creator_user_id,
         &props.course_id,
       ],
-    ).await?
+    )
+    .await?
     .into_iter()
     .map(|row| row.into())
     .collect();

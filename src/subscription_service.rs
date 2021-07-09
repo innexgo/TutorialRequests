@@ -111,13 +111,13 @@ pub async fn query(
          ""
      },
      " WHERE 1 = 1",
-     " AND ($1::bigint[] IS NULL OR s.subscription_id IN $1)",
+     " AND ($1::bigint[] IS NULL OR s.subscription_id = ANY($1))",
      " AND ($2::bigint   IS NULL OR s.creation_time >= $2)",
      " AND ($3::bigint   IS NULL OR s.creation_time <= $3)",
-     " AND ($4::bigint[] IS NULL OR s.creator_user_id IN $4)",
-     " AND ($5::bigint[] IS NULL OR s.subscription_kind IN $5)",
+     " AND ($4::bigint[] IS NULL OR s.creator_user_id = ANY($4))",
+     " AND ($5::bigint[] IS NULL OR s.subscription_kind = ANY($5))",
      " ORDER BY s.subscription_id",
-     ].join("") ;
+     ].join("\n") ;
 
   let stmnt = con.prepare(&sql).await?;
 

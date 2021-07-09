@@ -74,21 +74,21 @@ pub async fn query(
      INNER JOIN session_request sr ON srr.session_request_id = sr.session_request_id
      LEFT JOIN committment c ON srr.committment_id = c.committment_id
      WHERE 1 = 1
-     AND ($1::bigint[]  IS NULL OR srr.session_request_id IN $1)
+     AND ($1::bigint[]  IS NULL OR srr.session_request_id = ANY($1))
      AND ($2::bigint    IS NULL OR srr.creation_time >= $2)
      AND ($3::bigint    IS NULL OR srr.creation_time <= $3)
-     AND ($4::bigint[]  IS NULL OR srr.creator_user_id IN $4)
-     AND ($5::text[]    IS NULL OR srr.message IN $5)
+     AND ($4::bigint[]  IS NULL OR srr.creator_user_id = ANY($4))
+     AND ($5::text[]    IS NULL OR srr.message = ANY($5))
      AND ($6::text      IS NULL OR srr.message LIKE CONCAT('%',$6,'%'))
      AND ($7::bool      IS NULL OR srr.committment_id IS NOT NULL = $7)
-     AND ($8::bigint[]  IS NULL OR srr.committment_id IN $8)
-     AND ($9::bigint[]  IS NULL OR sr.attendee_user_id IN $9)
-     AND ($10::bigint[] IS NULL OR sr.course_id IN $10)
+     AND ($8::bigint[]  IS NULL OR srr.committment_id = ANY($8))
+     AND ($9::bigint[]  IS NULL OR sr.creator_user_id = ANY($9))
+     AND ($10::bigint[] IS NULL OR sr.course_id = ANY($10))
      AND ($11::bigint   IS NULL OR sr.start_time >= $11)
      AND ($12::bigint   IS NULL OR sr.start_time <= $12)
      AND ($13::bigint   IS NULL OR sr.end_time >= $13)
      AND ($14::bigint   IS NULL OR sr.end_time <= $14)
-     AND ($15::bigint[] IS NULL OR c.session_id IN $15)
+     AND ($15::bigint[] IS NULL OR c.session_id = ANY($15))
      ORDER BY srr.session_request_id
      ";
 

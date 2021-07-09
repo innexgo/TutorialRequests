@@ -113,7 +113,7 @@ create table course_key_data(
   course_key_data_id bigserial primary key, 
   creation_time bigint not null,
   creator_user_id bigint not null,
-  course_key_key bigint not null,
+  course_key_key text not null,
   active bool not null
 );
 
@@ -126,7 +126,7 @@ create table course_membership(
   user_id bigint not null,
   course_id bigint not null,
   course_membership_kind bigint not null, -- STUDENT | INSTRUCTOR | CANCEL
-  course_key_id bigint -- NULLABLE
+  course_key_key text -- NULLABLE
 );
 
 -- Represents a specific instance of a course

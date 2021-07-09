@@ -85,22 +85,22 @@ pub async fn query(
       ""
     },
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR ckd.course_key_data_id IN $1)",
+    " AND ($1::bigint[] IS NULL OR ckd.course_key_data_id = ANY($1))",
     " AND ($2::bigint   IS NULL OR ckd.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR ckd.creation_time <= $3)",
-    " AND ($4::bigint[] IS NULL OR ckd.creator_user_id IN $4)",
-    " AND ($5::text[]   IS NULL OR ckd.course_key_key IN $5)",
+    " AND ($4::bigint[] IS NULL OR ckd.creator_user_id = ANY($4))",
+    " AND ($5::text[]   IS NULL OR ckd.course_key_key = ANY($5))",
     " AND ($6::bool     IS NULL OR ckd.active = $6)",
-    " AND ($7::bigint[] IS NULL OR ck.course_id IN $7)",
-    " AND ($8::bigint[] IS NULL OR ck.max_uses IN $8)",
-    " AND ($9::bigint[] IS NULL OR ck.course_membership_kind IN $9)",
+    " AND ($7::bigint[] IS NULL OR ck.course_id = ANY($7))",
+    " AND ($8::bigint[] IS NULL OR ck.max_uses = ANY($8))",
+    " AND ($9::bigint[] IS NULL OR ck.course_membership_kind = ANY($9))",
     " AND ($10::bigint  IS NULL OR ck.start_time >= $10)",
     " AND ($11::bigint  IS NULL OR ck.start_time <= $11)",
     " AND ($12::bigint  IS NULL OR ck.end_time >= $12)",
     " AND ($13::bigint  IS NULL OR ck.end_time <= $13)",
     " ORDER BY ckd.course_key_data_id",
   ]
-  .join("");
+  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 

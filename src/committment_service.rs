@@ -97,15 +97,15 @@ pub async fn query(
      INNER JOIN session_data sesd ON sesd.session_id = c.session_id
      INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id
      LEFT JOIN committment_response cr ON cr.committment_id = c.committment_id
-     LEFT JOIN session_request_response srr ON srr.accepted AND srr.committment_id = c.committment_id
+     LEFT JOIN session_request_response srr ON srr.committment_id = c.committment_id
      WHERE 1 = 1
-     AND ($1::bigint[] IS NULL OR c.committment_id IN $1)
+     AND ($1::bigint[] IS NULL OR c.committment_id = ANY($1))
      AND ($2::bigint   IS NULL OR c.creation_time >= $2)
      AND ($3::bigint   IS NULL OR c.creation_time <= $3)
-     AND ($4::bigint   IS NULL OR c.creator_user_id = $4)
-     AND ($5::bigint   IS NULL OR c.attendee_user_id = $5)
-     AND ($6::bigint   IS NULL OR c.session_id = $6)
-     AND ($7::bigint   IS NULL OR ses.course_id = $7)
+     AND ($4::bigint[] IS NULL OR c.creator_user_id = ANY($4))
+     AND ($5::bigint[] IS NULL OR c.attendee_user_id = ANY($5))
+     AND ($6::bigint[] IS NULL OR c.session_id = ANY($6))
+     AND ($7::bigint[] IS NULL OR ses.course_id = ANY($7))
      AND ($8::bigint   IS NULL OR sesd.start_time >= $8)
      AND ($9::bigint   IS NULL OR sesd.start_time <= $9)
      AND ($10::bigint  IS NULL OR sesd.end_time >= $10)

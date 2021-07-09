@@ -130,19 +130,19 @@ pub async fn query(
       ""
     },
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR sd.school_data_id IN $1)",
+    " AND ($1::bigint[] IS NULL OR sd.school_data_id = ANY($1))",
     " AND ($2::bigint   IS NULL OR sd.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR sd.creation_time <= $3)",
-    " AND ($4::bigint[] IS NULL OR sd.creator_user_id IN $4)",
-    " AND ($5::bigint[] IS NULL OR sd.school_id IN $5)",
-    " AND ($6::text[]   IS NULL OR sd.name IN $6)",
+    " AND ($4::bigint[] IS NULL OR sd.creator_user_id = ANY($4))",
+    " AND ($5::bigint[] IS NULL OR sd.school_id = ANY($5))",
+    " AND ($6::text[]   IS NULL OR sd.name = ANY($6))",
     " AND ($7::text     IS NULL OR sd.name LIKE CONCAT('%',$7,'%'))",
-    " AND ($8::text[]   IS NULL OR sd.description IN $8)",
+    " AND ($8::text[]   IS NULL OR sd.description = ANY($8))",
     " AND ($9::text     IS NULL OR sd.description LIKE CONCAT('%',$9,'%'))",
     " AND ($10::bool    IS NULL OR sd.active = $10)",
     " ORDER BY sd.school_data_id",
   ]
-  .join("");
+  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 

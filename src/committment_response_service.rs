@@ -78,19 +78,19 @@ pub async fn query(
 ) -> Result<Vec<CommittmentResponse>, tokio_postgres::Error> {
   let sql = "
      SELECT cr.* FROM committment_response cr
-     INNER JOIN committment c ON cr.committment_id = c.comittment_id
+     INNER JOIN committment c ON cr.committment_id = c.committment_id
      INNER JOIN session ses ON ses.session_id = c.session_id
      INNER JOIN session_data sesd ON sesd.session_id = c.session_id
      INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id
      WHERE 1 = 1
-     AND ($1::bigint[] IS NULL OR cr.committment_id IN $1)
+     AND ($1::bigint[] IS NULL OR cr.committment_id = ANY($1))
      AND ($2::bigint   IS NULL OR cr.creation_time >= $2)
      AND ($3::bigint   IS NULL OR cr.creation_time <= $3)
-     AND ($4::bigint[] IS NULL OR cr.creator_user_id IN $4)
-     AND ($5::bigint[] IS NULL OR cr.committment_response_kind IN $5)
-     AND ($6::bigint[] IS NULL OR c.attendee_user_id IN $6)
-     AND ($7::bigint[] IS NULL OR c.session_id IN $7)
-     AND ($8::bigint[] IS NULL OR ses.course_id IN $8)
+     AND ($4::bigint[] IS NULL OR cr.creator_user_id = ANY($4))
+     AND ($5::bigint[] IS NULL OR cr.committment_response_kind = ANY($5))
+     AND ($6::bigint[] IS NULL OR c.attendee_user_id = ANY($6))
+     AND ($7::bigint[] IS NULL OR c.session_id = ANY($7))
+     AND ($8::bigint[] IS NULL OR ses.course_id = ANY($8))
      AND ($9::bigint   IS NULL OR sesd.start_time >= $9)
      AND ($10::bigint  IS NULL OR sesd.start_time <= $10)
      AND ($11::bigint  IS NULL OR sesd.end_time >= $11)

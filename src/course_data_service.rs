@@ -122,28 +122,28 @@ pub async fn query(
 ) -> Result<Vec<CourseData>, tokio_postgres::Error> {
   let sql = [
     "SELECT cd.* FROM course_data cd",
-    " JOIN course c ON cd.course_id = c.course_id",
     if props.only_recent {
       " INNER JOIN (SELECT max(course_data_id) id FROM course_data GROUP BY course_id) maxids
         ON maxids.id = cd.course_data_id"
     } else {
       ""
     },
+    " JOIN course c ON cd.course_id = c.course_id",
     " WHERE 1 = 1",
-    " AND ($1::bigint[]  IS NULL OR cd.course_data_id IN $1)",
+    " AND ($1::bigint[]  IS NULL OR cd.course_data_id = ANY($1))",
     " AND ($2::bigint    IS NULL OR cd.creation_time >= $2)",
     " AND ($3::bigint    IS NULL OR cd.creation_time <= $3)",
-    " AND ($4::bigint[]  IS NULL OR cd.creator_user_id IN $4)",
-    " AND ($5::bigint[]  IS NULL OR cd.course_id IN $5)",
-    " AND ($6::text[]    IS NULL OR cd.name IN $6)",
+    " AND ($4::bigint[]  IS NULL OR cd.creator_user_id = ANY($4))",
+    " AND ($5::bigint[]  IS NULL OR cd.course_id = ANY($5))",
+    " AND ($6::text[]    IS NULL OR cd.name = ANY($6))",
     " AND ($7::text      IS NULL OR cd.name LIKE CONCAT('%',$7,'%'))",
-    " AND ($8::text[]    IS NULL OR cd.description IN $8)",
+    " AND ($8::text[]    IS NULL OR cd.description = ANY($8))",
     " AND ($9::text      IS NULL OR cd.description LIKE CONCAT('%',$9,'%'))",
     " AND ($10::bool     IS NULL OR cd.active = $10)",
-    " AND ($11::bigint[] IS NULL OR c.school_id IN $11)",
+    " AND ($11::bigint[] IS NULL OR c.school_id = ANY($11))",
     " ORDER BY cd.course_data_id",
   ]
-  .join("");
+  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 

@@ -246,18 +246,18 @@ pub async fn query(
     },
     " LEFT JOIN school_key sk ON a.school_key_key = sk.school_key_key",
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR a.adminship_id IN $1)",
+    " AND ($1::bigint[] IS NULL OR a.adminship_id = ANY($1))",
     " AND ($2::bigint   IS NULL OR a.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR a.creation_time <= $3)",
-    " AND ($4::bigint[] IS NULL OR a.creator_user_id IN $4)",
-    " AND ($5::bigint[] IS NULL OR a.user_id IN $5)",
-    " AND ($6::bigint[] IS NULL OR a.school_id IN $6)",
-    " AND ($7::bigint[] IS NULL OR a.adminship_kind IN $7)",
-    " AND ($8::bool     IS NULL OR sk.adminship_request_id IS NOT NULL = $8)",
-    " AND ($9::text[]   IS NULL OR sk.school_key_key IN $9)",
+    " AND ($4::bigint[] IS NULL OR a.creator_user_id = ANY($4))",
+    " AND ($5::bigint[] IS NULL OR a.user_id = ANY($5))",
+    " AND ($6::bigint[] IS NULL OR a.school_id = ANY($6))",
+    " AND ($7::bigint[] IS NULL OR a.adminship_kind = ANY($7))",
+    " AND ($8::bool     IS NULL OR a.school_key_key IS NOT NULL = $8)",
+    " AND ($9::text[]   IS NULL OR sk.school_key_key = ANY($9))",
     " ORDER BY a.adminship_id",
   ]
-  .join("");
+  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 

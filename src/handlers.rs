@@ -134,7 +134,7 @@ async fn fill_school_key_data(
   con: &mut tokio_postgres::Client,
   school_key_data: SchoolKeyData,
 ) -> Result<response::SchoolKeyData, response::InnexgoHoursError> {
-  let school_key = school_key_service::get_by_school_key_key(con, school_key_data.school_key_key)
+  let school_key = school_key_service::get_by_school_key_key(con, &school_key_data.school_key_key)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::SchoolKeyNonexistent)?;
@@ -154,7 +154,7 @@ async fn fill_adminship(
 ) -> Result<response::Adminship, response::InnexgoHoursError> {
   let school_key = match adminship.school_key_key {
     Some(school_key_key) => {
-      let school_key = school_key_service::get_by_school_key_key(con, school_key_key)
+      let school_key = school_key_service::get_by_school_key_key(con, &school_key_key)
         .await
         .map_err(report_postgres_err)?
         .ok_or(response::InnexgoHoursError::SchoolKeyNonexistent)?;
@@ -241,7 +241,7 @@ async fn fill_course_key_data(
   con: &mut tokio_postgres::Client,
   course_key_data: CourseKeyData,
 ) -> Result<response::CourseKeyData, response::InnexgoHoursError> {
-  let course_key = course_key_service::get_by_course_key_key(con, course_key_data.course_key_key)
+  let course_key = course_key_service::get_by_course_key_key(con, &course_key_data.course_key_key)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseKeyNonexistent)?;
@@ -266,7 +266,7 @@ async fn fill_course_membership(
 
   let course_key = match course_membership.course_key_key {
     Some(course_key_key) => {
-      let course_key = course_key_service::get_by_course_key_key(con, course_key_key)
+      let course_key = course_key_service::get_by_course_key_key(con, &course_key_key)
         .await
         .map_err(report_postgres_err)?
         .ok_or(response::InnexgoHoursError::CourseKeyNonexistent)?;
@@ -470,7 +470,7 @@ pub async fn course_new(
   }
 
   // check that school isn't archived
-  if school_data_service::is_active_by_school_id(&mut sp, props.school_id)
+  if !school_data_service::is_active_by_school_id(&mut sp, props.school_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -576,7 +576,7 @@ pub async fn course_key_new(
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
 
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, props.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, props.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -630,7 +630,7 @@ pub async fn course_key_data_new(
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
   // get course key
-  let course_key = course_key_service::get_by_course_key_key(&mut sp, props.course_key_key)
+  let course_key = course_key_service::get_by_course_key_key(&mut sp, &props.course_key_key)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseKeyNonexistent)?;
@@ -642,7 +642,7 @@ pub async fn course_key_data_new(
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
 
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, course_key.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, course_key.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -687,7 +687,7 @@ pub async fn course_membership_new_key(
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
   // get course key
-  let course_key = course_key_service::get_by_course_key_key(&mut sp, props.course_key_key)
+  let course_key = course_key_service::get_by_course_key_key(&mut sp, &props.course_key_key)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseKeyNonexistent)?;
@@ -708,7 +708,7 @@ pub async fn course_membership_new_key(
   }
 
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, course_key.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, course_key.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -759,7 +759,7 @@ pub async fn course_membership_new_cancel(
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
 
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, props.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, props.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -931,7 +931,7 @@ pub async fn school_key_new(
     .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
 
   // check that school isn't archived
-  if school_data_service::is_active_by_school_id(&mut sp, props.school_id)
+  if !school_data_service::is_active_by_school_id(&mut sp, props.school_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -984,7 +984,7 @@ pub async fn school_key_data_new(
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
   // get school key
-  let school_key = school_key_service::get_by_school_key_key(&mut sp, props.school_key_key)
+  let school_key = school_key_service::get_by_school_key_key(&mut sp, &props.school_key_key)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::SchoolKeyNonexistent)?;
@@ -996,7 +996,7 @@ pub async fn school_key_data_new(
     .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
 
   // check that school isn't archived
-  if school_data_service::is_active_by_school_id(&mut sp, school_key.school_id)
+  if !school_data_service::is_active_by_school_id(&mut sp, school_key.school_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -1041,7 +1041,7 @@ pub async fn adminship_new_key(
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
   // get school key
-  let school_key = school_key_service::get_by_school_key_key(&mut sp, props.school_key_key)
+  let school_key = school_key_service::get_by_school_key_key(&mut sp, &props.school_key_key)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::SchoolKeyNonexistent)?;
@@ -1053,7 +1053,7 @@ pub async fn adminship_new_key(
   }
 
   // check that school isn't archived
-  if school_data_service::is_active_by_school_id(&mut sp, school_key.school_id)
+  if !school_data_service::is_active_by_school_id(&mut sp, school_key.school_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -1107,7 +1107,7 @@ pub async fn adminship_new_cancel(
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
   // check that school isn't archived
-  if school_data_service::is_active_by_school_id(&mut sp, props.school_id)
+  if !school_data_service::is_active_by_school_id(&mut sp, props.school_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -1178,7 +1178,7 @@ pub async fn session_request_new(
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, props.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, props.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -1241,7 +1241,7 @@ pub async fn session_request_response_new(
   }
 
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, session_request.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, session_request.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -1359,7 +1359,7 @@ pub async fn session_new(
   }
 
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, props.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, props.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -1474,7 +1474,7 @@ pub async fn committment_new(
   }
 
   // check that course isn't archived
-  if course_data_service::is_active_by_course_id(&mut sp, session.course_id)
+  if !course_data_service::is_active_by_course_id(&mut sp, session.course_id)
     .await
     .map_err(report_postgres_err)?
   {
@@ -1598,6 +1598,7 @@ pub async fn subscription_view(
   // return subscriptions
   let mut resp_subscriptions = vec![];
   for u in subscriptions
+    // you can view your own subscriptions
     .into_iter()
     .filter(|u| u.creator_user_id == user.user_id)
   {
@@ -1624,10 +1625,8 @@ pub async fn school_view(
 
   // return schools
   let mut resp_schools = vec![];
-  for u in schools
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
+  for u in schools.into_iter() {
+    // you can view all schools
     resp_schools.push(fill_school(con, u).await?);
   }
 
@@ -1641,7 +1640,7 @@ pub async fn school_data_view(
   props: request::SchoolDataViewProps,
 ) -> Result<Vec<response::SchoolData>, response::InnexgoHoursError> {
   // validate api key
-  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+  let _ = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
 
   let con = &mut *db.lock().await;
   // get users
@@ -1651,10 +1650,8 @@ pub async fn school_data_view(
   // return users
   // return school_datas
   let mut resp_school_datas = vec![];
-  for u in school_data
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
+  for u in school_data.into_iter() {
+    // you can view all schools
     resp_school_datas.push(fill_school_data(con, u).await?);
   }
 
@@ -1678,11 +1675,25 @@ pub async fn course_view(
 
   // return courses
   let mut resp_courses = vec![];
-  for u in courses
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_courses.push(fill_course(con, u).await?);
+
+  for x in courses.into_iter() {
+    // students and instructors can see the courses they are (or were) a member of
+    // administrators can see those plus the courses that they own
+
+    let is_member =
+      course_membership_service::get_by_user_id_course_id(con, user.user_id, x.course_id)
+        .await
+        .map_err(report_postgres_err)?
+        .is_some();
+
+    let is_admin = adminship_service::get_by_user_id_school_id(con, user.user_id, x.school_id)
+      .await
+      .map_err(report_postgres_err)?
+      .is_some();
+
+    if is_member || is_admin {
+      resp_courses.push(fill_course(con, x).await?);
+    }
   }
 
   Ok(resp_courses)
@@ -1705,11 +1716,29 @@ pub async fn course_data_view(
 
   // return course_datas
   let mut resp_course_datas = vec![];
-  for u in course_data
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_course_datas.push(fill_course_data(con, u).await?);
+  for x in course_data.into_iter() {
+    // students and instructors can see the courses they are (or were) a member of
+    // administrators can see those plus the courses that they own
+
+    let is_member =
+      course_membership_service::get_by_user_id_course_id(con, user.user_id, x.course_id)
+        .await
+        .map_err(report_postgres_err)?
+        .is_some();
+
+    let course = course_service::get_by_course_id(con, x.course_id)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
+
+    let is_admin = adminship_service::get_by_user_id_school_id(con, user.user_id, course.school_id)
+      .await
+      .map_err(report_postgres_err)?
+      .is_some();
+
+    if is_member || is_admin {
+      resp_course_datas.push(fill_course_data(con, x).await?);
+    }
   }
 
   Ok(resp_course_datas)
@@ -1732,11 +1761,16 @@ pub async fn course_membership_view(
 
   // return course_memberships
   let mut resp_course_memberships = vec![];
-  for u in course_memberships
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_course_memberships.push(fill_course_membership(con, u).await?);
+  for x in course_memberships.into_iter() {
+    // members of a course can see all their fellow course memberships
+
+    let is_member = course_membership_service::is_member(con, user.user_id, x.course_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if is_member {
+      resp_course_memberships.push(fill_course_membership(con, x).await?);
+    }
   }
 
   Ok(resp_course_memberships)
@@ -1759,11 +1793,15 @@ pub async fn course_key_view(
 
   // return course_keys
   let mut resp_course_keys = vec![];
-  for u in course_keys
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_course_keys.push(fill_course_key(con, u).await?);
+  for x in course_keys.into_iter() {
+    // only instructors may view course keys
+    let is_instructor = course_membership_service::is_instructor(con, user.user_id, x.course_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if is_instructor {
+      resp_course_keys.push(fill_course_key(con, x).await?);
+    }
   }
 
   Ok(resp_course_keys)
@@ -1786,11 +1824,21 @@ pub async fn course_key_data_view(
 
   // return course_key_datas
   let mut resp_course_key_datas = vec![];
-  for u in course_key_data
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_course_key_datas.push(fill_course_key_data(con, u).await?);
+  for x in course_key_data.into_iter() {
+    let course_key = course_key_service::get_by_course_key_key(con, &x.course_key_key)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::CourseKeyNonexistent)?;
+
+    // only instructors may view course key data
+    let is_instructor =
+      course_membership_service::is_instructor(con, user.user_id, course_key.course_id)
+        .await
+        .map_err(report_postgres_err)?;
+
+    if is_instructor {
+      resp_course_key_datas.push(fill_course_key_data(con, x).await?);
+    }
   }
 
   Ok(resp_course_key_datas)
@@ -1813,11 +1861,24 @@ pub async fn committment_view(
 
   // return committments
   let mut resp_committments = vec![];
-  for u in committments
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_committments.push(fill_committment(con, u).await?);
+  for x in committments.into_iter() {
+    // only instructors and attendees of the committment can see their data
+
+    let is_attendee = x.attendee_user_id == user.user_id;
+
+    let session = session_service::get_by_session_id(con, x.session_id)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
+
+    let is_instructor =
+      course_membership_service::is_instructor(con, user.user_id, session.course_id)
+        .await
+        .map_err(report_postgres_err)?;
+
+    if is_attendee || is_instructor {
+      resp_committments.push(fill_committment(con, x).await?);
+    }
   }
 
   Ok(resp_committments)
@@ -1837,14 +1898,30 @@ pub async fn committment_response_view(
   let committment_response = committment_response_service::query(con, props)
     .await
     .map_err(report_postgres_err)?;
-  // return users
   // return committment_responses
   let mut resp_committment_responses = vec![];
-  for u in committment_response
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_committment_responses.push(fill_committment_response(con, u).await?);
+  for x in committment_response.into_iter() {
+    // only instructors and attendees of the committment can see their data
+    let committment = committment_service::get_by_committment_id(con, x.committment_id)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::CommittmentNonexistent)?;
+
+    let is_attendee = committment.attendee_user_id == user.user_id;
+
+    let session = session_service::get_by_session_id(con, committment.session_id)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
+
+    let is_instructor =
+      course_membership_service::is_instructor(con, user.user_id, session.course_id)
+        .await
+        .map_err(report_postgres_err)?;
+
+    if is_attendee || is_instructor {
+      resp_committment_responses.push(fill_committment_response(con, x).await?);
+    }
   }
 
   Ok(resp_committment_responses)
@@ -1867,11 +1944,15 @@ pub async fn session_view(
 
   // return sessions
   let mut resp_sessions = vec![];
-  for u in sessions
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_sessions.push(fill_session(con, u).await?);
+  for x in sessions.into_iter() {
+    // members of the course can see sessions
+    let is_member = course_membership_service::is_member(con, user.user_id, x.course_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if is_member {
+      resp_sessions.push(fill_session(con, x).await?);
+    }
   }
 
   Ok(resp_sessions)
@@ -1894,11 +1975,19 @@ pub async fn session_data_view(
 
   // return session_datas
   let mut resp_session_datas = vec![];
-  for u in session_data
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_session_datas.push(fill_session_data(con, u).await?);
+  for x in session_data.into_iter() {
+    // members of the course can see sessions
+
+    let session = session_service::get_by_session_id(con, x.session_id)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
+
+    let is_member = course_membership_service::is_member(con, user.user_id, session.course_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    resp_session_datas.push(fill_session_data(con, x).await?);
   }
 
   Ok(resp_session_datas)
@@ -1921,11 +2010,16 @@ pub async fn session_request_view(
 
   // return session_requests
   let mut resp_session_requests = vec![];
-  for u in session_request
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_session_requests.push(fill_session_request(con, u).await?);
+  for x in session_request.into_iter() {
+    // attendees and instructors may view
+    let is_attendee = user.user_id == x.creator_user_id;
+    let is_instructor = course_membership_service::is_instructor(con, user.user_id, x.course_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if is_attendee || is_instructor {
+      resp_session_requests.push(fill_session_request(con, x).await?);
+    }
   }
 
   Ok(resp_session_requests)
@@ -1948,11 +2042,23 @@ pub async fn session_request_response_view(
 
   // return session_request_responses
   let mut resp_session_request_responses = vec![];
-  for u in session_request_response
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_session_request_responses.push(fill_session_request_response(con, u).await?);
+  for x in session_request_response.into_iter() {
+    // attendees and instructors may view
+    let session_request =
+      session_request_service::get_by_session_request_id(con, x.session_request_id)
+        .await
+        .map_err(report_postgres_err)?
+        .ok_or(response::InnexgoHoursError::SessionRequestNonexistent)?;
+
+    let is_attendee = user.user_id == session_request.creator_user_id;
+    let is_instructor =
+      course_membership_service::is_instructor(con, user.user_id, session_request.course_id)
+        .await
+        .map_err(report_postgres_err)?;
+
+    if is_attendee || is_instructor {
+      resp_session_request_responses.push(fill_session_request_response(con, x).await?);
+    }
   }
 
   Ok(resp_session_request_responses)
@@ -1975,11 +2081,16 @@ pub async fn school_key_view(
 
   // return school_keys
   let mut resp_school_keys = vec![];
-  for u in school_keys
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_school_keys.push(fill_school_key(con, u).await?);
+  for x in school_keys.into_iter() {
+    // admins may view
+
+    let is_admin = adminship_service::is_admin(con, user.user_id, x.school_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if is_admin {
+      resp_school_keys.push(fill_school_key(con, x).await?);
+    }
   }
 
   Ok(resp_school_keys)
@@ -2002,11 +2113,20 @@ pub async fn school_key_data_view(
 
   // return school_key_datas
   let mut resp_school_key_datas = vec![];
-  for u in school_key_data
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_school_key_datas.push(fill_school_key_data(con, u).await?);
+  for x in school_key_data.into_iter() {
+    //can view if admin
+    let school_key = school_key_service::get_by_school_key_key(con, &x.school_key_key)
+      .await
+      .map_err(report_postgres_err)?
+      .ok_or(response::InnexgoHoursError::SchoolKeyNonexistent)?;
+
+    let is_admin = adminship_service::is_admin(con, user.user_id, school_key.school_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if is_admin {
+      resp_school_key_datas.push(fill_school_key_data(con, x).await?);
+    }
   }
 
   Ok(resp_school_key_datas)
@@ -2029,11 +2149,16 @@ pub async fn adminship_view(
 
   // return adminships
   let mut resp_adminships = vec![];
-  for u in adminships
-    .into_iter()
-    .filter(|u| u.creator_user_id == user.user_id)
-  {
-    resp_adminships.push(fill_adminship(con, u).await?);
+  for x in adminships.into_iter() {
+    // only admins may view
+
+    let is_admin = adminship_service::is_admin(con, user.user_id, x.school_id)
+      .await
+      .map_err(report_postgres_err)?;
+
+    if is_admin {
+      resp_adminships.push(fill_adminship(con, x).await?);
+    }
   }
 
   Ok(resp_adminships)

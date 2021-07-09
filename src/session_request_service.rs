@@ -89,12 +89,12 @@ pub async fn query(
      SELECT sr.* FROM session_request sr
      LEFT JOIN session_request_response srr ON srr.session_request_id = sr.session_request_id
      WHERE 1 = 1
-     AND ($1::bigint[] IS NULL OR sr.session_request_id IN $1)
+     AND ($1::bigint[] IS NULL OR sr.session_request_id = ANY($1))
      AND ($2::bigint   IS NULL OR sr.creation_time >= $2)
      AND ($3::bigint   IS NULL OR sr.creation_time <= $3)
-     AND ($4::bigint[] IS NULL OR sr.creator_user_id IN $4)
-     AND ($5::bigint[] IS NULL OR sr.course_id IN $5)
-     AND ($6::text[]   IS NULL OR sr.message IN $6)
+     AND ($4::bigint[] IS NULL OR sr.creator_user_id = ANY($4))
+     AND ($5::bigint[] IS NULL OR sr.course_id = ANY($5))
+     AND ($6::text[]   IS NULL OR sr.message = ANY($6))
      AND ($7::text     IS NULL OR sr.message LIKE CONCAT('%',$7,'%'))
      AND ($8::bool     IS NULL OR srr.session_request_id IS NOT NULL = $8)
      ORDER BY sr.session_request_id

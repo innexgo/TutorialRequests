@@ -77,7 +77,7 @@ pub async fn add(
 
 pub async fn get_by_course_key_key(
   con: &mut impl GenericClient,
-  course_key_key: String,
+  course_key_key: &str,
 ) -> Result<Option<CourseKey>, tokio_postgres::Error> {
   let result = con
     .query_opt(

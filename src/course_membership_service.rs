@@ -105,12 +105,7 @@ pub async fn count_course_key_uses(
   con: &mut impl GenericClient,
   course_key_key: &str,
 ) -> Result<i64, tokio_postgres::Error> {
-  Ok(
-    get_by_course_key_key(con, course_key_key)
-      .await?
-      .into_iter()
-      .count() as i64,
-  )
+  Ok(get_by_course_key_key(con, course_key_key).await?.len() as i64)
 }
 
 pub async fn get_by_user_id_course_id(
@@ -144,13 +139,13 @@ pub async fn is_student(
   user_id: i64,
   course_id: i64,
 ) -> Result<bool, tokio_postgres::Error> {
-  let result = match get_by_user_id_course_id(con, user_id, course_id).await? {
+  let result = matches!(
+    get_by_user_id_course_id(con, user_id, course_id).await?,
     Some(CourseMembership {
       course_membership_kind: request::CourseMembershipKind::Student,
       ..
-    }) => true,
-    _ => false,
-  };
+    })
+  );
 
   Ok(result)
 }
@@ -160,13 +155,30 @@ pub async fn is_instructor(
   user_id: i64,
   course_id: i64,
 ) -> Result<bool, tokio_postgres::Error> {
-  let result = match get_by_user_id_course_id(con, user_id, course_id).await? {
+  let result = matches!(
+    get_by_user_id_course_id(con, user_id, course_id).await?,
     Some(CourseMembership {
       course_membership_kind: request::CourseMembershipKind::Instructor,
       ..
-    }) => true,
-    _ => false,
-  };
+    })
+  );
+
+  Ok(result)
+}
+
+pub async fn is_member(
+  con: &mut impl GenericClient,
+  user_id: i64,
+  course_id: i64,
+) -> Result<bool, tokio_postgres::Error> {
+  let result = matches!(
+    get_by_user_id_course_id(con, user_id, course_id).await?,
+    Some(CourseMembership {
+      course_membership_kind: request::CourseMembershipKind::Instructor
+        | request::CourseMembershipKind::Student,
+      ..
+    })
+  );
 
   Ok(result)
 }
@@ -231,18 +243,18 @@ pub async fn query(
       ""
     },
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR cm.course_membership_id IN $1)",
+    " AND ($1::bigint[] IS NULL OR cm.course_membership_id = ANY($1))",
     " AND ($2::bigint   IS NULL OR cm.creation_time >= $2)",
     " AND ($3::bigint   IS NULL OR cm.creation_time <= $3)",
-    " AND ($4::bigint[] IS NULL OR cm.creator_user_id IN $4)",
-    " AND ($5::bigint[] IS NULL OR cm.user_id IN $5)",
-    " AND ($6::bigint[] IS NULL OR cm.course_id IN $6)",
-    " AND ($7::bigint[] IS NULL OR cm.course_membership_kind IN $7)",
+    " AND ($4::bigint[] IS NULL OR cm.creator_user_id = ANY($4))",
+    " AND ($5::bigint[] IS NULL OR cm.user_id = ANY($5))",
+    " AND ($6::bigint[] IS NULL OR cm.course_id = ANY($6))",
+    " AND ($7::bigint[] IS NULL OR cm.course_membership_kind = ANY($7))",
     " AND ($8::bool     IS NULL OR cm.course_key_key IS NOT NULL = $8)",
-    " AND ($9::bigint[] IS NULL OR cm.course_key_key IN $9)",
+    " AND ($9::text[]   IS NULL OR cm.course_key_key = ANY($9))",
     " ORDER BY cm.course_membership_id",
   ]
-  .join("");
+  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 
@@ -256,7 +268,9 @@ pub async fn query(
         &props.creator_user_id,
         &props.user_id,
         &props.course_id,
-        &props.course_membership_kind.map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
+        &props
+          .course_membership_kind
+          .map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
         &props.course_membership_from_key,
         &props.course_key_key,
       ],

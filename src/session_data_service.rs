@@ -103,22 +103,22 @@ pub async fn query(
     },
     " INNER JOIN session ses ON sesd.session_id = ses.session_id",
     " WHERE 1 = 1",
-    " AND ($1::bigint[]  IS NULL OR sesd.session_data_id IN $1)",
+    " AND ($1::bigint[]  IS NULL OR sesd.session_data_id = ANY($1))",
     " AND ($2::bigint    IS NULL OR sesd.creation_time >= $2)",
     " AND ($3::bigint    IS NULL OR sesd.creation_time <= $3)",
-    " AND ($4::bigint[]  IS NULL OR sesd.creator_user_id IN $4)",
-    " AND ($5::bigint[]  IS NULL OR sesd.session_id IN $5)",
-    " AND ($6::text[]    IS NULL OR sesd.name IN $6)",
+    " AND ($4::bigint[]  IS NULL OR sesd.creator_user_id = ANY($4))",
+    " AND ($5::bigint[]  IS NULL OR sesd.session_id = ANY($5))",
+    " AND ($6::text[]    IS NULL OR sesd.name = ANY($6))",
     " AND ($7::text      IS NULL OR sesd.name LIKE CONCAT('%',$7,'%'))",
     " AND ($8::bigint    IS NULL OR sesd.start_time >= $8)",
     " AND ($9::bigint    IS NULL OR sesd.start_time <= $9)",
     " AND ($10::bigint   IS NULL OR sesd.end_time >= $10)",
     " AND ($11::bigint   IS NULL OR sesd.end_time <= $11)",
     " AND ($12::bool     IS NULL OR sesd.active = $12)",
-    " AND ($13::bigint[] IS NULL OR ses.course_id IN $13)",
+    " AND ($13::bigint[] IS NULL OR ses.course_id = ANY($13))",
     " ORDER BY sesd.session_data_id",
   ]
-  .join("");
+  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 

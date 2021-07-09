@@ -100,7 +100,7 @@ pub async fn query(
     " AND ($12::bigint  IS NULL OR ck.end_time <= $12)",
     " ORDER BY ckd.school_key_data_id",
   ]
-  .join("");
+  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 
