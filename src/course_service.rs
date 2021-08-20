@@ -64,11 +64,11 @@ pub async fn query(
   props: request::CourseViewProps,
 ) -> Result<Vec<Course>, tokio_postgres::Error> {
   let sql = "SELECT c.* FROM course c WHERE 1 = 1
-     AND ($1::bigint[] IS NULL OR c.course_id IN $1)
+     AND ($1::bigint[] IS NULL OR c.course_id = ANY($1))
      AND ($2::bigint   IS NULL OR c.creation_time >= $2)
      AND ($3::bigint   IS NULL OR c.creation_time <= $3)
-     AND ($4::bigint[] IS NULL OR c.creator_user_id IN $4)
-     AND ($5::bigint[] IS NULL OR c.school_id IN $5)
+     AND ($4::bigint[] IS NULL OR c.creator_user_id = ANY($4))
+     AND ($5::bigint[] IS NULL OR c.school_id = ANY($5))
      ORDER BY c.course_id
      ";
 

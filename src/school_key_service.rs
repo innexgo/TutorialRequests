@@ -11,7 +11,6 @@ impl From<tokio_postgres::row::Row> for SchoolKey {
       creation_time: row.get("creation_time"),
       creator_user_id: row.get("creator_user_id"),
       school_id: row.get("school_id"),
-      max_uses: row.get("max_uses"),
       start_time: row.get("start_time"),
       end_time: row.get("end_time"),
     }
@@ -22,7 +21,6 @@ pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
   school_id: i64,
-  max_uses: i64,
   start_time: i64,
   end_time: i64,
 ) -> Result<SchoolKey, tokio_postgres::Error> {
@@ -36,18 +34,16 @@ pub async fn add(
            creation_time,
            creator_user_id,
            school_id,
-           max_uses,
            start_time,
            end_time
        )
-       VALUES(MD5(random()::text), $1, $2, $3, $4, $5, $6)
+       VALUES(MD5(random()::text), $1, $2, $3, $4, $5)
        RETURNING school_key_key
       ",
       &[
         &creation_time,
         &creator_user_id,
         &school_id,
-        &max_uses,
         &start_time,
         &end_time,
       ],
@@ -61,7 +57,6 @@ pub async fn add(
     creation_time,
     creator_user_id,
     school_id,
-    max_uses,
     start_time,
     end_time
   })
@@ -90,16 +85,15 @@ pub async fn query(
   let sql = "
     SELECT sk.* FROM school_key sk
     WHERE 1 = 1
-    AND ($1::text[]   IS NULL OR sk.school_key_key IN $1)
+    AND ($1::text[]   IS NULL OR sk.school_key_key = ANY($1))
     AND ($2::bigint   IS NULL OR sk.creation_time >= $2)
     AND ($3::bigint   IS NULL OR sk.creation_time <= $3)
-    AND ($4::bigint[] IS NULL OR sk.creator_user_id IN $4)
-    AND ($5::bigint[] IS NULL OR sk.school_id IN $5)
-    AND ($6::bigint[] IS NULL OR sk.max_uses IN $6)
-    AND ($7::bigint   IS NULL OR sk.start_time >= $7)
-    AND ($8::bigint   IS NULL OR sk.start_time <= $8)
-    AND ($9::bigint   IS NULL OR sk.end_time >= $9)
-    AND ($10::bigint  IS NULL OR sk.end_time <= $10)
+    AND ($4::bigint[] IS NULL OR sk.creator_user_id = ANY($4))
+    AND ($5::bigint[] IS NULL OR sk.school_id = ANY($5))
+    AND ($6::bigint   IS NULL OR sk.start_time >= $6)
+    AND ($7::bigint   IS NULL OR sk.start_time <= $7)
+    AND ($8::bigint   IS NULL OR sk.end_time >= $8)
+    AND ($9::bigint  IS NULL OR sk.end_time <= $9)
     ORDER BY sk.school_key_key
   ";
 
@@ -114,7 +108,6 @@ pub async fn query(
         &props.max_creation_time,
         &props.creator_user_id,
         &props.school_id,
-        &props.max_uses,
         &props.min_start_time,
         &props.max_start_time,
         &props.min_end_time,

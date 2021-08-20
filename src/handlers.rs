@@ -50,7 +50,6 @@ fn report_auth_err(e: AuthError) -> response::InnexgoHoursError {
         AuthError::InternalServerError => response::InnexgoHoursError::AuthInternalServerError,
         AuthError::MethodNotAllowed => response::InnexgoHoursError::AuthBadRequest,
         AuthError::BadRequest => response::InnexgoHoursError::AuthBadRequest,
-        AuthError::NetworkError => response::InnexgoHoursError::AuthNetworkError,
         _ => response::InnexgoHoursError::AuthOther,
       };
 
@@ -124,7 +123,6 @@ async fn fill_school_key(
     creation_time: school_key.creation_time,
     creator_user_id: school_key.creator_user_id,
     school: fill_school(con, school).await?,
-    max_uses: school_key.max_uses,
     start_time: school_key.start_time,
     end_time: school_key.end_time,
   })
@@ -570,7 +568,7 @@ pub async fn course_key_new(
   let con = &mut *db.lock().await;
   let mut sp = con.transaction().await.map_err(report_postgres_err)?;
 
-  let course = course_service::get_by_course_id(&mut sp, props.course_id)
+  let _ = course_service::get_by_course_id(&mut sp, props.course_id)
     .await
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
@@ -951,7 +949,6 @@ pub async fn school_key_new(
     &mut sp,
     user.user_id,
     props.school_id,
-    props.max_uses,
     props.start_time,
     props.end_time,
   )
@@ -1064,7 +1061,7 @@ pub async fn adminship_new_key(
   if adminship_service::count_school_key_uses(&mut sp, &school_key.school_key_key)
     .await
     .map_err(report_postgres_err)?
-    >= school_key.max_uses
+    >= 1
   {
     return Err(response::InnexgoHoursError::SchoolKeyUsed);
   }

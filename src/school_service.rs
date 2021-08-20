@@ -68,10 +68,10 @@ pub async fn query(
     .query(
       "
         SELECT sc.* FROM school sc WHERE 1 = 1
-        AND ($1::bigint[] IS NULL OR sc.school_id IN $1)
+        AND ($1::bigint[] IS NULL OR sc.school_id = ANY($1))
         AND ($2::bigint   IS NULL OR sc.creation_time >= $2)
         AND ($3::bigint   IS NULL OR sc.creation_time <= $3)
-        AND ($4::bigint[] IS NULL OR sc.creator_user_id IN $4)
+        AND ($4::bigint[] IS NULL OR sc.creator_user_id = ANY($4))
         AND ($5::bool     IS NULL OR sc.whole = $5)
         ORDER BY sc.school_id
       ",

@@ -97,13 +97,13 @@ pub async fn query(
   let sql = "
     SELECT ck.* FROM course_key ck
     WHERE 1 = 1
-    AND ($1::text[]   IS NULL OR ck.course_key_key IN $1)
+    AND ($1::text[]   IS NULL OR ck.course_key_key = ANY($1))
     AND ($2::bigint   IS NULL OR ck.creation_time >= $2)
     AND ($3::bigint   IS NULL OR ck.creation_time <= $3)
-    AND ($4::bigint[] IS NULL OR ck.creator_user_id IN $4)
-    AND ($5::bigint[] IS NULL OR ck.course_id IN $5)
-    AND ($6::bigint[] IS NULL OR ck.max_uses IN $6)
-    AND ($7::bigint[] IS NULL OR ck.course_membership_kind IN $7)
+    AND ($4::bigint[] IS NULL OR ck.creator_user_id = ANY($4))
+    AND ($5::bigint[] IS NULL OR ck.course_id = ANY($5))
+    AND ($6::bigint[] IS NULL OR ck.max_uses = ANY($6))
+    AND ($7::bigint[] IS NULL OR ck.course_membership_kind = ANY($7))
     AND ($8::bigint   IS NULL OR ck.start_time >= $8)
     AND ($9::bigint   IS NULL OR ck.start_time <= $9)
     AND ($10::bigint  IS NULL OR ck.end_time >= $10)

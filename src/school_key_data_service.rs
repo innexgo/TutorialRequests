@@ -77,28 +77,27 @@ pub async fn query(
 ) -> Result<Vec<SchoolKeyData>, tokio_postgres::Error> {
 
   let sql = [
-    "SELECT ckd.* FROM school_key_data ckd",
-    " JOIN school_key ck ON ckd.school_key_key = ck.school_key_key",
+    "SELECT skd.* FROM school_key_data skd",
+    " JOIN school_key sk ON skd.school_key_key = sk.school_key_key",
     if props.only_recent {
       " INNER JOIN (SELECT max(school_key_data_id) id FROM school_key_data GROUP BY school_key_key) maxids
-        ON maxids.id = ckd.school_key_data_id"
+        ON maxids.id = skd.school_key_data_id"
     } else {
       ""
     },
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR ckd.school_key_data_id IN $1)",
-    " AND ($2::bigint   IS NULL OR ckd.creation_time >= $2)",
-    " AND ($3::bigint   IS NULL OR ckd.creation_time <= $3)",
-    " AND ($4::bigint[] IS NULL OR ckd.creator_user_id = $4)",
-    " AND ($5::text[]   IS NULL OR ckd.school_key_key = $5)",
-    " AND ($6::bool     IS NULL OR ckd.active = $6)",
-    " AND ($7::bigint[] IS NULL OR ck.school_id = $7)",
-    " AND ($8::bigint[] IS NULL OR ck.max_uses = $8)",
-    " AND ($9::bigint   IS NULL OR ck.start_time >= $9)",
-    " AND ($10::bigint  IS NULL OR ck.start_time <= $10)",
-    " AND ($11::bigint  IS NULL OR ck.end_time >= $11)",
-    " AND ($12::bigint  IS NULL OR ck.end_time <= $12)",
-    " ORDER BY ckd.school_key_data_id",
+    " AND ($1::bigint[] IS NULL OR skd.school_key_data_id = ANY($1))",
+    " AND ($2::bigint   IS NULL OR skd.creation_time >= $2)",
+    " AND ($3::bigint   IS NULL OR skd.creation_time <= $3)",
+    " AND ($4::bigint[] IS NULL OR skd.creator_user_id = ANY($4))",
+    " AND ($5::text[]   IS NULL OR skd.school_key_key = ANY($5))",
+    " AND ($6::bool     IS NULL OR skd.active = $6)",
+    " AND ($7::bigint[] IS NULL OR sk.school_id = ANY($7))",
+    " AND ($8::bigint   IS NULL OR sk.start_time >= $8)",
+    " AND ($9::bigint   IS NULL OR sk.start_time <= $9)",
+    " AND ($10::bigint  IS NULL OR sk.end_time >= $10)",
+    " AND ($11::bigint  IS NULL OR sk.end_time <= $11)",
+    " ORDER BY skd.school_key_data_id",
   ]
   .join("\n");
 
@@ -115,7 +114,6 @@ pub async fn query(
         &props.school_key_key,
         &props.active,
         &props.school_id,
-        &props.max_uses,
         &props.min_start_time,
         &props.max_start_time,
         &props.min_end_time,
