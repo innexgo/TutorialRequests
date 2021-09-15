@@ -13,7 +13,7 @@ CREATE DATABASE innexgo_hours;
 -- Creator User Id (if applicable)
 -- Everything else
 
-drop table if exists subscription;
+drop table if exists subscription cascade;
 create table subscription(
   subscription_id bigserial primary key,
   creation_time bigint not null,
@@ -28,7 +28,7 @@ create table subscription(
 -- !whole when one or more teachers is managing the school
 -- You can only create a school when you have a valid subscription
 -- Also, we no longer let you add random people to an adminship, you must create a school_key
-drop table if exists school;
+drop table if exists school cascade;
 create table school(
   school_id bigserial primary key,
   creation_time bigint not null,
@@ -36,7 +36,7 @@ create table school(
   whole bool not null
 );
 
-drop table if exists school_data;
+drop table if exists school_data cascade;
 create table school_data(
   school_data_id bigserial primary key,
   creation_time bigint not null,
@@ -47,7 +47,28 @@ create table school_data(
   active bool not null
 );
 
-drop table if exists school_key;
+-- represents a block of time during which the appointments can be made
+drop table if exists school_duration cascade;
+create table school_duration(
+  school_duration_id bigserial primary key,
+  creation_time bigint not null,
+  creator_user_id bigint not null,
+  school_id bigint not null
+);
+
+drop table if exists school_duration_data cascade;
+create table school_duration_data(
+  school_duration_data_id bigserial primary key,
+  creation_time bigint not null,
+  creator_user_id bigint not null,
+  school_duration_id bigint not null,
+  day bigint not null,
+  minute_start bigint not null,
+  minute_end bigint not null,
+  active bool not null
+);
+
+drop table if exists school_key cascade;
 create table school_key(
   school_key_key text primary key,
   creation_time bigint not null,
@@ -57,7 +78,7 @@ create table school_key(
   end_time bigint not null
 );
 
-drop table if exists school_key_data;
+drop table if exists school_key_data cascade;
 create table school_key_data(
   school_key_data_id bigserial primary key, 
   creation_time bigint not null,
@@ -66,7 +87,7 @@ create table school_key_data(
   active bool not null
 );
 
-drop table if exists adminship;
+drop table if exists adminship cascade;
 create table adminship(
   adminship_id bigserial primary key,
   creation_time bigint not null,
@@ -77,7 +98,7 @@ create table adminship(
   school_key_key text -- NULLABLE (not all adminships are from keys
 );
 
-drop table if exists course;
+drop table if exists course cascade;
 create table course(
   course_id bigserial primary key,
   creation_time bigint not null,
@@ -85,7 +106,7 @@ create table course(
   school_id bigint not null
 );
 
-drop table if exists course_data;
+drop table if exists course_data cascade;
 create table course_data(
   course_data_id bigserial primary key,
   creation_time bigint not null,
@@ -93,10 +114,11 @@ create table course_data(
   course_id bigint not null,
   name text not null,
   description text not null,
+  homeroom bool not null, 
   active bool not null 
 );
 
-drop table if exists course_key;
+drop table if exists course_key cascade;
 create table course_key(
   course_key_key text primary key,
   creation_time bigint not null,
@@ -108,7 +130,7 @@ create table course_key(
   end_time bigint not null
 );
 
-drop table if exists course_key_data;
+drop table if exists course_key_data cascade;
 create table course_key_data(
   course_key_data_id bigserial primary key, 
   creation_time bigint not null,
@@ -118,7 +140,7 @@ create table course_key_data(
 );
 
 -- Many to Many mapper for users to course
-drop table if exists course_membership;
+drop table if exists course_membership cascade;
 create table course_membership(
   course_membership_id bigserial primary key,
   creation_time bigint not null,
@@ -130,7 +152,7 @@ create table course_membership(
 );
 
 -- Represents a specific instance of a course
-drop table if exists session;
+drop table if exists session cascade;
 create table session(
   session_id bigserial primary key,
   creation_time bigint not null,
@@ -138,7 +160,7 @@ create table session(
   course_id bigint not null
 );
 
-drop table if exists session_data;
+drop table if exists session_data cascade;
 create table session_data(
   session_data_id bigserial primary key,
   creation_time bigint not null,
@@ -152,7 +174,7 @@ create table session_data(
 
 -- a request from a student to a course for a specific time
 -- it's up to the teacher which course session to allocate to the student
-drop table if exists session_request;
+drop table if exists session_request cascade;
 create table session_request(
   session_request_id bigserial primary key,
   creation_time bigint not null,
@@ -164,7 +186,7 @@ create table session_request(
 );
 
 -- a response to the course session request
-drop table if exists session_request_response; 
+drop table if exists session_request_response cascade;
 create table session_request_response(
   session_request_id bigserial primary key,
   creation_time bigint not null,
@@ -174,7 +196,7 @@ create table session_request_response(
 );
 
 -- a committment to attend a course session
-drop table if exists committment;
+drop table if exists committment cascade;
 create table committment( 
   committment_id bigserial primary key,
   creation_time bigint not null,
@@ -184,7 +206,7 @@ create table committment(
 );
 
 -- a response to the commitment
-drop table if exists committment_response;
+drop table if exists committment_response cascade;
 create table committment_response(
   committment_id bigserial primary key,
   creation_time bigint not null,

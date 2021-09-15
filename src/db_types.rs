@@ -29,6 +29,24 @@ pub struct SchoolData {
   pub active: bool,
 }
 
+pub struct SchoolDuration {
+  pub school_duration_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub school_id: bool,
+}
+
+pub struct SchoolDurationData {
+  pub school_duration_data_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub school_duration_id: i64,
+  pub day: i64,
+  pub minute_start: i64,
+  pub minute_end: i64,
+  pub active: bool,
+}
+
 pub struct SchoolKey {
   pub school_key_key: String,
   pub creation_time: i64,
@@ -79,6 +97,7 @@ pub struct CourseData {
   pub course_id: i64,
   pub name: String,
   pub description: String,
+  pub homeroom: bool,
   pub active: bool,
 }
 

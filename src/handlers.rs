@@ -210,6 +210,7 @@ async fn fill_course_data(
     course: fill_course(con, course).await?,
     name: course_data.name,
     description: course_data.description,
+    homeroom: course_data.homeroom,
     active: course_data.active,
   })
 }
@@ -487,6 +488,7 @@ pub async fn course_new(
     course.course_id,
     props.name,
     props.description,
+    props.homeroom, // TODO do we have to restrict how many classes can be a homeroom ?
     true,
   )
   .await
@@ -541,6 +543,7 @@ pub async fn course_data_new(
     course.course_id,
     props.name,
     props.description,
+    props.homeroom, // TODO do we have to restrict how many classes can be a homeroom
     props.active,
   )
   .await

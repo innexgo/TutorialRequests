@@ -12,6 +12,7 @@ impl From<tokio_postgres::row::Row> for CourseData {
       course_id: row.get("course_id"),
       name: row.get("name"),
       description: row.get("description"),
+      homeroom: row.get("homeroom"),
       active: row.get("active"),
     }
   }
@@ -24,6 +25,7 @@ pub async fn add(
   course_id: i64,
   name: String,
   description: String,
+  homeroom: bool,
   active: bool,
 ) -> Result<CourseData, tokio_postgres::Error> {
   let creation_time = current_time_millis();
@@ -37,9 +39,10 @@ pub async fn add(
            course_id,
            name,
            description,
+           homeroom,
            active
        )
-       VALUES ($1, $2, $3, $4, $5, $6)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING course_data_id
       ",
       &[
@@ -48,6 +51,7 @@ pub async fn add(
         &course_id,
         &name,
         &description,
+        &homeroom,
         &active,
       ],
     )
@@ -62,6 +66,7 @@ pub async fn add(
     course_id,
     name,
     description,
+    homeroom,
     active,
   })
 }
@@ -139,8 +144,9 @@ pub async fn query(
     " AND ($7::text      IS NULL OR cd.name LIKE CONCAT('%',$7,'%'))",
     " AND ($8::text[]    IS NULL OR cd.description = ANY($8))",
     " AND ($9::text      IS NULL OR cd.description LIKE CONCAT('%',$9,'%'))",
-    " AND ($10::bool     IS NULL OR cd.active = $10)",
-    " AND ($11::bigint[] IS NULL OR c.school_id = ANY($11))",
+    " AND ($10::bool     IS NULL OR cd.homeroom = $10)",
+    " AND ($11::bool     IS NULL OR cd.active = $11)",
+    " AND ($12::bigint[] IS NULL OR c.school_id = ANY($12))",
     " ORDER BY cd.course_data_id",
   ]
   .join("\n");
@@ -160,6 +166,7 @@ pub async fn query(
         &props.partial_name,
         &props.description,
         &props.partial_description,
+        &props.homeroom,
         &props.active,
         &props.school_id,
       ],
