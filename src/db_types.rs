@@ -33,7 +33,7 @@ pub struct SchoolDuration {
   pub school_duration_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
-  pub school_id: bool,
+  pub school_id: i64,
 }
 
 pub struct SchoolDurationData {

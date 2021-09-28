@@ -22,6 +22,8 @@ use super::school_data_service;
 use super::school_key_data_service;
 use super::school_key_service;
 use super::school_service;
+use super::school_duration_service;
+use super::school_duration_data_service;
 use super::session_data_service;
 use super::session_request_response_service;
 use super::session_request_service;
@@ -108,6 +110,47 @@ async fn fill_school_data(
     active: school_data.active,
   })
 }
+
+async fn fill_school_duration(
+  con: &mut tokio_postgres::Client,
+  school_duration: SchoolDuration,
+) -> Result<response::SchoolDuration, response::InnexgoHoursError> {
+
+  let school = school_service::get_by_school_id(con, school_duration.school_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
+
+
+  Ok(response::SchoolDuration {
+    school_duration_id: school_duration.school_duration_id,
+    creation_time: school_duration.creation_time,
+    creator_user_id: school_duration.creator_user_id,
+    school: fill_school(con, school).await?,
+  })
+}
+
+async fn fill_school_duration_data(
+  con: &mut tokio_postgres::Client,
+  school_duration_data: SchoolDurationData,
+) -> Result<response::SchoolDurationData, response::InnexgoHoursError> {
+  let school_duration = school_duration_service::get_by_school_duration_id(con, school_duration_data.school_duration_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolDurationNonexistent)?;
+
+  Ok(response::SchoolDurationData {
+    school_duration_data_id: school_duration_data.school_duration_data_id,
+    creation_time: school_duration_data.creation_time,
+    creator_user_id: school_duration_data.creator_user_id,
+    school_duration: fill_school_duration(con, school_duration).await?,
+    day: school_duration_data.day,
+    minute_start: school_duration_data.minute_start,
+    minute_end: school_duration_data.minute_end,
+    active: school_duration_data.active,
+  })
+}
+
 
 async fn fill_school_key(
   con: &mut tokio_postgres::Client,
@@ -1656,6 +1699,56 @@ pub async fn school_data_view(
   }
 
   Ok(resp_school_datas)
+}
+
+pub async fn school_duration_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SchoolDurationViewProps,
+) -> Result<Vec<response::SchoolDuration>, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let school_durations = school_duration_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // return school_durations
+  let mut resp_school_durations = vec![];
+  for u in school_durations.into_iter() {
+    // you can view all school_durations
+    resp_school_durations.push(fill_school_duration(con, u).await?);
+  }
+
+  Ok(resp_school_durations)
+}
+
+pub async fn school_duration_data_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::SchoolDurationDataViewProps,
+) -> Result<Vec<response::SchoolDurationData>, response::InnexgoHoursError> {
+  // validate api key
+  let _ = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let school_duration_data = school_duration_data_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+  // return users
+  // return school_duration_datas
+  let mut resp_school_duration_datas = vec![];
+  for u in school_duration_data.into_iter() {
+    // you can view all school_durations
+    resp_school_duration_datas.push(fill_school_duration_data(con, u).await?);
+  }
+
+  Ok(resp_school_duration_datas)
 }
 
 pub async fn course_view(
