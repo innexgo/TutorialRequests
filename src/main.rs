@@ -27,6 +27,8 @@ mod course_key_data_service;
 mod course_key_service;
 mod course_membership_service;
 mod course_service;
+mod school_duration_service;
+mod school_duration_data_service;
 mod school_data_service;
 mod school_key_data_service;
 mod school_key_service;
