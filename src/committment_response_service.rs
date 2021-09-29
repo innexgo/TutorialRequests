@@ -29,7 +29,7 @@ pub async fn add(
   let committment_id = con
     .query_one(
       "INSERT INTO
-       committment_response(
+       committment_response_t(
            committment_id,
            creation_time,
            creator_user_id,
@@ -63,7 +63,7 @@ pub async fn get_by_committment_id(
 ) -> Result<Option<CommittmentResponse>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM committment_response WHERE committment_id=$1",
+      "SELECT * FROM committment_response_t WHERE committment_id=$1",
       &[&committment_id],
     )
     .await?
@@ -77,11 +77,10 @@ pub async fn query(
   props: request::CommittmentResponseViewProps,
 ) -> Result<Vec<CommittmentResponse>, tokio_postgres::Error> {
   let sql = "
-     SELECT cr.* FROM committment_response cr
-     INNER JOIN committment c ON cr.committment_id = c.committment_id
-     INNER JOIN session ses ON ses.session_id = c.session_id
-     INNER JOIN session_data sesd ON sesd.session_id = c.session_id
-     INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id
+     SELECT cr.* FROM committment_response_t cr
+     INNER JOIN committment_t c ON cr.committment_id = c.committment_id
+     INNER JOIN session_t ses ON ses.session_id = c.session_id
+     INNER JOIN recent_session_data_v sesd ON sesd.session_id = c.session_id
      WHERE 1 = 1
      AND ($1::bigint[] IS NULL OR cr.committment_id = ANY($1))
      AND ($2::bigint   IS NULL OR cr.creation_time >= $2)

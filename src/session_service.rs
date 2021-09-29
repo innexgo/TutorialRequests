@@ -1,3 +1,4 @@
+
 use super::db_types::*;
 use super::utils::current_time_millis;
 use innexgo_hours_api::request;
@@ -25,7 +26,7 @@ pub async fn add(
   let session_id = con
     .query_one(
       "INSERT INTO
-       session(
+       session_t(
            creation_time,
            creator_user_id,
            course_id
@@ -52,7 +53,7 @@ pub async fn get_by_session_id(
   session_id: i64,
 ) -> Result<Option<Session>, tokio_postgres::Error> {
   let result = con
-    .query_opt("SELECT * FROM session WHERE session_id=$1", &[&session_id])
+    .query_opt("SELECT * FROM session_t WHERE session_id=$1", &[&session_id])
     .await?
     .map(|x| x.into());
 
@@ -66,7 +67,7 @@ pub async fn query(
   let results = con
     .query(
       "
-      SELECT ses.* FROM session ses WHERE 1 = 1
+      SELECT ses.* FROM session_t ses WHERE 1 = 1
       AND ($1::bigint[] IS NULL OR ses.session_id = ANY $1)
       AND ($2::bigint   IS NULL OR ses.creation_time >= $2)
       AND ($3::bigint   IS NULL OR ses.creation_time <= $3)

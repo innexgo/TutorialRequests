@@ -32,7 +32,7 @@ pub async fn add(
   let subscription_id = con
     .query_one(
       "INSERT INTO
-       subscription(
+       subscription_t(
            creation_time,
            creator_user_id,
            max_uses,
@@ -71,11 +71,7 @@ pub async fn get_by_user_id(
   let result = con
     .query_opt(
       "
-      SELECT s.* FROM subscription s
-      INNER JOIN (
-          SELECT max(subscription_id) id
-          FROM subscription GROUP BY creator_user_id
-      ) maxids ON maxids.id = s.subscription_id
+      SELECT s.* FROM recent_subscription_v s
       WHERE 1 = 1
       AND s.creator_user_id = $1
       ",
@@ -104,20 +100,19 @@ pub async fn query(
   props: request::SubscriptionViewProps,
 ) -> Result<Vec<Subscription>, tokio_postgres::Error> {
   let sql = [
-    "SELECT s.* FROM subscription s",
-     if props.only_recent {
-         " INNER JOIN (SELECT max(subscription_id) id FROM subscription GROUP BY creator_user_id) maxids ON maxids.id = s.subscription_id"
-     } else {
-         ""
-     },
-     " WHERE 1 = 1",
-     " AND ($1::bigint[] IS NULL OR s.subscription_id = ANY($1))",
-     " AND ($2::bigint   IS NULL OR s.creation_time >= $2)",
-     " AND ($3::bigint   IS NULL OR s.creation_time <= $3)",
-     " AND ($4::bigint[] IS NULL OR s.creator_user_id = ANY($4))",
-     " AND ($5::bigint[] IS NULL OR s.subscription_kind = ANY($5))",
-     " ORDER BY s.subscription_id",
-     ].join("\n") ;
+    if props.only_recent {
+      "SELECT s.* FROM recent_subscription_v s"
+    } else {
+      "SELECT s.* FROM subscription_t s"
+    },
+    " WHERE 1 = 1",
+    " AND ($1::bigint[] IS NULL OR s.subscription_id = ANY($1))",
+    " AND ($2::bigint   IS NULL OR s.creation_time >= $2)",
+    " AND ($3::bigint   IS NULL OR s.creation_time <= $3)",
+    " AND ($4::bigint[] IS NULL OR s.creator_user_id = ANY($4))",
+    " AND ($5::bigint[] IS NULL OR s.subscription_kind = ANY($5))",
+    " ORDER BY s.subscription_id",
+  ]  .join("\n");
 
   let stmnt = con.prepare(&sql).await?;
 
@@ -129,7 +124,9 @@ pub async fn query(
         &props.min_creation_time,
         &props.max_creation_time,
         &props.creator_user_id,
-        &props.subscription_kind.map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
+        &props
+          .subscription_kind
+          .map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
       ],
     )
     .await?

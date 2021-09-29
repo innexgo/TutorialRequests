@@ -24,6 +24,7 @@ impl From<tokio_postgres::row::Row> for CourseKey {
 
 pub async fn add(
   con: &mut impl GenericClient,
+  course_key_key_str: &str,
   creator_user_id: i64,
   course_id: i64,
   max_uses: i64,
@@ -36,7 +37,7 @@ pub async fn add(
   let course_key_key = con
     .query_one(
       "INSERT INTO
-       course_key(
+       course_key_t(
            course_key_key,
            creation_time,
            creator_user_id,
@@ -46,10 +47,11 @@ pub async fn add(
            start_time,
            end_time
        )
-       VALUES(MD5(random()::text), $1, $2, $3, $4, $5, $6, $7)
+       VALUES($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING course_key_key
       ",
       &[
+        &course_key_key_str,
         &creation_time,
         &creator_user_id,
         &course_id,
@@ -81,7 +83,7 @@ pub async fn get_by_course_key_key(
 ) -> Result<Option<CourseKey>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM course_key WHERE course_key_key=$1",
+      "SELECT * FROM course_key_t WHERE course_key_key=$1",
       &[&course_key_key],
     )
     .await?
@@ -95,7 +97,7 @@ pub async fn query(
   props: request::CourseKeyViewProps,
 ) -> Result<Vec<CourseKey>, tokio_postgres::Error> {
   let sql = "
-    SELECT ck.* FROM course_key ck
+    SELECT ck.* FROM course_key_t ck
     WHERE 1 = 1
     AND ($1::text[]   IS NULL OR ck.course_key_key = ANY($1))
     AND ($2::bigint   IS NULL OR ck.creation_time >= $2)

@@ -5,7 +5,7 @@ use std::convert::TryInto;
 use tokio_postgres::GenericClient;
 
 impl From<tokio_postgres::row::Row> for CourseMembership {
-  // select * from course_membership order only, otherwise it will fail
+  // select * from course_membership_t order only, otherwise it will fail
   fn from(row: tokio_postgres::Row) -> CourseMembership {
     CourseMembership {
       course_membership_id: row.get("course_membership_id"),
@@ -34,7 +34,7 @@ pub async fn add(
   let course_membership_id = con
     .query_one(
       "INSERT INTO
-       course_membership(
+       course_membership_t(
            creation_time,
            creator_user_id,
            user_id,
@@ -75,7 +75,7 @@ pub async fn get_by_course_membership_id(
 ) -> Result<Option<CourseMembership>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM course_membership WHERE course_membership_id=$1",
+      "SELECT * FROM course_membership_t WHERE course_membership_id=$1",
       &[&course_membership_id],
     )
     .await?
@@ -90,7 +90,7 @@ pub async fn get_by_course_key_key(
 ) -> Result<Vec<CourseMembership>, tokio_postgres::Error> {
   let result = con
     .query(
-      "SELECT * FROM course_membership WHERE course_key_key=$1",
+      "SELECT * FROM course_membership_t WHERE course_key_key=$1",
       &[&course_key_key],
     )
     .await?
@@ -116,12 +116,7 @@ pub async fn get_by_user_id_course_id(
   let result = con
     .query_opt(
       "
-      SELECT cm.* FROM course_membership cm
-      INNER JOIN (
-          SELECT max(course_membership_id) id
-          FROM course_membership
-          GROUP BY user_id, course_id
-      ) maxids ON maxids.id = cm.course_membership_id
+      SELECT cm.* FROM recent_course_membership_v cm
       WHERE 1 = 1
       AND cm.user_id = $1
       AND cm.course_id = $2
@@ -190,12 +185,7 @@ pub async fn get_by_course_id(
   let result = con
     .query(
       "
-      SELECT cm.* FROM course_membership cm
-      INNER JOIN (
-          SELECT max(course_membership_id) id
-          FROM course_membership
-          GROUP BY user_id, course_id
-      ) maxids ON maxids.id = cm.course_membership_id
+      SELECT cm.* FROM recent_course_membership_v cm
       WHERE 1 = 1
       AND cm.course_id = $1
       ",
@@ -235,12 +225,10 @@ pub async fn query(
   props: innexgo_hours_api::request::CourseMembershipViewProps,
 ) -> Result<Vec<CourseMembership>, tokio_postgres::Error> {
   let sql = [
-    "SELECT cm.* FROM course_membership cm",
     if props.only_recent {
-      " INNER JOIN (SELECT max(course_membership_id) id FROM course_membership GROUP BY user_id, course_id) maxids
-        ON maxids.id = cm.course_membership_id"
+      "SELECT cm.* FROM recent_course_membership_v cm"
     } else {
-      ""
+      "SELECT cm.* FROM course_membership_t cm"
     },
     " WHERE 1 = 1",
     " AND ($1::bigint[] IS NULL OR cm.course_membership_id = ANY($1))",

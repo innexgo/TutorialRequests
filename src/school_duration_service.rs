@@ -18,14 +18,14 @@ impl From<tokio_postgres::row::Row> for SchoolDuration {
 pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
-  school_id: bool,
+  school_id: i64,
 ) -> Result<SchoolDuration, tokio_postgres::Error> {
   let creation_time = current_time_millis();
 
   let school_duration_id = con
     .query_one(
       "INSERT INTO
-       school(
+       school_duration_t(
            creation_time,
            creator_user_id,
            school_id
@@ -52,7 +52,7 @@ pub async fn get_by_school_duration_id(
 ) -> Result<Option<SchoolDuration>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM school WHERE school_duration_id=$1",
+      "SELECT * FROM school_duration_t WHERE school_duration_id=$1",
       &[&school_duration_id],
     ).await?
     .map(|x| x.into());
@@ -67,13 +67,13 @@ pub async fn query(
   let results = con
     .query(
       "
-        SELECT sc.* FROM school sc WHERE 1 = 1
-        AND ($1::bigint[] IS NULL OR sc.school_duration_id = ANY($1))
-        AND ($2::bigint   IS NULL OR sc.creation_time >= $2)
-        AND ($3::bigint   IS NULL OR sc.creation_time <= $3)
-        AND ($4::bigint[] IS NULL OR sc.creator_user_id = ANY($4))
-        AND ($5::bigint[] IS NULL OR sc.school_id = ANY($5))
-        ORDER BY sc.school_duration_id
+        SELECT sd.* FROM school_duration_t sd WHERE 1 = 1
+        AND ($1::bigint[] IS NULL OR sd.school_duration_id = ANY($1))
+        AND ($2::bigint   IS NULL OR sd.creation_time >= $2)
+        AND ($3::bigint   IS NULL OR sd.creation_time <= $3)
+        AND ($4::bigint[] IS NULL OR sd.creator_user_id = ANY($4))
+        AND ($5::bigint[] IS NULL OR sd.school_id = ANY($5))
+        ORDER BY sd.school_duration_id
       ",
       &[
         &props.school_duration_id,

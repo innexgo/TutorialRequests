@@ -34,7 +34,7 @@ pub async fn add(
   let session_data_id = con
     .query_one(
       "INSERT INTO
-       session_data(
+       session_data_t(
            creation_time,
            creator_user_id,
            session_id,
@@ -78,7 +78,7 @@ pub async fn get_by_session_data_id(
 ) -> Result<Option<SessionData>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM session_data WHERE session_data_id=$1",
+      "SELECT * FROM session_data_t WHERE session_data_id=$1",
       &[&session_data_id],
     )
     .await?
@@ -93,15 +93,12 @@ pub async fn query(
 ) -> Result<Vec<SessionData>, tokio_postgres::Error> {
 
   let sql = [
-    "SELECT sesd.* FROM session_data sesd",
     if props.only_recent {
-      " INNER JOIN
-          (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids
-          ON maxids.id = sesd.session_data_id"
+      "SELECT sesd.* FROM recent_session_data_v sesd"
     } else {
-      ""
+      "SELECT sesd.* FROM session_data_t sesd"
     },
-    " INNER JOIN session ses ON sesd.session_id = ses.session_id",
+    " INNER JOIN session_t ses ON sesd.session_id = ses.session_id",
     " WHERE 1 = 1",
     " AND ($1::bigint[]  IS NULL OR sesd.session_data_id = ANY($1))",
     " AND ($2::bigint    IS NULL OR sesd.creation_time >= $2)",

@@ -33,7 +33,7 @@ pub async fn add(
   let school_duration_data_id = con
     .query_one(
       "INSERT INTO
-       school_data(
+       school_duration_data_t(
            creation_time,
            creator_user_id,
            school_duration_id,
@@ -77,7 +77,7 @@ pub async fn get_by_school_duration_data_id(
 ) -> Result<Option<SchoolDurationData>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM school_data WHERE school_duration_data_id=$1",
+      "SELECT * FROM school_duration_data_t WHERE school_duration_data_id=$1",
       &[&school_duration_data_id],
     )
     .await?
@@ -93,14 +93,8 @@ pub async fn get_by_school_duration_id(
   let result = con
     .query_opt(
       "
-      SELECT sd.* FROM school_data sd
-      INNER JOIN (
-          SELECT max(school_duration_data_id) id
-          FROM school_data
-          GROUP BY school_duration_id
-      ) maxids
-      ON maxids.id = sd.school_duration_data_id
-      WHERE sd.school_duration_id = $1
+      SELECT sdd.* FROM recent_school_duration_data_v sdd
+      WHERE sdd.school_duration_id = $1
       ",
       &[&school_duration_id],
     )
@@ -109,30 +103,16 @@ pub async fn get_by_school_duration_id(
   Ok(result)
 }
 
-pub async fn is_active_by_school_duration_id(
-  con: &mut impl GenericClient,
-  school_duration_id: i64,
-) -> Result<bool, tokio_postgres::Error> {
-  let result = matches!(
-    get_by_school_duration_id(con, school_duration_id).await?,
-    Some(SchoolDurationData { active: true, .. })
-  );
-
-  Ok(result)
-}
 
 pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::SchoolDurationDataViewProps,
 ) -> Result<Vec<SchoolDurationData>, tokio_postgres::Error> {
   let sql = [
-    "SELECT sd.* FROM school_data sd",
     if props.only_recent {
-      " INNER JOIN
-          (SELECT max(school_duration_data_id) id FROM school_data GROUP BY school_duration_id) maxids
-          ON maxids.id = sd.school_duration_data_id"
+      "SELECT sd.* FROM recent_school_duration_data_v sd"
     } else {
-      ""
+      "SELECT sd.* FROM school_duration_data sd"
     },
     " WHERE 1 = 1",
     " AND ($1::bigint[] IS NULL OR sd.school_duration_data_id = ANY($1))",

@@ -25,7 +25,7 @@ pub async fn add(
   let school_id = con
     .query_one(
       "INSERT INTO
-       school(
+       school_t(
            creation_time,
            creator_user_id,
            whole
@@ -52,7 +52,7 @@ pub async fn get_by_school_id(
 ) -> Result<Option<School>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM school WHERE school_id=$1",
+      "SELECT * FROM school_t WHERE school_id=$1",
       &[&school_id],
     ).await?
     .map(|x| x.into());
@@ -67,7 +67,7 @@ pub async fn query(
   let results = con
     .query(
       "
-        SELECT sc.* FROM school sc WHERE 1 = 1
+        SELECT sc.* FROM school_t sc WHERE 1 = 1
         AND ($1::bigint[] IS NULL OR sc.school_id = ANY($1))
         AND ($2::bigint   IS NULL OR sc.creation_time >= $2)
         AND ($3::bigint   IS NULL OR sc.creation_time <= $3)

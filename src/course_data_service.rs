@@ -33,7 +33,7 @@ pub async fn add(
   let course_data_id = con
     .query_one(
       "INSERT INTO
-       course_data(
+       course_data_t(
            creation_time,
            creator_user_id,
            course_id,
@@ -78,13 +78,7 @@ pub async fn get_by_course_id(
   let result = con
     .query_opt(
       "
-      SELECT cd.* FROM course_data cd
-      INNER JOIN (
-          SELECT max(course_data_id) id
-          FROM course_data
-          GROUP BY course_id
-      ) maxids
-      ON maxids.id = cd.course_data_id
+      SELECT cd.* FROM recent_course_data_v cd
       WHERE cd.course_id = $1
       ",
       &[&course_id],
@@ -113,7 +107,7 @@ pub async fn get_by_course_data_id(
 ) -> Result<Option<CourseData>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM course_data WHERE course_data_id=$1",
+      "SELECT * FROM course_data_t WHERE course_data_id=$1",
       &[&course_data_id],
     )
     .await?
@@ -126,14 +120,12 @@ pub async fn query(
   props: innexgo_hours_api::request::CourseDataViewProps,
 ) -> Result<Vec<CourseData>, tokio_postgres::Error> {
   let sql = [
-    "SELECT cd.* FROM course_data cd",
     if props.only_recent {
-      " INNER JOIN (SELECT max(course_data_id) id FROM course_data GROUP BY course_id) maxids
-        ON maxids.id = cd.course_data_id"
+      "SELECT cd.* FROM recent_course_data_v cd"
     } else {
-      ""
+      "SELECT cd.* FROM course_data_t cd"
     },
-    " JOIN course c ON cd.course_id = c.course_id",
+    " JOIN course_t c ON cd.course_id = c.course_id",
     " WHERE 1 = 1",
     " AND ($1::bigint[]  IS NULL OR cd.course_data_id = ANY($1))",
     " AND ($2::bigint    IS NULL OR cd.creation_time >= $2)",

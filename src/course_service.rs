@@ -25,7 +25,7 @@ pub async fn add(
   let course_id = con
     .query_one(
       "INSERT INTO
-       course(
+       course_t(
            creation_time,
            creator_user_id,
            school_id
@@ -52,7 +52,7 @@ pub async fn get_by_course_id(
   course_id: i64,
 ) -> Result<Option<Course>, tokio_postgres::Error> {
   let result = con
-    .query_opt("SELECT * FROM course WHERE course_id=$1", &[&course_id])
+    .query_opt("SELECT * FROM course_t WHERE course_id=$1", &[&course_id])
     .await?
     .map(|x| x.into());
 
@@ -63,7 +63,7 @@ pub async fn query(
   con: &mut impl GenericClient,
   props: request::CourseViewProps,
 ) -> Result<Vec<Course>, tokio_postgres::Error> {
-  let sql = "SELECT c.* FROM course c WHERE 1 = 1
+  let sql = "SELECT c.* FROM course_t c WHERE 1 = 1
      AND ($1::bigint[] IS NULL OR c.course_id = ANY($1))
      AND ($2::bigint   IS NULL OR c.creation_time >= $2)
      AND ($3::bigint   IS NULL OR c.creation_time <= $3)

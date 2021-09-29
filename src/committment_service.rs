@@ -27,7 +27,7 @@ pub async fn add(
   let committment_id = con
     .query_one(
       "INSERT INTO
-       committment(
+       committment_t(
            creation_time,
            creator_user_id,
            attendee_user_id,
@@ -62,7 +62,7 @@ pub async fn get_by_committment_id(
 ) -> Result<Option<Committment>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM committment WHERE committment_id=$1",
+      "SELECT * FROM committment_t WHERE committment_id=$1",
       &[&committment_id],
     )
     .await?
@@ -78,7 +78,7 @@ pub async fn get_by_attendee_user_id_session_id(
 ) -> Result<Option<Committment>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM committment WHERE attendee_user_id=$1 AND session_id=$2",
+      "SELECT * FROM committment_t WHERE attendee_user_id=$1 AND session_id=$2",
       &[&attendee_user_id, &session_id],
     )
     .await?
@@ -92,12 +92,11 @@ pub async fn query(
   props: request::CommittmentViewProps,
 ) -> Result<Vec<Committment>, tokio_postgres::Error> {
   let sql = "
-     SELECT c.* FROM committment c
-     INNER JOIN session ses ON ses.session_id = c.session_id
-     INNER JOIN session_data sesd ON sesd.session_id = c.session_id
-     INNER JOIN (SELECT max(session_data_id) id FROM session_data GROUP BY session_id) maxids ON maxids.id = sesd.session_data_id
-     LEFT JOIN committment_response cr ON cr.committment_id = c.committment_id
-     LEFT JOIN session_request_response srr ON srr.committment_id = c.committment_id
+     SELECT c.* FROM committment_t c
+     INNER JOIN session_t ses ON ses.session_id = c.session_id
+     INNER JOIN recent_session_data_v sesd ON sesd.session_id = c.session_id
+     LEFT JOIN committment_response_t cr ON cr.committment_id = c.committment_id
+     LEFT JOIN session_request_response_t srr ON srr.committment_id = c.committment_id
      WHERE 1 = 1
      AND ($1::bigint[] IS NULL OR c.committment_id = ANY($1))
      AND ($2::bigint   IS NULL OR c.creation_time >= $2)

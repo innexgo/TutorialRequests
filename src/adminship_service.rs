@@ -34,7 +34,7 @@ pub async fn add(
   let adminship_id = con
     .query_one(
       "INSERT INTO
-       adminship(
+       adminship_t(
            creation_time,
            creator_user_id,
            user_id,
@@ -75,7 +75,7 @@ pub async fn get_by_adminship_id(
 ) -> Result<Option<Adminship>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM adminship WHERE adminship_id=$1",
+      "SELECT * FROM adminship_t WHERE adminship_id=$1",
       &[&adminship_id],
     )
     .await?
@@ -91,16 +91,12 @@ pub async fn get_by_user_id_school_id(
   let result = con
     .query_opt(
       "
-      SELECT a.* FROM adminship a
-      INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id
+      SELECT a.* FROM recent_adminship_v a
       WHERE 1 = 1
       AND a.user_id = $1
       AND a.school_id = $2
       ",
-      &[
-        &user_id,
-        &school_id,
-      ],
+      &[&user_id, &school_id],
     )
     .await?
     .map(|x| x.into());
@@ -131,14 +127,11 @@ pub async fn get_by_user_id(
   let result = con
     .query(
       "
-      SELECT a.* FROM adminship a
-      INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids ON maxids.id = a.adminship_id
+      SELECT a.* FROM recent_adminship_v a
       WHERE 1 = 1
       AND a.user_id = $1
       ",
-      &[
-        &user_id,
-      ],
+      &[&user_id],
     )
     .await?
     .into_iter()
@@ -167,7 +160,7 @@ pub async fn get_by_school_key_key(
 ) -> Result<Vec<Adminship>, tokio_postgres::Error> {
   let result = con
     .query(
-      "SELECT * FROM adminship WHERE school_key_key = $1",
+      "SELECT * FROM adminship_t WHERE school_key_key = $1",
       &[&school_key_key],
     )
     .await?
@@ -192,14 +185,9 @@ pub async fn get_by_school_id(
   let result = con
     .query(
       "
-      SELECT cm.* FROM adminship cm
-      INNER JOIN (
-          SELECT max(adminship_id) id
-          FROM adminship
-          GROUP BY user_id, school_id
-      ) maxids ON maxids.id = cm.adminship_id
+      SELECT a.* FROM recent_adminship_v a
       WHERE 1 = 1
-      AND cm.school_id = $1
+      AND a.school_id = $1
       ",
       &[&school_id],
     )
@@ -237,14 +225,12 @@ pub async fn query(
   props: innexgo_hours_api::request::AdminshipViewProps,
 ) -> Result<Vec<Adminship>, tokio_postgres::Error> {
   let sql = [
-    "SELECT a.* FROM adminship a",
     if props.only_recent {
-      " INNER JOIN (SELECT max(adminship_id) id FROM adminship GROUP BY user_id, school_id) maxids
-        ON maxids.id = a.adminship_id"
+      "SELECT a.* FROM recent_adminship_v a"
     } else {
-      ""
+      "SELECT a.* FROM adminship_t a"
     },
-    " LEFT JOIN school_key sk ON a.school_key_key = sk.school_key_key",
+    " LEFT JOIN school_key_t sk ON a.school_key_key = sk.school_key_key",
     " WHERE 1 = 1",
     " AND ($1::bigint[] IS NULL OR a.adminship_id = ANY($1))",
     " AND ($2::bigint   IS NULL OR a.creation_time >= $2)",

@@ -522,7 +522,7 @@ dependencies = [
 [[package]]
 name = "innexgo-hours-api"
 version = "0.0.1"
-source = "git+https://github.com/innexgo/innexgo-hours-api#c780390f8480e36f26d9215e38f81963885de53a"
+source = "git+https://github.com/innexgo/innexgo-hours-api#ca3e2db9d4b3fc4917764898bfda7a82632712b6"
 dependencies = [
  "reqwest",
  "serde",
@@ -535,9 +535,11 @@ name = "innexgo-hours-service"
 version = "0.1.0"
 dependencies = [
  "auth-service-api",
+ "base64",
  "clap",
  "innexgo-hours-api",
  "mail-service-api",
+ "rand 0.8.4",
  "serde",
  "serde_json",
  "tokio",

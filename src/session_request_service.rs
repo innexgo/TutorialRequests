@@ -31,7 +31,7 @@ pub async fn add(
   let session_request_id = con
     .query_one(
       "INSERT INTO
-       session_request(
+       session_request_t(
            creation_time,
            creator_user_id,
            course_id,
@@ -72,7 +72,7 @@ pub async fn get_by_session_request_id(
 ) -> Result<Option<SessionRequest>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM session_request WHERE session_request_id=$1",
+      "SELECT * FROM session_request_t WHERE session_request_id=$1",
       &[&session_request_id],
     )
     .await?
@@ -86,8 +86,8 @@ pub async fn query(
   props: request::SessionRequestViewProps,
 ) -> Result<Vec<SessionRequest>, tokio_postgres::Error> {
   let sql = "
-     SELECT sr.* FROM session_request sr
-     LEFT JOIN session_request_response srr ON srr.session_request_id = sr.session_request_id
+     SELECT sr.* FROM session_request_t sr
+     LEFT JOIN session_request_response_t srr ON srr.session_request_id = sr.session_request_id
      WHERE 1 = 1
      AND ($1::bigint[] IS NULL OR sr.session_request_id = ANY($1))
      AND ($2::bigint   IS NULL OR sr.creation_time >= $2)

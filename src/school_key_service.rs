@@ -19,6 +19,7 @@ impl From<tokio_postgres::row::Row> for SchoolKey {
 
 pub async fn add(
   con: &mut impl GenericClient,
+  school_key_key_str: &str,
   creator_user_id: i64,
   school_id: i64,
   start_time: i64,
@@ -29,7 +30,7 @@ pub async fn add(
   let school_key_key = con
     .query_one(
       "INSERT INTO
-       school_key(
+       school_key_t(
            school_key_key,
            creation_time,
            creator_user_id,
@@ -37,10 +38,11 @@ pub async fn add(
            start_time,
            end_time
        )
-       VALUES(MD5(random()::text), $1, $2, $3, $4, $5)
+       VALUES($1, $2, $3, $4, $5, $6)
        RETURNING school_key_key
       ",
       &[
+        &school_key_key_str,
         &creation_time,
         &creator_user_id,
         &school_id,
@@ -68,7 +70,7 @@ pub async fn get_by_school_key_key(
 ) -> Result<Option<SchoolKey>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM school_key WHERE school_key_key=$1",
+      "SELECT * FROM school_key_t WHERE school_key_key=$1",
       &[&school_key_key],
     )
     .await?
@@ -83,7 +85,7 @@ pub async fn query(
 ) -> Result<Vec<SchoolKey>, tokio_postgres::Error> {
 
   let sql = "
-    SELECT sk.* FROM school_key sk
+    SELECT sk.* FROM school_key_t sk
     WHERE 1 = 1
     AND ($1::text[]   IS NULL OR sk.school_key_key = ANY($1))
     AND ($2::bigint   IS NULL OR sk.creation_time >= $2)

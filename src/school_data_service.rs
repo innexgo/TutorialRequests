@@ -31,7 +31,7 @@ pub async fn add(
   let school_data_id = con
     .query_one(
       "INSERT INTO
-       school_data(
+       school_data_t(
            creation_time,
            creator_user_id,
            school_id,
@@ -72,7 +72,7 @@ pub async fn get_by_school_data_id(
 ) -> Result<Option<SchoolData>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM school_data WHERE school_data_id=$1",
+      "SELECT * FROM school_data_t WHERE school_data_id=$1",
       &[&school_data_id],
     )
     .await?
@@ -88,13 +88,7 @@ pub async fn get_by_school_id(
   let result = con
     .query_opt(
       "
-      SELECT sd.* FROM school_data sd
-      INNER JOIN (
-          SELECT max(school_data_id) id
-          FROM school_data
-          GROUP BY school_id
-      ) maxids
-      ON maxids.id = sd.school_data_id
+      SELECT sd.* FROM recent_school_data_v sd
       WHERE sd.school_id = $1
       ",
       &[&school_id],
@@ -121,13 +115,10 @@ pub async fn query(
   props: innexgo_hours_api::request::SchoolDataViewProps,
 ) -> Result<Vec<SchoolData>, tokio_postgres::Error> {
   let sql = [
-    "SELECT sd.* FROM school_data sd",
     if props.only_recent {
-      " INNER JOIN
-          (SELECT max(school_data_id) id FROM school_data GROUP BY school_id) maxids
-          ON maxids.id = sd.school_data_id"
+      "SELECT sd.* FROM recent_school_data_v sd"
     } else {
-      ""
+      "SELECT sd.* FROM school_data_t sd"
     },
     " WHERE 1 = 1",
     " AND ($1::bigint[] IS NULL OR sd.school_data_id = ANY($1))",

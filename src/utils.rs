@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use rand::{thread_rng, Rng};
 use std::convert::TryFrom;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -8,6 +9,11 @@ pub fn current_time_millis() -> i64 {
     .expect("time went backwards");
 
   since_the_epoch.as_millis() as i64
+}
+
+pub fn gen_random_string() -> String {
+  // encode 32 bytes of random in base64
+  base64::encode(thread_rng().gen::<[u8; 32]>())
 }
 
 // fun error handling stuff

@@ -28,7 +28,7 @@ pub async fn add(
   let session_request_id = con
     .query_one(
       "INSERT INTO
-       session_request_response(
+       session_request_response_t(
            session_request_id,
            creation_time,
            creator_user_id,
@@ -58,7 +58,7 @@ pub async fn get_by_session_request_id(
   session_request_id: i64,
 ) -> Result<Option<SessionRequestResponse>, tokio_postgres::Error> {
   let result = con
-    .query_opt("SELECT * FROM session_request_response WHERE session_request_id=$1", &[&session_request_id])
+    .query_opt("SELECT * FROM session_request_response_t WHERE session_request_id=$1", &[&session_request_id])
     .await?
     .map(|x| x.into());
 
@@ -70,9 +70,9 @@ pub async fn query(
   props: request::SessionRequestResponseViewProps,
 ) -> Result<Vec<SessionRequestResponse>, tokio_postgres::Error> {
   let sql = "
-     SELECT srr.* FROM session_request_response srr
-     INNER JOIN session_request sr ON srr.session_request_id = sr.session_request_id
-     LEFT JOIN committment c ON srr.committment_id = c.committment_id
+     SELECT srr.* FROM session_request_response_t srr
+     INNER JOIN session_request_t sr ON srr.session_request_id = sr.session_request_id
+     LEFT JOIN committment_t c ON srr.committment_id = c.committment_id
      WHERE 1 = 1
      AND ($1::bigint[]  IS NULL OR srr.session_request_id = ANY($1))
      AND ($2::bigint    IS NULL OR srr.creation_time >= $2)

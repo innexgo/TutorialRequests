@@ -3,7 +3,7 @@ use super::utils::current_time_millis;
 use tokio_postgres::GenericClient;
 
 impl From<tokio_postgres::row::Row> for CourseKeyData {
-  // select * from course_key_data order only, otherwise it will fail
+  // select * from course_key_data_t order only, otherwise it will fail
   fn from(row: tokio_postgres::Row) -> CourseKeyData {
     CourseKeyData {
       course_key_data_id: row.get("course_key_data_id"),
@@ -27,23 +27,17 @@ pub async fn add(
   let course_key_data_id = con
     .query_one(
       "INSERT INTO
-       course_key_data(
-           creation_time,
-           creator_user_id,
-           course_key_key,
-           active
-       )
-       VALUES ($1, $2, $3, $4)
-       RETURNING course_key_data_id
+             course_key_data_t(
+                 creation_time,
+                 creator_user_id,
+                 course_key_key,
+                 active
+             )
+             VALUES ($1, $2, $3, $4)
+             RETURNING course_key_data_id
       ",
-      &[
-        &creation_time,
-        &creator_user_id,
-        &course_key_key,
-        &active,
-      ],
-    )
-    .await?
+      &[&creation_time, &creator_user_id, &course_key_key, &active],
+    )    .await?
     .get(0);
 
   // return course_key_data
@@ -62,7 +56,7 @@ pub async fn get_by_course_key_data_id(
 ) -> Result<Option<CourseKeyData>, tokio_postgres::Error> {
   let result = con
     .query_opt(
-      "SELECT * FROM course_key_data WHERE course_key_data_id=$1",
+      "SELECT * FROM course_key_data_t WHERE course_key_data_id=$1",
       &[&course_key_data_id],
     )
     .await?
@@ -74,16 +68,13 @@ pub async fn query(
   con: &mut impl GenericClient,
   props: innexgo_hours_api::request::CourseKeyDataViewProps,
 ) -> Result<Vec<CourseKeyData>, tokio_postgres::Error> {
-
   let sql = [
-    "SELECT ckd.* FROM course_key_data ckd",
-    " JOIN course_key ck ON ckd.course_key_key = ck.course_key_key",
     if props.only_recent {
-      " INNER JOIN (SELECT max(course_key_data_id) id FROM course_key_data GROUP BY course_key_key) maxids
-        ON maxids.id = ckd.course_key_data_id"
+      "SELECT ckd.* FROM recent_course_key_data_v ckd"
     } else {
-      ""
+      "SELECT ckd.* FROM course_key_data_t ckd"
     },
+    " JOIN course_key_t ck ON ckd.course_key_key = ck.course_key_key",
     " WHERE 1 = 1",
     " AND ($1::bigint[] IS NULL OR ckd.course_key_data_id = ANY($1))",
     " AND ($2::bigint   IS NULL OR ckd.creation_time >= $2)",
@@ -107,8 +98,7 @@ pub async fn query(
   let results = con
     .query(
       &stmnt,
-      &[
-        &props.course_key_data_id,
+      &[        &props.course_key_data_id,
         &props.min_creation_time,
         &props.max_creation_time,
         &props.creator_user_id,
@@ -116,13 +106,14 @@ pub async fn query(
         &props.active,
         &props.course_id,
         &props.max_uses,
-        &props.course_membership_kind.map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
+        &props
+          .course_membership_kind
+          .map(|v| v.into_iter().map(|x| x as i64).collect::<Vec<i64>>()),
         &props.min_start_time,
         &props.max_start_time,
         &props.min_end_time,
         &props.max_end_time,
-      ],
-    )
+      ],    )
     .await?
     .into_iter()
     .map(|row| row.into())
