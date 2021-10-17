@@ -15,6 +15,12 @@ INSERT INTO user_t(
 ) VALUES
 (1),
 (1),
+(1),
+(1),
+(1),
+(1),
+(1),
+(1),
 (1);
 
 INSERT INTO user_data_t(
@@ -47,7 +53,7 @@ INSERT INTO verification_challenge_t(
 ('6', 1, 6, FALSE, 'student6@example.com'),
 ('7', 1, 7, FALSE, 'student7@example.com'),
 ('8', 1, 8, FALSE, 'student8@example.com'),
-('9', 1, 9, FALSE, 'student9@example.com'),
+('9', 1, 9, FALSE, 'student9@example.com');
 
 INSERT INTO email_t(
   creation_time,

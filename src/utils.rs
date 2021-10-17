@@ -13,7 +13,7 @@ pub fn current_time_millis() -> i64 {
 
 pub fn gen_random_string() -> String {
   // encode 32 bytes of random in base64
-  base64::encode(thread_rng().gen::<[u8; 32]>())
+  base64_url::encode(&thread_rng().gen::<[u8; 32]>())
 }
 
 // fun error handling stuff

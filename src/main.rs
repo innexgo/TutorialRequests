@@ -1,7 +1,7 @@
 #![recursion_limit="256"]
 #![feature(async_closure)]
 #![feature(never_type)]
-use clap::Clap;
+use clap::Parser;
 use std::error::Error;
 use std::sync::Arc;
 use tokio_postgres::{Client, NoTls};
@@ -41,7 +41,7 @@ mod subscription_service;
 
 static SERVICE_NAME: &str = "innexgo-hours-service";
 
-#[derive(Clap, Clone)]
+#[derive(Parser, Clone)]
 struct Opts {
   #[clap(short, long)]
   site_external_url: String,

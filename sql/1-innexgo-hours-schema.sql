@@ -29,7 +29,7 @@ create view recent_subscription_v as
   inner join (
    select max(subscription_id) id 
    from subscription_t 
-   group by user_id
+   group by creator_user_id
   ) maxids
   on maxids.id = s.subscription_id;
 
