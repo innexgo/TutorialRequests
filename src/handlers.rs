@@ -576,6 +576,7 @@ pub async fn course_data_new(
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
 
+
   // now we can update data
   let course_data = course_data_service::add(
     &mut sp,

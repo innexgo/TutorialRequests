@@ -110,23 +110,25 @@ pub async fn query(
 ) -> Result<Vec<SchoolDurationData>, tokio_postgres::Error> {
   let sql = [
     if props.only_recent {
-      "SELECT sd.* FROM recent_school_duration_data_v sd"
+      "SELECT sdd.* FROM recent_school_duration_data_v sdd"
     } else {
-      "SELECT sd.* FROM school_duration_data sd"
+      "SELECT sdd.* FROM school_duration_data sdd"
     },
+    " JOIN school_duration_t sd ON sdd.school_duration_id = sd.school_duration_id",
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR sd.school_duration_data_id = ANY($1))",
-    " AND ($2::bigint   IS NULL OR sd.creation_time >= $2)",
-    " AND ($3::bigint   IS NULL OR sd.creation_time <= $3)",
-    " AND ($4::bigint[] IS NULL OR sd.creator_user_id = ANY($4))",
-    " AND ($5::bigint[] IS NULL OR sd.school_duration_id = ANY($5))",
-    " AND ($6::bigint   IS NULL OR sd.day = ANY($6))",
-    " AND ($7::bigint   IS NULL OR sd.minute_start = $7)",
-    " AND ($8::bigint   IS NULL OR sd.minute_start = $8)",
-    " AND ($9::bigint   IS NULL OR sd.minute_end = $9))",
-    " AND ($10::bigint  IS NULL OR sd.minute_end = $10)",
-    " AND ($11::bool    IS NULL OR sd.active = $11)",
-    " ORDER BY sd.school_duration_data_id",
+    " AND ($1::bigint[]  IS NULL OR sdd.school_duration_data_id = ANY($1))",
+    " AND ($2::bigint    IS NULL OR sdd.creation_time >= $2)",
+    " AND ($3::bigint    IS NULL OR sdd.creation_time <= $3)",
+    " AND ($4::bigint[]  IS NULL OR sdd.creator_user_id = ANY($4))",
+    " AND ($5::bigint[]  IS NULL OR sdd.school_duration_id = ANY($5))",
+    " AND ($6::bigint    IS NULL OR sdd.day = ANY($6))",
+    " AND ($7::bigint    IS NULL OR sdd.minute_start = $7)",
+    " AND ($8::bigint    IS NULL OR sdd.minute_start = $8)",
+    " AND ($9::bigint    IS NULL OR sdd.minute_end = $9))",
+    " AND ($10::bigint   IS NULL OR sdd.minute_end = $10)",
+    " AND ($11::bool     IS NULL OR sdd.active = $11)",
+    " AND ($12::bigint[] IS NULL OR sd.school_id = ANY($12))",
+    " ORDER BY sdd.school_duration_data_id",
   ]
   .join("\n");
 
@@ -147,6 +149,7 @@ pub async fn query(
         &props.min_minute_end,
         &props.max_minute_end,
         &props.active,
+        &props.school_id,
       ],
     )
     .await?
