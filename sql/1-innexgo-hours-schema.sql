@@ -67,6 +67,7 @@ create view recent_school_data_v as
   ) maxids
   on maxids.id = sd.school_data_id;
 
+
 -- represents a block of time during which the appointments can be made
 drop table if exists school_duration_t cascade;
 create table school_duration_t(
@@ -146,7 +147,39 @@ create view recent_adminship_v as
   ) maxids
   on maxids.id = a.adminship_id;
 
+-- represents a named location
+-- locations must be physical, 
+drop table if exists location_t cascade;
+create table location_t(
+  location_id bigserial primary key,
+  creation_time bigint not null,
+  creator_user_id bigint not null
+);
 
+-- data about the location itself
+drop table if exists location_data_t cascade;
+create table location_data_t(
+  location_data_id bigserial primary key,
+  creation_time bigint not null,
+  creator_user_id bigint not null,
+  location_id bigint not null references location_t(location_id),
+  address text not null,
+  phone text not null,
+  description text not null,
+  virtual bool not null,
+  active bool not null
+);
+
+create view recent_location_data_v as
+  select ld.* from location_data_t ld
+  inner join (
+   select max(location_data_id) id 
+   from location_data_t 
+   group by location_id
+  ) maxids
+  on maxids.id = ld.location_data_id;
+
+-- a course run by a teacher. represents one class offering
 drop table if exists course_t cascade;
 create table course_t(
   course_id bigserial primary key,
@@ -155,12 +188,14 @@ create table course_t(
   school_id bigint not null references school_t(school_id)
 );
 
+-- data about the course 
 drop table if exists course_data_t cascade;
 create table course_data_t(
   course_data_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   course_id bigint not null references course_t(course_id),
+  location_id bigint references location_t(location_id), -- nullable
   name text not null,
   description text not null,
   homeroom bool not null, 
@@ -283,15 +318,14 @@ create table committment_t(
   session_id bigint not null references session_t(session_id)
 );
 
--- a response to the commitment
-drop table if exists committment_response_t cascade;
-create table committment_response_t(
-  committment_id bigserial primary key references committment_t(committment_id),
+drop table if exists committment_data_t cascade;
+create table committment_data_t(
+  committment_data_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
-  committment_response_kind bigint not null -- can be PRESENT, TARDY, ABSENT, CANCEL
+  committment_id bigint primary key references committment_t(committment_id),
+  active bool not null
 );
-
 
 -- a response to the course session request
 drop table if exists session_request_response_t cascade;
@@ -302,4 +336,71 @@ create table session_request_response_t(
   message text not null,
   committment_id bigint references committment_t(committment_id) -- NULLABLE
 );
+
+drop table if exists encounter_t cascade;
+create table encounter_t(
+  encounter_id bigserial primary key,
+  creation_time bigint not null,
+  creator_user_id bigint not null,
+  location_id bigint not null references location_t(location_id),
+  kind bigint not null HARDWARE | MANUAL
+);
+
+-- edits are available, but you can only edit MANUAL that you made
+drop table if exists encounter_data_t cascade;
+create table encounter_data_t(
+  encounter_data_id bigserial primary key,
+  creation_time bigint not null,
+  creator_user_id bigint not null,
+  encounter_id bigint not null references encounter_t(encounter_id),
+  encounter_time bigint not null,
+  active bigint not null
+);
+
+create view recent_encounter_data_v as
+  select ed.* from encounter_data_t ed
+  inner join (
+   select max(encounter_data_id) id 
+   from encounter_data_t 
+   group by encounter_id
+  ) maxids
+  on maxids.id = ed.encounter_data_id;
+
+
+
+-- represents a stay at a location where both the sign in and out were recorded
+-- these are cached, since they aren't fundamental, like the encounters are
+-- don't refer to these as stable, as they may be purged frequently 
+drop table if exists stay_inout_cache_t cascade;
+create table stay_inout_cache_t(
+  stay_inout_cache_id bigserial primary key,
+  creation_time bigint not null,
+  fst_encounter_id bigint not null references encounter_t(encounter_id),
+  snd_encounter_id bigint not null references encounter_t(encounter_id)
+);
+
+-- represents a stay at a location where the signout wasn't recorded but can be inferred
+drop table if exists stay_in_cache_t cascade;
+create table stay_in_cache_t(
+  stay_in_cache_id bigserial primary key,
+  creation_time bigint not null,
+  fst_encounter_id bigint not null references encounter_t(encounter_id)
+);
+
+-- represents period of time when the student wasn't present but should have been
+-- these are cateogrized into types:
+-- ABSENT: user didn't show up at all (nothing defined)
+-- TARDY: user arrived late (start time defined)
+-- LEAVE_NORETURN: user left before session ended (end time defined)
+-- LEAVE_RETURN: user left and then came back in the middle of a session (start and end time defined)
+drop table if exists irregularity_cache_t cascade;
+create table irregularity_cache_t(
+  irregularity_cache_id bigserial primary key,
+  creation_time bigint not null,
+  committment_id bigint not null references committment_t(committment_id),
+  fst_encounter_id bigint not null references encounter_t(encounter_id),
+  snd_encounter_id bigint not null references encounter_t(encounter_id)
+);
+
+
 
