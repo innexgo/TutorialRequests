@@ -18,3 +18,4 @@ innexgo-hours-api = {version = "*", git = "https://github.com/innexgo/innexgo-ho
 tokio-postgres = "0.7.3"
 rand = "0.8.4"
 base64-url = "1.4.10"
+either = "1.6.1"

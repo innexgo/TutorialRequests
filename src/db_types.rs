@@ -1,6 +1,8 @@
+use either::Either;
 use innexgo_hours_api::request::AdminshipKind;
 use innexgo_hours_api::request::CommittmentResponseKind;
 use innexgo_hours_api::request::CourseMembershipKind;
+use innexgo_hours_api::request::EncounterKind;
 use innexgo_hours_api::request::SubscriptionKind;
 
 pub struct Subscription {
@@ -79,8 +81,17 @@ pub struct Location {
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub school_id: i64,
+}
+
+pub struct LocationData {
+  pub location_data_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub location_id: i64,
   pub name: String,
-  pub description: String,
+  pub address: String,
+  pub phone: String,
+  pub active: bool,
 }
 
 pub struct Course {
@@ -95,6 +106,7 @@ pub struct CourseData {
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub course_id: i64,
+  pub location_id: i64,
   pub name: String,
   pub description: String,
   pub homeroom: bool,
@@ -179,4 +191,30 @@ pub struct CommittmentResponse {
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub committment_response_kind: CommittmentResponseKind,
+}
+
+pub struct Encounter {
+  pub encounter_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub location_id: i64,
+  pub user_id: i64,
+  pub encounter_kind: EncounterKind,
+}
+
+pub struct Stay {
+  pub stay_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+}
+
+// left is encounter_id, right is timestamp
+pub struct StayData {
+  pub stay_data_id: i64,
+  pub creation_time: i64,
+  pub creator_user_id: i64,
+  pub stay_id: i64,
+  pub fst: Either<i64, i64>,
+  pub snd: Either<i64, i64>,
+  pub active: bool,
 }

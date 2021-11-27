@@ -153,7 +153,8 @@ drop table if exists location_t cascade;
 create table location_t(
   location_id bigserial primary key,
   creation_time bigint not null,
-  creator_user_id bigint not null
+  creator_user_id bigint not null,
+  school_id bigint not null
 );
 
 -- data about the location itself
@@ -165,8 +166,6 @@ create table location_data_t(
   location_id bigint not null references location_t(location_id),
   address text not null,
   phone text not null,
-  description text not null,
-  virtual bool not null,
   active bool not null
 );
 
@@ -195,7 +194,7 @@ create table course_data_t(
   creation_time bigint not null,
   creator_user_id bigint not null,
   course_id bigint not null references course_t(course_id),
-  location_id bigint references location_t(location_id), -- nullable
+  location_id bigint not null references location_t(location_id),
   name text not null,
   description text not null,
   homeroom bool not null, 
@@ -315,17 +314,18 @@ create table committment_t(
   creation_time bigint not null,
   creator_user_id bigint not null,
   attendee_user_id bigint not null,
-  session_id bigint not null references session_t(session_id)
-);
-
-drop table if exists committment_data_t cascade;
-create table committment_data_t(
-  committment_data_id bigserial primary key,
-  creation_time bigint not null,
-  creator_user_id bigint not null,
-  committment_id bigint primary key references committment_t(committment_id),
+  session_id bigint not null references session_t(session_id),
   active bool not null
 );
+
+create view recent_committment as
+  select c.* from committment_t c
+  inner join (
+   select max(committment_id) id 
+   from session_data_t 
+   group by session_id, attendee_user_id
+  ) maxids
+  on maxids.id = c.committment_id;
 
 -- a response to the course session request
 drop table if exists session_request_response_t cascade;
@@ -343,64 +343,48 @@ create table encounter_t(
   creation_time bigint not null,
   creator_user_id bigint not null,
   location_id bigint not null references location_t(location_id),
-  kind bigint not null HARDWARE | MANUAL
+  attendee_user_id bigint not null,
+  encounter_kind bigint not null -- HARDWARE | MANUAL
 );
-
--- edits are available, but you can only edit MANUAL that you made
-drop table if exists encounter_data_t cascade;
-create table encounter_data_t(
-  encounter_data_id bigserial primary key,
-  creation_time bigint not null,
-  creator_user_id bigint not null,
-  encounter_id bigint not null references encounter_t(encounter_id),
-  encounter_time bigint not null,
-  active bigint not null
-);
-
-create view recent_encounter_data_v as
-  select ed.* from encounter_data_t ed
-  inner join (
-   select max(encounter_data_id) id 
-   from encounter_data_t 
-   group by encounter_id
-  ) maxids
-  on maxids.id = ed.encounter_data_id;
-
-
 
 -- represents a stay at a location where both the sign in and out were recorded
--- these are cached, since they aren't fundamental, like the encounters are
--- don't refer to these as stable, as they may be purged frequently 
-drop table if exists stay_inout_cache_t cascade;
-create table stay_inout_cache_t(
-  stay_inout_cache_id bigserial primary key,
+-- can be edited by a teacher
+drop table if exists stay_t cascade;
+create table stay_t(
+  stay_id bigserial primary key,
   creation_time bigint not null,
-  fst_encounter_id bigint not null references encounter_t(encounter_id),
-  snd_encounter_id bigint not null references encounter_t(encounter_id)
+  creator_user_id bigint not null
 );
 
--- represents a stay at a location where the signout wasn't recorded but can be inferred
-drop table if exists stay_in_cache_t cascade;
-create table stay_in_cache_t(
-  stay_in_cache_id bigserial primary key,
+-- the time variants are used when the teacher edits the stay data
+-- we must specify 1 of fst_encounter_id or fst_time
+-- we must specify 1 of snd_encounter_id or snd_time
+drop table if exists stay_data_t cascade;
+create table stay_data_t(
+  stay_data_id bigserial primary key,
   creation_time bigint not null,
-  fst_encounter_id bigint not null references encounter_t(encounter_id)
+  creator_user_id bigint not null,
+  fst_encounter_id bigint references encounter_t(encounter_id), -- NULLABLE
+  fst_time bigint, -- NULLABLE
+  snd_encounter_id bigint references encounter_t(encounter_id), -- NULLABLE
+  snd_time bigint, -- NULLABLE
+  check (num_nulls(fst_encounter_data_id, fst_time) = 1),
+  check (num_nulls(snd_encounter_data_id, snd_time) = 1),
+  active bool not null
 );
 
 -- represents period of time when the student wasn't present but should have been
 -- these are cateogrized into types:
+-- linked to an attendance revision
 -- ABSENT: user didn't show up at all (nothing defined)
 -- TARDY: user arrived late (start time defined)
 -- LEAVE_NORETURN: user left before session ended (end time defined)
 -- LEAVE_RETURN: user left and then came back in the middle of a session (start and end time defined)
-drop table if exists irregularity_cache_t cascade;
-create table irregularity_cache_t(
-  irregularity_cache_id bigserial primary key,
+drop table if exists irregularity_t cascade;
+create table irregularity_t(
+  irregularity_id bigserial primary key,
   creation_time bigint not null,
   committment_id bigint not null references committment_t(committment_id),
   fst_encounter_id bigint not null references encounter_t(encounter_id),
   snd_encounter_id bigint not null references encounter_t(encounter_id)
 );
-
-
-
