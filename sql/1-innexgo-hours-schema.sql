@@ -164,6 +164,7 @@ create table location_data_t(
   creation_time bigint not null,
   creator_user_id bigint not null,
   location_id bigint not null references location_t(location_id),
+  name text not null,
   address text not null,
   phone text not null,
   active bool not null
