@@ -1,6 +1,5 @@
 use either::Either;
 use innexgo_hours_api::request::AdminshipKind;
-use innexgo_hours_api::request::CommittmentResponseKind;
 use innexgo_hours_api::request::CourseMembershipKind;
 use innexgo_hours_api::request::EncounterKind;
 use innexgo_hours_api::request::SubscriptionKind;
@@ -175,22 +174,16 @@ pub struct SessionRequestResponse {
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub message: String,
-  pub committment_id: Option<i64>,
+  pub commitment_id: Option<i64>,
 }
 
-pub struct Committment {
-  pub committment_id: i64,
+pub struct Commitment {
+  pub commitment_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub attendee_user_id: i64,
   pub session_id: i64,
-}
-
-pub struct CommittmentResponse {
-  pub committment_id: i64,
-  pub creation_time: i64,
-  pub creator_user_id: i64,
-  pub committment_response_kind: CommittmentResponseKind,
+  pub active: bool,
 }
 
 pub struct Encounter {
@@ -198,7 +191,7 @@ pub struct Encounter {
   pub creation_time: i64,
   pub creator_user_id: i64,
   pub location_id: i64,
-  pub user_id: i64,
+  pub attendee_user_id: i64,
   pub encounter_kind: EncounterKind,
 }
 
@@ -206,6 +199,7 @@ pub struct Stay {
   pub stay_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
+  pub attendee_user_id: i64,
 }
 
 // left is encounter_id, right is timestamp

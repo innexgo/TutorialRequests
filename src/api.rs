@@ -168,15 +168,29 @@ pub fn api(
         config.clone(),
         db.clone(),
         auth_service.clone(),
-        warp::path!("public" / "committment" / "new"),
-        handlers::committment_new,
+        warp::path!("public" / "commitment" / "new"),
+        handlers::commitment_new,
       ),
       adapter(
         config.clone(),
         db.clone(),
         auth_service.clone(),
-        warp::path!("public" / "committment_response" / "new"),
-        handlers::committment_response_new,
+        warp::path!("public" / "commitment" / "new"),
+        handlers::commitment_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "stay" / "new"),
+        handlers::stay_new,
+      ),
+      adapter(
+        config.clone(),
+        db.clone(),
+        auth_service.clone(),
+        warp::path!("public" / "stay_data" / "new"),
+        handlers::stay_data_new,
       ),
       adapter(
         config.clone(),
@@ -301,15 +315,8 @@ pub fn api(
         config.clone(),
         db.clone(),
         auth_service.clone(),
-        warp::path!("public" / "committment" / "view"),
-        handlers::committment_view,
-      ),
-      adapter(
-        config.clone(),
-        db.clone(),
-        auth_service.clone(),
-        warp::path!("public" / "committment_response" / "view"),
-        handlers::committment_response_view,
+        warp::path!("public" / "commitment" / "view"),
+        handlers::commitment_view,
       )
     ))
     .recover(handle_rejection)

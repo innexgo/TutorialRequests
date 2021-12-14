@@ -1,4 +1,4 @@
-#![recursion_limit="256"]
+#![recursion_limit = "256"]
 #![feature(async_closure)]
 #![feature(never_type)]
 use clap::Parser;
@@ -20,16 +20,17 @@ mod handlers;
 
 // db
 mod adminship_service;
-mod committment_response_service;
-mod committment_service;
+mod commitment_service;
 mod course_data_service;
 mod course_key_data_service;
 mod course_key_service;
 mod course_membership_service;
 mod course_service;
-mod school_duration_service;
-mod school_duration_data_service;
+mod encounter_service;
+mod location_service;
 mod school_data_service;
+mod school_duration_data_service;
+mod school_duration_service;
 mod school_key_data_service;
 mod school_key_service;
 mod school_service;
@@ -37,6 +38,7 @@ mod session_data_service;
 mod session_request_response_service;
 mod session_request_service;
 mod session_service;
+mod stay_service;
 mod subscription_service;
 
 static SERVICE_NAME: &str = "innexgo-hours-service";

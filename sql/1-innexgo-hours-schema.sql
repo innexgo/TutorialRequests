@@ -308,10 +308,10 @@ create table session_request_t(
   end_time bigint not null
 );
 
--- a committment to attend a course session
-drop table if exists committment_t cascade;
-create table committment_t( 
-  committment_id bigserial primary key,
+-- a commitment to attend a course session
+drop table if exists commitment_t cascade;
+create table commitment_t( 
+  commitment_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
   attendee_user_id bigint not null,
@@ -319,14 +319,14 @@ create table committment_t(
   active bool not null
 );
 
-create view recent_committment as
-  select c.* from committment_t c
+create view recent_commitment_v as
+  select c.* from commitment_t c
   inner join (
-   select max(committment_id) id 
+   select max(commitment_id) id 
    from session_data_t 
    group by session_id, attendee_user_id
   ) maxids
-  on maxids.id = c.committment_id;
+  on maxids.id = c.commitment_id;
 
 -- a response to the course session request
 drop table if exists session_request_response_t cascade;
@@ -335,7 +335,7 @@ create table session_request_response_t(
   creation_time bigint not null,
   creator_user_id bigint not null,
   message text not null,
-  committment_id bigint references committment_t(committment_id) -- NULLABLE
+  commitment_id bigint references commitment_t(commitment_id) -- NULLABLE
 );
 
 drop table if exists encounter_t cascade;
@@ -386,7 +386,7 @@ drop table if exists irregularity_t cascade;
 create table irregularity_t(
   irregularity_id bigserial primary key,
   creation_time bigint not null,
-  committment_id bigint not null references committment_t(committment_id),
+  commitment_id bigint not null references commitment_t(commitment_id),
   fst_encounter_id bigint not null references encounter_t(encounter_id),
   snd_encounter_id bigint not null references encounter_t(encounter_id)
 );
