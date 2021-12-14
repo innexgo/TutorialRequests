@@ -354,7 +354,8 @@ drop table if exists stay_t cascade;
 create table stay_t(
   stay_id bigserial primary key,
   creation_time bigint not null,
-  creator_user_id bigint not null
+  creator_user_id bigint not null,
+  attendee_user_id bigint not null
 );
 
 -- the time variants are used when the teacher edits the stay data
