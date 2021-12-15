@@ -28,6 +28,7 @@ mod course_membership_service;
 mod course_service;
 mod encounter_service;
 mod location_service;
+mod location_data_service;
 mod school_data_service;
 mod school_duration_data_service;
 mod school_duration_service;
@@ -39,6 +40,7 @@ mod session_request_response_service;
 mod session_request_service;
 mod session_service;
 mod stay_service;
+mod stay_data_service;
 mod subscription_service;
 
 static SERVICE_NAME: &str = "innexgo-hours-service";

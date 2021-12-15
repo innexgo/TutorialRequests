@@ -10,6 +10,7 @@ use super::db_types::*;
 use super::utils;
 
 // db
+
 use super::adminship_service;
 use super::commitment_service;
 use super::course_data_service;
@@ -18,6 +19,7 @@ use super::course_key_service;
 use super::course_membership_service;
 use super::course_service;
 use super::encounter_service;
+use super::location_data_service;
 use super::location_service;
 use super::school_data_service;
 use super::school_duration_data_service;
@@ -29,6 +31,7 @@ use super::session_data_service;
 use super::session_request_response_service;
 use super::session_request_service;
 use super::session_service;
+use super::stay_data_service;
 use super::stay_service;
 use super::subscription_service;
 
@@ -220,6 +223,44 @@ async fn fill_adminship(
     school: fill_school(con, school).await?,
     adminship_kind: adminship.adminship_kind,
     school_key,
+  })
+}
+
+async fn fill_location(
+  con: &mut tokio_postgres::Client,
+  location: Location,
+) -> Result<response::Location, response::InnexgoHoursError> {
+  let school = school_service::get_by_school_id(con, location.school_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
+
+  Ok(response::Location {
+    location_id: location.location_id,
+    creation_time: location.creation_time,
+    creator_user_id: location.creator_user_id,
+    school: fill_school(con, school).await?,
+  })
+}
+
+async fn fill_location_data(
+  con: &mut tokio_postgres::Client,
+  location_data: LocationData,
+) -> Result<response::LocationData, response::InnexgoHoursError> {
+  let location = location_service::get_by_location_id(con, location_data.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::LocationNonexistent)?;
+
+  Ok(response::LocationData {
+    location_data_id: location_data.location_data_id,
+    creation_time: location_data.creation_time,
+    creator_user_id: location_data.creator_user_id,
+    location: fill_location(con, location).await?,
+    name: location_data.name,
+    address: location_data.address,
+    phone: location_data.phone,
+    active: location_data.active,
   })
 }
 
@@ -427,7 +468,6 @@ async fn fill_commitment(
   con: &mut tokio_postgres::Client,
   commitment: Commitment,
 ) -> Result<response::Commitment, response::InnexgoHoursError> {
-
   let session = session_service::get_by_session_id(con, commitment.session_id)
     .await
     .map_err(report_postgres_err)?
@@ -447,7 +487,6 @@ async fn fill_encounter(
   _con: &mut tokio_postgres::Client,
   encounter: Encounter,
 ) -> Result<response::Encounter, response::InnexgoHoursError> {
-
   Ok(response::Encounter {
     encounter_id: encounter.encounter_id,
     creation_time: encounter.creation_time,
@@ -481,11 +520,11 @@ async fn fill_stay_data(
 
   let fst = match stay_data.fst {
     Left(encounter_id) => {
-      let encounter = encounter_service::get_by_encounter_id(con,encounter_id)
+      let encounter = encounter_service::get_by_encounter_id(con, encounter_id)
         .await
         .map_err(report_postgres_err)?
         .ok_or(response::InnexgoHoursError::EncounterNonexistent)?;
-      Left(encounter)
+      Left(fill_encounter(con, encounter).await?)
     }
     Right(timestamp) => Right(timestamp),
   };
@@ -496,7 +535,7 @@ async fn fill_stay_data(
         .await
         .map_err(report_postgres_err)?
         .ok_or(response::InnexgoHoursError::EncounterNonexistent)?;
-      Left(encounter)
+      Left(fill_encounter(con, encounter).await?)
     }
     Right(timestamp) => Right(timestamp),
   };
@@ -505,7 +544,7 @@ async fn fill_stay_data(
     stay_data_id: stay_data.stay_data_id,
     creation_time: stay_data.creation_time,
     creator_user_id: stay_data.creator_user_id,
-    stay,
+    stay: fill_stay(con, stay).await?,
     fst,
     snd,
     active: stay_data.active,
@@ -575,6 +614,20 @@ pub async fn course_new(
     return Err(response::InnexgoHoursError::SchoolArchived);
   }
 
+  // check that location is valid
+  let _ = location_service::get_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
+
+  // check that location is not archived
+  if !location_data_service::is_active_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::LocationArchived);
+  }
+
   // create course
   let course = course_service::add(&mut sp, props.school_id, user.user_id)
     .await
@@ -585,6 +638,7 @@ pub async fn course_new(
     &mut sp,
     user.user_id,
     course.course_id,
+    props.location_id,
     props.name,
     props.description,
     props.homeroom, // TODO do we have to restrict how many classes can be a homeroom ?
@@ -635,11 +689,26 @@ pub async fn course_data_new(
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
 
+  // check that location is valid
+  let _ = location_service::get_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
+
+  // check that location is not archived
+  if !location_data_service::is_active_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::LocationArchived);
+  }
+
   // now we can update data
   let course_data = course_data_service::add(
     &mut sp,
     user.user_id,
     course.course_id,
+    props.location_id,
     props.name,
     props.description,
     props.homeroom, // TODO do we have to restrict how many classes can be a homeroom
@@ -1549,7 +1618,7 @@ pub async fn session_new(
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
 
-  // ensure session creator is instrutor
+  // ensure session creator is instructor
   if !course_membership_service::is_instructor(&mut sp, user.user_id, props.course_id)
     .await
     .map_err(report_postgres_err)?
@@ -1611,7 +1680,7 @@ pub async fn session_data_new(
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
 
-  // ensure session creator is instrutor
+  // ensure session creator is instructor
   if !course_membership_service::is_instructor(&mut sp, user.user_id, session.course_id)
     .await
     .map_err(report_postgres_err)?
@@ -1708,6 +1777,56 @@ pub async fn commitment_new(
 
   // return json
   fill_commitment(con, commitment).await
+}
+
+pub async fn encounter_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::EncounterNewProps,
+) -> Result<response::Encounter, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // validate location exists
+  let _ = location_service::get_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::LocationNonexistent)?;
+
+  // check that location is not archived
+  if !location_data_service::is_active_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::LocationArchived);
+  }
+
+  // can only add encounter if you are an instructor of the claimed location
+  if !course_membership_service::is_instructor_at(&mut sp, user.user_id, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  let encounter = encounter_service::add(
+    &mut sp,
+    user.user_id,
+    props.location_id,
+    props.attendee_user_id,
+    request::EncounterKind::Manual,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_encounter(con, encounter).await
 }
 
 pub async fn subscription_view(
@@ -1924,6 +2043,58 @@ pub async fn course_data_view(
   Ok(resp_course_datas)
 }
 
+pub async fn location_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::LocationViewProps,
+) -> Result<Vec<response::Location>, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let locations = location_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // return locations
+  let mut resp_locations = vec![];
+
+  for x in locations.into_iter() {
+    // all locations are visible
+    resp_locations.push(fill_location(con, x).await?);
+  }
+
+  Ok(resp_locations)
+}
+
+pub async fn location_data_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::LocationDataViewProps,
+) -> Result<Vec<response::LocationData>, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let location_data = location_data_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // return location_datas
+  let mut resp_location_datas = vec![];
+  for x in location_data.into_iter() {
+    // all location datas are visible
+    // TODO: we should figure out how to protect zoom links
+    resp_location_datas.push(fill_location_data(con, x).await?);
+  }
+
+  Ok(resp_location_datas)
+}
+
 pub async fn course_membership_view(
   _config: Config,
   db: Db,
@@ -2081,22 +2252,9 @@ pub async fn encounter_view(
   // return encounters
   let mut resp_encounters = vec![];
   for x in encounters.into_iter() {
-    // admins, instructors, and attendees of the encounter can see their data
-    let is_attendee = x.attendee_user_id == user.user_id;
+    // TODO: please check if allowed to view
 
-    let session = session_service::get_by_session_id(con, x.session_id)
-      .await
-      .map_err(report_postgres_err)?
-      .ok_or(response::InnexgoHoursError::SessionNonexistent)?;
-
-    let is_instructor =
-      course_membership_service::is_instructor(con, user.user_id, session.course_id)
-        .await
-        .map_err(report_postgres_err)?;
-
-    if is_attendee || is_instructor {
-      resp_encounters.push(fill_encounter(con, x).await?);
-    }
+    resp_encounters.push(fill_encounter(con, x).await?);
   }
   Ok(resp_encounters)
 }
@@ -2165,6 +2323,57 @@ pub async fn session_data_view(
   }
 
   Ok(resp_session_datas)
+}
+
+pub async fn stay_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::StayViewProps,
+) -> Result<Vec<response::Stay>, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let stays = stay_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // return stays
+  let mut resp_stays = vec![];
+  for x in stays.into_iter() {
+    // TODO: restrict
+    resp_stays.push(fill_stay(con, x).await?);
+  }
+
+  Ok(resp_stays)
+}
+
+pub async fn stay_data_view(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::StayDataViewProps,
+) -> Result<Vec<response::StayData>, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key.clone()).await?;
+
+  let con = &mut *db.lock().await;
+  // get users
+  let stay_data = stay_data_service::query(con, props)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // return stay_datas
+  let mut resp_stay_datas = vec![];
+  for x in stay_data.into_iter() {
+    // TODO: restrict
+
+    resp_stay_datas.push(fill_stay_data(con, x).await?);
+  }
+
+  Ok(resp_stay_datas)
 }
 
 pub async fn session_request_view(

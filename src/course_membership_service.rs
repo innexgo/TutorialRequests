@@ -157,7 +157,22 @@ pub async fn is_instructor(
       ..
     })
   );
+  Ok(result)
+}
 
+// if the user id is an instructor at the given location
+pub async fn is_instructor_at(
+  con: &mut impl GenericClient,
+  user_id: i64,
+  location_id: i64,
+) -> Result<bool, tokio_postgres::Error> {
+  let result = matches!(
+    get_by_user_id_course_id(con, user_id, course_id).await?,
+    Some(CourseMembership {
+      course_membership_kind: request::CourseMembershipKind::Instructor,
+      ..
+    })
+  );
   Ok(result)
 }
 
