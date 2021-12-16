@@ -4,6 +4,7 @@ use innexgo_hours_api::request::CourseMembershipKind;
 use innexgo_hours_api::request::EncounterKind;
 use innexgo_hours_api::request::SubscriptionKind;
 
+#[derive(Clone, Debug)]
 pub struct Subscription {
   pub subscription_id: i64,
   pub creation_time: i64,
@@ -13,6 +14,7 @@ pub struct Subscription {
   pub payment_id: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct School {
   pub school_id: i64,
   pub creation_time: i64,
@@ -20,6 +22,7 @@ pub struct School {
   pub whole: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct SchoolData {
   pub school_data_id: i64,
   pub creation_time: i64,
@@ -30,6 +33,7 @@ pub struct SchoolData {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct SchoolDuration {
   pub school_duration_id: i64,
   pub creation_time: i64,
@@ -37,6 +41,7 @@ pub struct SchoolDuration {
   pub school_id: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct SchoolDurationData {
   pub school_duration_data_id: i64,
   pub creation_time: i64,
@@ -48,6 +53,7 @@ pub struct SchoolDurationData {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct SchoolKey {
   pub school_key_key: String,
   pub creation_time: i64,
@@ -57,6 +63,7 @@ pub struct SchoolKey {
   pub end_time: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct SchoolKeyData {
   pub school_key_data_id: i64,
   pub creation_time: i64,
@@ -65,6 +72,7 @@ pub struct SchoolKeyData {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct Adminship {
   pub adminship_id: i64,
   pub creation_time: i64,
@@ -75,6 +83,7 @@ pub struct Adminship {
   pub school_key_key: Option<String>,
 }
 
+#[derive(Clone, Debug)]
 pub struct Location {
   pub location_id: i64,
   pub creation_time: i64,
@@ -82,6 +91,7 @@ pub struct Location {
   pub school_id: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct LocationData {
   pub location_data_id: i64,
   pub creation_time: i64,
@@ -93,6 +103,7 @@ pub struct LocationData {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct Course {
   pub course_id: i64,
   pub creation_time: i64,
@@ -100,6 +111,7 @@ pub struct Course {
   pub school_id: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct CourseData {
   pub course_data_id: i64,
   pub creation_time: i64,
@@ -112,6 +124,7 @@ pub struct CourseData {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct CourseKey {
   pub course_key_key: String,
   pub creation_time: i64,
@@ -123,6 +136,7 @@ pub struct CourseKey {
   pub end_time: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct CourseKeyData {
   pub course_key_data_id: i64,
   pub creation_time: i64,
@@ -131,6 +145,7 @@ pub struct CourseKeyData {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct CourseMembership {
   pub course_membership_id: i64,
   pub creation_time: i64,
@@ -141,6 +156,7 @@ pub struct CourseMembership {
   pub course_key_key: Option<String>,
 }
 
+#[derive(Clone, Debug)]
 pub struct Session {
   pub session_id: i64,
   pub creation_time: i64,
@@ -148,6 +164,7 @@ pub struct Session {
   pub course_id: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct SessionData {
   pub session_data_id: i64,
   pub creation_time: i64,
@@ -159,6 +176,7 @@ pub struct SessionData {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct SessionRequest {
   pub session_request_id: i64,
   pub creation_time: i64,
@@ -169,6 +187,7 @@ pub struct SessionRequest {
   pub end_time: i64,
 }
 
+#[derive(Clone, Debug)]
 pub struct SessionRequestResponse {
   pub session_request_id: i64,
   pub creation_time: i64,
@@ -177,6 +196,7 @@ pub struct SessionRequestResponse {
   pub commitment_id: Option<i64>,
 }
 
+#[derive(Clone, Debug)]
 pub struct Commitment {
   pub commitment_id: i64,
   pub creation_time: i64,
@@ -186,6 +206,7 @@ pub struct Commitment {
   pub active: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct Encounter {
   pub encounter_id: i64,
   pub creation_time: i64,
@@ -195,14 +216,17 @@ pub struct Encounter {
   pub encounter_kind: EncounterKind,
 }
 
+#[derive(Clone, Debug)]
 pub struct Stay {
   pub stay_id: i64,
   pub creation_time: i64,
   pub creator_user_id: i64,
+  pub location_id: i64,
   pub attendee_user_id: i64,
 }
 
 // left is encounter_id, right is timestamp
+#[derive(Clone, Debug)]
 pub struct StayData {
   pub stay_data_id: i64,
   pub creation_time: i64,

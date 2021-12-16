@@ -166,14 +166,29 @@ pub async fn is_instructor_at(
   user_id: i64,
   location_id: i64,
 ) -> Result<bool, tokio_postgres::Error> {
-  let result = matches!(
-    get_by_user_id_course_id(con, user_id, course_id).await?,
-    Some(CourseMembership {
-      course_membership_kind: request::CourseMembershipKind::Instructor,
-      ..
-    })
-  );
-  Ok(result)
+  let result: i64 = con
+    .query_one(
+      "
+      SELECT count(cm.*)
+      FROM recent_course_membership_v cm
+      JOIN recent_course_data_v cd ON cd.course_id = cm.course_id
+      WHERE 1 = 1
+      AND cm.user_id = $1
+      AND cd.location_id = $2
+      AND cm.course_membership_kind = $3
+      AND cm.active
+      AND cd.active
+      ",
+      &[
+        &user_id,
+        &location_id,
+        &(request::CourseMembershipKind::Instructor as i64),
+      ],
+    )
+    .await?
+    .get(0);
+
+  Ok(result > 0)
 }
 
 pub async fn is_member(

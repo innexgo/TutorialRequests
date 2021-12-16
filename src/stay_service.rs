@@ -11,6 +11,7 @@ impl From<tokio_postgres::row::Row> for Stay {
       creation_time: row.get("creation_time"),
       creator_user_id: row.get("creator_user_id"),
       attendee_user_id: row.get("attendee_user_id"),
+      location_id: row.get("location_id"),
     }
   }
 }
@@ -19,6 +20,7 @@ pub async fn add(
   con: &mut impl GenericClient,
   creator_user_id: i64,
   attendee_user_id: i64,
+  location_id: i64,
 ) -> Result<Stay, tokio_postgres::Error> {
   let creation_time = current_time_millis();
 
@@ -28,12 +30,13 @@ pub async fn add(
        stay_t(
            creation_time,
            creator_user_id,
-           attendee_user_id
+           attendee_user_id,
+           location_id
        )
-       VALUES($1, $2, $3)
+       VALUES($1, $2, $3, $4)
        RETURNING stay_id
       ",
-      &[&creation_time, &creator_user_id, &attendee_user_id],
+      &[&creation_time, &creator_user_id, &attendee_user_id, &location_id],
     ).await?
     .get(0);
 
@@ -42,7 +45,8 @@ pub async fn add(
     stay_id,
     creation_time,
     creator_user_id,
-    attendee_user_id
+    attendee_user_id,
+    location_id
   })
 }
 
@@ -73,6 +77,7 @@ pub async fn query(
         AND ($3::bigint   IS NULL OR sy.creation_time <= $3)
         AND ($4::bigint[] IS NULL OR sy.creator_user_id = ANY($4))
         AND ($5::bigint[] IS NULL OR sy.attendee_user_id = ANY($5))
+        AND ($6::bigint[] IS NULL OR sy.location_id = ANY($6))
         ORDER BY sy.stay_id
       ",
       &[
@@ -81,6 +86,7 @@ pub async fn query(
         &props.max_creation_time,
         &props.creator_user_id,
         &props.attendee_user_id,
+        &props.location_id,
       ],
     ).await?
     .into_iter()

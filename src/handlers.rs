@@ -501,11 +501,17 @@ async fn fill_stay(
   con: &mut tokio_postgres::Client,
   stay: Stay,
 ) -> Result<response::Stay, response::InnexgoHoursError> {
+  let location = location_service::get_by_location_id(con, stay.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::LocationNonexistent)?;
+
   Ok(response::Stay {
     stay_id: stay.stay_id,
     creation_time: stay.creation_time,
     creator_user_id: stay.creator_user_id,
     attendee_user_id: stay.attendee_user_id,
+    location: fill_location(con, location).await?,
   })
 }
 
@@ -581,6 +587,111 @@ pub async fn subscription_new(
   fill_subscription(con, subscription).await
 }
 
+pub async fn location_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::LocationNewProps,
+) -> Result<response::LocationData, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // validate school exists and that key creator is admin
+  let _ = school_service::get_by_school_id(&mut sp, props.school_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::SchoolNonexistent)?;
+
+  if !adminship_service::is_admin(&mut sp, user.user_id, props.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // check that school isn't archived
+  if !school_data_service::is_active_by_school_id(&mut sp, props.school_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::SchoolArchived);
+  }
+
+  // create location
+  let location = location_service::add(&mut sp, user.user_id, props.school_id)
+    .await
+    .map_err(report_postgres_err)?;
+
+  // create location data
+  let location_data = location_data_service::add(
+    &mut sp,
+    user.user_id,
+    location.location_id,
+    props.name,
+    props.address,
+    props.phone,
+    true,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_location_data(con, location_data).await
+}
+
+pub async fn location_data_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::LocationDataNewProps,
+) -> Result<response::LocationData, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // validate location
+  let location = location_service::get_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::LocationNonexistent)?;
+
+  // only let us modify if we are an an instructor at this location or an admin
+  if !course_membership_service::is_instructor_at(&mut sp, user.user_id, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    || !adminship_service::is_admin(&mut sp, user.user_id, location.school_id)
+      .await
+      .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // now we can update data
+  let location_data = location_data_service::add(
+    &mut sp,
+    user.user_id,
+    props.location_id,
+    props.name,
+    props.address,
+    props.phone,
+    props.active,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_location_data(con, location_data).await
+}
+
 pub async fn course_new(
   _config: Config,
   db: Db,
@@ -629,7 +740,7 @@ pub async fn course_new(
   }
 
   // create course
-  let course = course_service::add(&mut sp, props.school_id, user.user_id)
+  let course = course_service::add(&mut sp, user.user_id, props.school_id)
     .await
     .map_err(report_postgres_err)?;
 
@@ -1827,6 +1938,208 @@ pub async fn encounter_new(
 
   // return json
   fill_encounter(con, encounter).await
+}
+
+pub async fn stay_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::StayNewProps,
+) -> Result<response::StayData, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // validate attendee exists
+  let attendee = auth_service
+    .get_user_by_id(props.attendee_user_id)
+    .await
+    .map_err(report_auth_err)?;
+
+  // validate location exists
+  let location = location_service::get_by_location_id(&mut sp, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::LocationNonexistent)?;
+
+  // validate the encounters if they exist, and get the min and max times
+  let fst = match (props.fst_encounter_id, props.fst_time) {
+    (None, None) => return Err(response::InnexgoHoursError::StayProvidedNoTime),
+    (None, Some(time)) => Right(time),
+    (Some(encounter_id), None) => {
+      // validate location exists
+      let encounter = encounter_service::get_by_encounter_id(&mut sp, encounter_id)
+        .await
+        .map_err(report_postgres_err)?
+        .ok_or(response::InnexgoHoursError::EncounterNonexistent)?;
+      // validate encounter  has the required specs
+      if encounter.location_id != props.location_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongLocation);
+      }
+      if encounter.attendee_user_id != props.attendee_user_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongUser);
+      }
+      Left(encounter)
+    }
+    (Some(_), Some(_)) => return Err(response::InnexgoHoursError::StayProvidedDoubleTime),
+  };
+  let snd = match (props.snd_encounter_id, props.snd_time) {
+    (None, None) => return Err(response::InnexgoHoursError::StayProvidedNoTime),
+    (None, Some(time)) => Right(time),
+    (Some(encounter_id), None) => {
+      // validate location exists
+      let encounter = encounter_service::get_by_encounter_id(&mut sp, encounter_id)
+        .await
+        .map_err(report_postgres_err)?
+        .ok_or(response::InnexgoHoursError::EncounterNonexistent)?;
+      // validate encounter  has the required specs
+      if encounter.location_id != props.location_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongLocation);
+      }
+      if encounter.attendee_user_id != props.attendee_user_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongUser);
+      }
+      Left(encounter)
+    }
+    (Some(_), Some(_)) => return Err(response::InnexgoHoursError::StayProvidedDoubleTime),
+  };
+
+  // validate fst time is before snd time
+  let fst_time = fst.clone().map_left(|x| x.creation_time).into_inner();
+  let snd_time = snd.clone().map_left(|x| x.creation_time).into_inner();
+  if fst_time > snd_time {
+    return Err(response::InnexgoHoursError::NegativeDuration);
+  }
+
+  // ensure stay creator is an instructor at the location
+  if !course_membership_service::is_instructor_at(&mut sp, user.user_id, props.location_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // create stay
+  let stay = stay_service::add(
+    &mut sp,
+    user.user_id,
+    props.attendee_user_id,
+    props.location_id,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  // create stay data
+  let stay_data = stay_data_service::add(
+    &mut sp,
+    user.user_id,
+    stay.stay_id,
+    fst.map_left(|x| x.encounter_id),
+    snd.map_left(|x| x.encounter_id),
+    true,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_stay_data(con, stay_data).await
+}
+
+pub async fn stay_data_new(
+  _config: Config,
+  db: Db,
+  auth_service: AuthService,
+  props: request::StayDataNewProps,
+) -> Result<response::StayData, response::InnexgoHoursError> {
+  // validate api key
+  let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
+
+  let con = &mut *db.lock().await;
+  let mut sp = con.transaction().await.map_err(report_postgres_err)?;
+
+  // validate stay exists
+  let stay = stay_service::get_by_stay_id(&mut sp, props.stay_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::StayNonexistent)?;
+
+  // ensure stay creator is an instructor at the location of the original stay
+  if !course_membership_service::is_instructor_at(&mut sp, user.user_id, stay.location_id)
+    .await
+    .map_err(report_postgres_err)?
+  {
+    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
+  }
+
+  // validate the encounters if they exist, and get the min and max times
+  let fst = match (props.fst_encounter_id, props.fst_time) {
+    (None, None) => return Err(response::InnexgoHoursError::StayProvidedNoTime),
+    (None, Some(time)) => Right(time),
+    (Some(encounter_id), None) => {
+      // validate location exists
+      let encounter = encounter_service::get_by_encounter_id(&mut sp, encounter_id)
+        .await
+        .map_err(report_postgres_err)?
+        .ok_or(response::InnexgoHoursError::EncounterNonexistent)?;
+      // validate encounter  has the required specs
+      if encounter.location_id != stay.location_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongLocation);
+      }
+      if encounter.attendee_user_id != stay.attendee_user_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongUser);
+      }
+      Left(encounter)
+    }
+    (Some(_), Some(_)) => return Err(response::InnexgoHoursError::StayProvidedDoubleTime),
+  };
+  let snd = match (props.snd_encounter_id, props.snd_time) {
+    (None, None) => return Err(response::InnexgoHoursError::StayProvidedNoTime),
+    (None, Some(time)) => Right(time),
+    (Some(encounter_id), None) => {
+      // validate location exists
+      let encounter = encounter_service::get_by_encounter_id(&mut sp, encounter_id)
+        .await
+        .map_err(report_postgres_err)?
+        .ok_or(response::InnexgoHoursError::EncounterNonexistent)?;
+      // validate encounter  has the required specs
+      if encounter.location_id != stay.location_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongLocation);
+      }
+      if encounter.attendee_user_id != stay.attendee_user_id {
+        return Err(response::InnexgoHoursError::StayEncounterWrongUser);
+      }
+      Left(encounter)
+    }
+    (Some(_), Some(_)) => return Err(response::InnexgoHoursError::StayProvidedDoubleTime),
+  };
+
+  // validate fst time is before snd time
+  let fst_time = fst.clone().map_left(|x| x.creation_time).into_inner();
+  let snd_time = snd.clone().map_left(|x| x.creation_time).into_inner();
+  if fst_time > snd_time {
+    return Err(response::InnexgoHoursError::NegativeDuration);
+  }
+
+  // create stay data
+  let stay_data = stay_data_service::add(
+    &mut sp,
+    user.user_id,
+    stay.stay_id,
+    fst.map_left(|x| x.encounter_id),
+    snd.map_left(|x| x.encounter_id),
+    props.active,
+  )
+  .await
+  .map_err(report_postgres_err)?;
+
+  sp.commit().await.map_err(report_postgres_err)?;
+
+  // return json
+  fill_stay_data(con, stay_data).await
 }
 
 pub async fn subscription_view(

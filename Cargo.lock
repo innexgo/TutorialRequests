@@ -547,7 +547,7 @@ dependencies = [
 [[package]]
 name = "innexgo-hours-api"
 version = "0.0.1"
-source = "git+https://github.com/innexgo/innexgo-hours-api#039d6e01809649d3b9b47a7a59991ac2146673c9"
+source = "git+https://github.com/innexgo/innexgo-hours-api#da90789d514460b3a9df6368d767a3022f634d8d"
 dependencies = [
  "either",
  "reqwest",

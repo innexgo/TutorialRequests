@@ -355,7 +355,8 @@ create table stay_t(
   stay_id bigserial primary key,
   creation_time bigint not null,
   creator_user_id bigint not null,
-  attendee_user_id bigint not null
+  attendee_user_id bigint not null,
+  location_id bigint not null references location_t(location_id)
 );
 
 -- the time variants are used when the teacher edits the stay data
