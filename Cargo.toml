@@ -7,8 +7,8 @@ edition = "2018"
 
 [dependencies]
 warp = "0.3.2"
-clap = { version = "3.0.0-rc.4", features=["derive"]}
-tokio = { version = "1.14.0", features = ["full"] }
+clap = { version = "3.0.0-rc.5", features = ["derive"] }
+tokio = { version = "1.15.0", features = ["full"] }
 serde = { version = "1.0.131", features = ["derive"] }
 serde_json = "1.0.73"
 mail-service-api = {version = "*", git = "https://github.com/innexgo/mail-service-api", features=["client"]}

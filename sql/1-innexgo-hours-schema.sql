@@ -323,7 +323,7 @@ create view recent_commitment_v as
   select c.* from commitment_t c
   inner join (
    select max(commitment_id) id 
-   from session_data_t 
+   from commitment_t 
    group by session_id, attendee_user_id
   ) maxids
   on maxids.id = c.commitment_id;
@@ -371,8 +371,8 @@ create table stay_data_t(
   fst_time bigint, -- NULLABLE
   snd_encounter_id bigint references encounter_t(encounter_id), -- NULLABLE
   snd_time bigint, -- NULLABLE
-  check (num_nulls(fst_encounter_data_id, fst_time) = 1),
-  check (num_nulls(snd_encounter_data_id, snd_time) = 1),
+  check (num_nulls(fst_encounter_id, fst_time) = 1),
+  check (num_nulls(snd_encounter_id, snd_time) = 1),
   active bool not null
 );
 

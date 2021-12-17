@@ -176,7 +176,6 @@ pub async fn is_instructor_at(
       AND cm.user_id = $1
       AND cd.location_id = $2
       AND cm.course_membership_kind = $3
-      AND cm.active
       AND cd.active
       ",
       &[

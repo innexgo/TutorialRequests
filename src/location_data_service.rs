@@ -121,23 +121,25 @@ pub async fn query(
 ) -> Result<Vec<LocationData>, tokio_postgres::Error> {
   let sql = [
     if props.only_recent {
-      "SELECT sd.* FROM recent_location_data_v sd"
+      "SELECT lod.* FROM recent_location_data_v lod"
     } else {
-      "SELECT sd.* FROM location_data_t sd"
+      "SELECT lod.* FROM location_data_t lod"
     },
+    " JOIN location_t lo ON lod.location_id = lo.location_id",
     " WHERE 1 = 1",
-    " AND ($1::bigint[] IS NULL OR sd.location_data_id = ANY($1))",
-    " AND ($2::bigint   IS NULL OR sd.creation_time >= $2)",
-    " AND ($3::bigint   IS NULL OR sd.creation_time <= $3)",
-    " AND ($4::bigint[] IS NULL OR sd.creator_user_id = ANY($4))",
-    " AND ($5::bigint[] IS NULL OR sd.location_id = ANY($5))",
-    " AND ($6::text[]   IS NULL OR sd.name = ANY($6))",
-    " AND ($7::text     IS NULL OR sd.name LIKE CONCAT('%',$7,'%'))",
-    " AND ($8::text[]   IS NULL OR sd.address = ANY($8))",
-    " AND ($9::text     IS NULL OR sd.address LIKE CONCAT('%',$9,'%'))",
-    " AND ($10::text[]  IS NULL OR sd.phone = ANY($10))",
-    " AND ($11::bool    IS NULL OR sd.active = $11)",
-    " ORDER BY sd.location_data_id",
+    " AND ($1::bigint[]  IS NULL OR lod.location_data_id = ANY($1))",
+    " AND ($2::bigint    IS NULL OR lod.creation_time >= $2)",
+    " AND ($3::bigint    IS NULL OR lod.creation_time <= $3)",
+    " AND ($4::bigint[]  IS NULL OR lod.creator_user_id = ANY($4))",
+    " AND ($5::bigint[]  IS NULL OR lod.location_id = ANY($5))",
+    " AND ($6::text[]    IS NULL OR lod.name = ANY($6))",
+    " AND ($7::text      IS NULL OR lod.name LIKE CONCAT('%',$7,'%'))",
+    " AND ($8::text[]    IS NULL OR lod.address = ANY($8))",
+    " AND ($9::text      IS NULL OR lod.address LIKE CONCAT('%',$9,'%'))",
+    " AND ($10::text[]   IS NULL OR lod.phone = ANY($10))",
+    " AND ($11::bool     IS NULL OR lod.active = $11)",
+    " AND ($12::bigint[] IS NULL OR lo.school_id = ANY($12))",
+    " ORDER BY lod.location_data_id",
   ]
   .join("\n");
 
@@ -158,6 +160,7 @@ pub async fn query(
         &props.partial_address,
         &props.phone,
         &props.active,
+        &props.school_id,
       ],
     )
     .await?

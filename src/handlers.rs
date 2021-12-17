@@ -37,6 +37,7 @@ use super::subscription_service;
 
 use either::*;
 use std::error::Error;
+use tokio_postgres::GenericClient;
 
 use super::Config;
 
@@ -73,7 +74,7 @@ fn report_auth_err(e: AuthError) -> response::InnexgoHoursError {
 }
 
 async fn fill_subscription(
-  _con: &mut tokio_postgres::Client,
+  _con: &mut impl GenericClient,
   subscription: Subscription,
 ) -> Result<response::Subscription, response::InnexgoHoursError> {
   Ok(response::Subscription {
@@ -86,7 +87,7 @@ async fn fill_subscription(
 }
 
 async fn fill_school(
-  _con: &mut tokio_postgres::Client,
+  _con: &mut impl GenericClient,
   school: School,
 ) -> Result<response::School, response::InnexgoHoursError> {
   Ok(response::School {
@@ -98,7 +99,7 @@ async fn fill_school(
 }
 
 async fn fill_school_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   school_data: SchoolData,
 ) -> Result<response::SchoolData, response::InnexgoHoursError> {
   let school = school_service::get_by_school_id(con, school_data.school_id)
@@ -118,7 +119,7 @@ async fn fill_school_data(
 }
 
 async fn fill_school_duration(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   school_duration: SchoolDuration,
 ) -> Result<response::SchoolDuration, response::InnexgoHoursError> {
   let school = school_service::get_by_school_id(con, school_duration.school_id)
@@ -135,7 +136,7 @@ async fn fill_school_duration(
 }
 
 async fn fill_school_duration_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   school_duration_data: SchoolDurationData,
 ) -> Result<response::SchoolDurationData, response::InnexgoHoursError> {
   let school_duration = school_duration_service::get_by_school_duration_id(
@@ -159,7 +160,7 @@ async fn fill_school_duration_data(
 }
 
 async fn fill_school_key(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   school_key: SchoolKey,
 ) -> Result<response::SchoolKey, response::InnexgoHoursError> {
   let school = school_service::get_by_school_id(con, school_key.school_id)
@@ -178,7 +179,7 @@ async fn fill_school_key(
 }
 
 async fn fill_school_key_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   school_key_data: SchoolKeyData,
 ) -> Result<response::SchoolKeyData, response::InnexgoHoursError> {
   let school_key = school_key_service::get_by_school_key_key(con, &school_key_data.school_key_key)
@@ -196,7 +197,7 @@ async fn fill_school_key_data(
 }
 
 async fn fill_adminship(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   adminship: Adminship,
 ) -> Result<response::Adminship, response::InnexgoHoursError> {
   let school_key = match adminship.school_key_key {
@@ -227,7 +228,7 @@ async fn fill_adminship(
 }
 
 async fn fill_location(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   location: Location,
 ) -> Result<response::Location, response::InnexgoHoursError> {
   let school = school_service::get_by_school_id(con, location.school_id)
@@ -244,7 +245,7 @@ async fn fill_location(
 }
 
 async fn fill_location_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   location_data: LocationData,
 ) -> Result<response::LocationData, response::InnexgoHoursError> {
   let location = location_service::get_by_location_id(con, location_data.location_id)
@@ -265,7 +266,7 @@ async fn fill_location_data(
 }
 
 async fn fill_course(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   course: Course,
 ) -> Result<response::Course, response::InnexgoHoursError> {
   let school = school_service::get_by_school_id(con, course.school_id)
@@ -282,7 +283,7 @@ async fn fill_course(
 }
 
 async fn fill_course_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   course_data: CourseData,
 ) -> Result<response::CourseData, response::InnexgoHoursError> {
   let course = course_service::get_by_course_id(con, course_data.course_id)
@@ -290,11 +291,17 @@ async fn fill_course_data(
     .map_err(report_postgres_err)?
     .ok_or(response::InnexgoHoursError::CourseNonexistent)?;
 
+  let location = location_service::get_by_location_id(con, course_data.location_id)
+    .await
+    .map_err(report_postgres_err)?
+    .ok_or(response::InnexgoHoursError::LocationNonexistent)?;
+
   Ok(response::CourseData {
     course_data_id: course_data.course_data_id,
     creation_time: course_data.creation_time,
     creator_user_id: course_data.creator_user_id,
     course: fill_course(con, course).await?,
+    location: fill_location(con, location).await?,
     name: course_data.name,
     description: course_data.description,
     homeroom: course_data.homeroom,
@@ -303,7 +310,7 @@ async fn fill_course_data(
 }
 
 async fn fill_course_key(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   course_key: CourseKey,
 ) -> Result<response::CourseKey, response::InnexgoHoursError> {
   let course = course_service::get_by_course_id(con, course_key.course_id)
@@ -324,7 +331,7 @@ async fn fill_course_key(
 }
 
 async fn fill_course_key_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   course_key_data: CourseKeyData,
 ) -> Result<response::CourseKeyData, response::InnexgoHoursError> {
   let course_key = course_key_service::get_by_course_key_key(con, &course_key_data.course_key_key)
@@ -342,7 +349,7 @@ async fn fill_course_key_data(
 }
 
 async fn fill_course_membership(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   course_membership: CourseMembership,
 ) -> Result<response::CourseMembership, response::InnexgoHoursError> {
   let course = course_service::get_by_course_id(con, course_membership.course_id)
@@ -374,7 +381,7 @@ async fn fill_course_membership(
 }
 
 async fn fill_session(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   session: Session,
 ) -> Result<response::Session, response::InnexgoHoursError> {
   let course = course_service::get_by_course_id(con, session.course_id)
@@ -391,7 +398,7 @@ async fn fill_session(
 }
 
 async fn fill_session_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   session_data: SessionData,
 ) -> Result<response::SessionData, response::InnexgoHoursError> {
   let session = session_service::get_by_session_id(con, session_data.session_id)
@@ -412,7 +419,7 @@ async fn fill_session_data(
 }
 
 async fn fill_session_request(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   session_request: SessionRequest,
 ) -> Result<response::SessionRequest, response::InnexgoHoursError> {
   let course = course_service::get_by_course_id(con, session_request.course_id)
@@ -432,7 +439,7 @@ async fn fill_session_request(
 }
 
 async fn fill_session_request_response(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   session_request_response: SessionRequestResponse,
 ) -> Result<response::SessionRequestResponse, response::InnexgoHoursError> {
   let session_request = session_request_service::get_by_session_request_id(
@@ -465,7 +472,7 @@ async fn fill_session_request_response(
 }
 
 async fn fill_commitment(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   commitment: Commitment,
 ) -> Result<response::Commitment, response::InnexgoHoursError> {
   let session = session_service::get_by_session_id(con, commitment.session_id)
@@ -484,7 +491,7 @@ async fn fill_commitment(
 }
 
 async fn fill_encounter(
-  _con: &mut tokio_postgres::Client,
+  _con: &mut impl GenericClient,
   encounter: Encounter,
 ) -> Result<response::Encounter, response::InnexgoHoursError> {
   Ok(response::Encounter {
@@ -498,7 +505,7 @@ async fn fill_encounter(
 }
 
 async fn fill_stay(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   stay: Stay,
 ) -> Result<response::Stay, response::InnexgoHoursError> {
   let location = location_service::get_by_location_id(con, stay.location_id)
@@ -516,7 +523,7 @@ async fn fill_stay(
 }
 
 async fn fill_stay_data(
-  con: &mut tokio_postgres::Client,
+  con: &mut impl GenericClient,
   stay_data: StayData,
 ) -> Result<response::StayData, response::InnexgoHoursError> {
   let stay = stay_service::get_by_stay_id(con, stay_data.stay_id)
@@ -663,13 +670,17 @@ pub async fn location_data_new(
     .ok_or(response::InnexgoHoursError::LocationNonexistent)?;
 
   // only let us modify if we are an an instructor at this location or an admin
-  if !course_membership_service::is_instructor_at(&mut sp, user.user_id, props.location_id)
-    .await
-    .map_err(report_postgres_err)?
-    || !adminship_service::is_admin(&mut sp, user.user_id, location.school_id)
+
+  let instructor_at =
+    course_membership_service::is_instructor_at(&mut sp, user.user_id, props.location_id)
       .await
-      .map_err(report_postgres_err)?
-  {
+      .map_err(report_postgres_err)?;
+
+  let admin_at = adminship_service::is_admin(&mut sp, user.user_id, location.school_id)
+    .await
+    .map_err(report_postgres_err)?;
+
+  if !(instructor_at || admin_at) {
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
 
@@ -1763,6 +1774,28 @@ pub async fn session_new(
   .await
   .map_err(report_postgres_err)?;
 
+  // create session from provided users automatically
+  for attendee_user_id in props.attendee_user_ids {
+    // ensure attendee is the student of the session's course
+    if !course_membership_service::is_student(&mut sp, attendee_user_id, session.course_id)
+      .await
+      .map_err(report_postgres_err)?
+    {
+      return Err(response::InnexgoHoursError::UserNonexistent);
+    }
+
+    // create a new committment
+    let _ = commitment_service::add(
+      &mut sp,
+      user.user_id,
+      attendee_user_id,
+      session.session_id,
+      true,
+    )
+    .await
+    .map_err(report_postgres_err)?;
+  }
+
   sp.commit().await.map_err(report_postgres_err)?;
 
   // return json
@@ -1823,7 +1856,7 @@ pub async fn commitment_new(
   db: Db,
   auth_service: AuthService,
   props: request::CommitmentNewProps,
-) -> Result<response::Commitment, response::InnexgoHoursError> {
+) -> Result<Vec<response::Commitment>, response::InnexgoHoursError> {
   // validate api key
   let user = get_user_if_api_key_valid(&auth_service, props.api_key).await?;
 
@@ -1844,14 +1877,6 @@ pub async fn commitment_new(
     return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
   }
 
-  // ensure attendee is the student of the session's course
-  if !course_membership_service::is_student(&mut sp, props.attendee_user_id, session.course_id)
-    .await
-    .map_err(report_postgres_err)?
-  {
-    return Err(response::InnexgoHoursError::ApiKeyUnauthorized);
-  }
-
   // check that course isn't archived
   if !course_data_service::is_active_by_course_id(&mut sp, session.course_id)
     .await
@@ -1860,34 +1885,36 @@ pub async fn commitment_new(
     return Err(response::InnexgoHoursError::CourseArchived);
   }
 
-  // ensure commitment doesnt yet exist
-  if commitment_service::get_by_attendee_user_id_session_id(
-    &mut sp,
-    props.attendee_user_id,
-    props.session_id,
-  )
-  .await
-  .map_err(report_postgres_err)?
-  .is_some()
-  {
-    return Err(response::InnexgoHoursError::CommitmentExistent);
-  }
+  let mut commitments_ret = vec![];
 
-  // create commitment
-  let commitment = commitment_service::add(
-    &mut sp,
-    user.user_id,
-    props.attendee_user_id,
-    props.session_id,
-    props.active,
-  )
-  .await
-  .map_err(report_postgres_err)?;
+  // create session from provided users automatically
+  for attendee_user_id in props.attendee_user_ids {
+    // ensure attendee is the student of the session's course
+    if !course_membership_service::is_student(&mut sp, attendee_user_id, session.course_id)
+      .await
+      .map_err(report_postgres_err)?
+    {
+      return Err(response::InnexgoHoursError::UserNonexistent);
+    }
+
+    // create a new committment
+    let commitment = commitment_service::add(
+      &mut sp,
+      user.user_id,
+      attendee_user_id,
+      session.session_id,
+      props.active,
+    )
+    .await
+    .map_err(report_postgres_err)?;
+
+    // push json ready version
+    commitments_ret.push(fill_commitment(&mut sp, commitment).await?);
+  }
 
   sp.commit().await.map_err(report_postgres_err)?;
 
-  // return json
-  fill_commitment(con, commitment).await
+  Ok(commitments_ret)
 }
 
 pub async fn encounter_new(
