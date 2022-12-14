@@ -338,6 +338,7 @@ create table session_request_response_t(
   commitment_id bigint references commitment_t(commitment_id) -- NULLABLE
 );
 
+
 drop table if exists encounter_t cascade;
 create table encounter_t(
   encounter_id bigserial primary key,

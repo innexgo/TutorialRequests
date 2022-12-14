@@ -27,7 +27,7 @@ pub fn api(
   config: Config,
   db: Db,
   auth_service: AuthService,
-) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
+) -> impl Filter<Extract = (impl warp::Reply,), Error = Infallible> + Clone {
   // public API
   api_info()
     .or(combine!(
@@ -371,7 +371,7 @@ pub fn api(
     .recover(handle_rejection)
 }
 
-fn api_info() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+fn api_info() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
   let mut info = HashMap::new();
   info.insert("version", "0.1");
   info.insert("name", SERVICE_NAME);
@@ -405,7 +405,7 @@ where
         .await
         .map_err(innexgo_hours_error)
     })
-    .map(|x| warp::reply::json(&Ok::<_, ()>(x)))
+    .map(|x| warp::reply::json(&x))
 }
 
 // This function receives a `Rejection` and tries to return a custom
@@ -440,10 +440,7 @@ async fn handle_rejection(err: warp::Rejection) -> Result<impl warp::Reply, Infa
     message = InnexgoHoursError::Unknown;
   }
 
-  Ok(warp::reply::with_status(
-    warp::reply::json(&Err::<(), _>(message)),
-    code,
-  ))
+  Ok(warp::reply::with_status(warp::reply::json(&message), code))
 }
 
 // This type represents errors that we can generate
